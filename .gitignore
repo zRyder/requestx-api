@@ -1,0 +1,9 @@
+/target
+.env
+Rocket.toml
+.idea
+/migrations
+*.iml
+Cargo.lock
+diesel.toml
+*.DS_Store
