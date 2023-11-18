@@ -2,8 +2,7 @@
 .env
 Rocket.toml
 .idea
-/migrations
+/migration
 *.iml
 Cargo.lock
-diesel.toml
 *.DS_Store

@@ -1,25 +1,39 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket as rocket_framework;
 
-pub mod model;
-pub mod routes;
-pub mod utilities;
+mod adapter;
+mod domain;
 pub mod tests;
+pub mod utilities;
 
-use sqlx::mysql::MySqlPoolOptions;
+mod rocket;
+
+use crate::{
+	adapter::mysql::level_request_repository::LevelRequestRepository,
+	domain::service::request_service::RequestService,
+	rocket::common::config::common_config::AppConfig
+};
 
 #[launch]
 async fn launch() -> _ {
-    dotenv::dotenv().ok();
+	dotenv::dotenv().ok();
+	let rocket = rocket_framework::build();
+	let figment = rocket.figment();
 
-    let pool = MySqlPoolOptions::new()
-        .max_connections(125)
-        .connect("mysql://root:Rayuwwe6@localhost:3306/requestxtest?useSSL=false&serverTimezone=UTC")
-        .await
-        .ok()
-        .unwrap();
+	let app_config: AppConfig = figment.extract().expect("Some");
+	println!("{:?}", app_config);
+	let db_conn = match app_config
+		.mysql_database_config
+		.configure_mysql_database()
+		.await
+	{
+		Ok(conn) => conn,
+		Err(err) => {
+			panic!("{}", err)
+		}
+	};
 
-    rocket::build()
-        // .attach(DBConnection::init())
-        .manage(pool)
-        .mount("/api/v1/users", routes![routes::users::create_user, routes::users::login])
+	rocket.manage(db_conn)
+	// .mount("/api/v1",
+	// routes![adapter::controller::level_request_controller::request_level])
 }

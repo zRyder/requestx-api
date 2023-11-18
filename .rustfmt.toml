@@ -1,0 +1,10 @@
+imports_granularity = "crate"
+fn_single_line = true
+hard_tabs = true
+normalize_comments = true
+normalize_doc_attributes = true
+reorder_impl_items = true
+group_imports = "StdExternalCrate"
+trailing_comma = "Never"
+use_field_init_shorthand = true
+wrap_comments = true
