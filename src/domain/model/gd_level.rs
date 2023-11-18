@@ -54,17 +54,17 @@ impl From<&ListedLevel<'_>> for GDLevel {
 			level_id: listed_level.level_id.clone(),
 			name: listed_level.name.to_string(),
 			creator: LevelCreator {
-				name: listed_level.creator.clone().unwrap().name.to_string(),
+				name: listed_level.creator.as_ref().unwrap().name.to_string(),
 				account_id: listed_level
 					.creator
-					.clone()
+					.as_ref()
 					.unwrap()
 					.account_id
 					.unwrap_or_default(),
-				player_id: listed_level.creator.clone().unwrap().user_id
+				player_id: listed_level.creator.as_ref().unwrap().user_id
 			},
 			description: match &listed_level.description {
-				Some(desc) => Some(desc.clone().into_processed().unwrap().0.to_string()),
+				Some(desc) => Some(desc.to_owned().into_processed().unwrap().0.to_string()),
 				None => None
 			}
 		}
