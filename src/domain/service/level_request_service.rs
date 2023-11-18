@@ -1,19 +1,19 @@
 use crate::{
 	adapter::mysql::level_request_repository::LevelRequestRepository,
 	domain::{
-		model::{error::level_request_error::LevelRequestError, gd_level::GDLevel},
+		model::{error::level_request_error::LevelRequestError, gd_level::GDLevelRequest},
 		service::request_service::RequestService
 	}
 };
 
 pub struct LevelRequestService<R: LevelRequestRepository> {
-	pub level: GDLevel,
+	pub level: GDLevelRequest,
 	pub repository: R
 }
 
 impl<R: LevelRequestRepository> RequestService for LevelRequestService<R> {
 	async fn request(self) -> Result<(), LevelRequestError> {
-		let request_level_result = self.repository.get_record(self.level.level_id).await;
+		let request_level_result = self.repository.get_record(self.level.level.level_id).await;
 		match request_level_result {
 			Ok(some_request) => {
 				if some_request.is_some() {
@@ -47,7 +47,9 @@ mod tests {
 		domain::{
 			model::{
 				error::level_request_error::LevelRequestError::LevelRequestExists,
-				gd_level::GDLevel, level_creator::LevelCreator, request_rating::RequestRating
+				gd_level::{GDLevel, GDLevelRequest},
+				level_creator::LevelCreator,
+				request_rating::RequestRating
 			},
 			service::{
 				level_request_service::LevelRequestService, request_service::RequestService
@@ -126,16 +128,18 @@ mod tests {
 		player_id: u64,
 		description: Option<String>,
 		request_rating: RequestRating
-	) -> GDLevel {
-		GDLevel {
-			level_id,
-			name,
-			creator: LevelCreator {
-				name: creator_name,
-				account_id,
-				player_id
+	) -> GDLevelRequest {
+		GDLevelRequest {
+			level: GDLevel {
+				level_id,
+				name,
+				creator: LevelCreator {
+					name: creator_name,
+					account_id,
+					player_id
+				},
+				description
 			},
-			description,
 			request_rating
 		}
 	}
