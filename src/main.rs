@@ -3,8 +3,6 @@ extern crate rocket as rocket_framework;
 
 mod adapter;
 mod domain;
-pub mod tests;
-pub mod utilities;
 
 mod rocket;
 

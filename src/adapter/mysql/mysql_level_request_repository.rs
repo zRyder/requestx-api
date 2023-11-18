@@ -37,9 +37,7 @@ impl<'a> MySqlLevelRequestRepository<'a> {
 #[cfg(test)]
 mod tests {
 	use rocket::tokio;
-	use sea_orm::{
-		ActiveModelTrait, ActiveValue, DatabaseBackend, MockDatabase, MockExecResult
-	};
+	use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseBackend, MockDatabase, MockExecResult};
 
 	use crate::adapter::mysql::{
 		level_request_repository::LevelRequestRepository,
