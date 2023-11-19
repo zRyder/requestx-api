@@ -1,7 +1,6 @@
-use config::{Config, ConfigError};
 use serde_derive::Deserialize;
 
-use crate::rocket::common::config::mysql_database_config::MySqlDatabaseConfig;
+use crate::rocket::common::config::mysql::mysql_database_config::MySqlDatabaseConfig;
 
 #[derive(Debug, Deserialize)]
 #[serde(crate = "rocket::serde")]

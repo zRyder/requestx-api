@@ -3,9 +3,9 @@ use rocket::serde::Deserialize;
 use crate::domain::model::api::request_rating;
 
 #[derive(Deserialize)]
-pub struct LevelRequestApiRequest {
-	level_id: u64,
-	youtube_vidoe_link: String,
-	discord_id: String,
-	request_rating: request_rating::RequestRating
+pub struct LevelRequestApiRequest<'a> {
+	pub level_id: u64,
+	pub youtube_video_link: &'a str,
+	pub discord_id: &'a str,
+	pub request_rating: request_rating::RequestRating
 }

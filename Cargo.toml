@@ -25,6 +25,7 @@ sea-orm = { version = "0.12.5", features = [ "sqlx-mysql", "runtime-async-std-na
 config = "0.13.3"
 serde = { version = "1.0.192", features = ["derive"] }
 serde_derive = "1.0.192"
+log4rs = { version = "1.2.0", features = ["rolling_file_appender", "console_appender", "compound_policy", "delete_roller"] }
 
 [dependencies.rocket_db_pools]
 version = "0.1.0-rc.4"

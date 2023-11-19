@@ -22,21 +22,21 @@ impl MySqlDatabaseConfig {
 
 		match db_conn_result {
 			Ok(db_conn) => {
-				let create_table_result = db_conn
+				let create_database_result = db_conn
 					.execute(Statement::from_string(
 						db_conn.get_database_backend(),
 						format!("CREATE DATABASE IF NOT EXISTS `{}`;", &self.name)
 					))
 					.await;
-				if let Err(err) = create_table_result {
-					println!("Couldn't create table {}", err);
+				if let Err(err) = create_database_result {
+					error!("Unable to create database {}", err);
 					Err(err)
 				} else {
 					Database::connect(format!("{}/{}", &url, &self.name)).await
 				}
 			}
 			Err(err) => {
-				println!("Don't start app {}", err);
+				error!("Unable to connect to database during initialization{}", err);
 				Err(err)
 			}
 		}

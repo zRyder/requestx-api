@@ -1,10 +1,8 @@
-use mockall::automock;
 use sea_orm::{DbErr, DeleteResult, InsertResult};
 
 use crate::adapter::mysql::model::{level_request, level_request::ActiveModel};
 
-#[automock]
-#[async_trait]
+#[cfg_attr(test, mockall::automock)]
 pub trait LevelRequestRepository {
 	async fn create_record(self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr>;
 

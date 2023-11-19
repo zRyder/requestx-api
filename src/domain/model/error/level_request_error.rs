@@ -6,10 +6,13 @@ use std::{
 
 use sea_orm::DbErr;
 
+use crate::domain::model::error::geometry_dash_dashrs_error::GeometryDashDashrsError;
+
 #[derive(Debug, PartialEq)]
 pub enum LevelRequestError {
 	DatabaseError(DbErr),
-	LevelRequestExists
+	LevelRequestExists,
+	GeometryDashClientError(u64, GeometryDashDashrsError)
 }
 
 impl Display for LevelRequestError {
@@ -24,6 +27,13 @@ impl Display for LevelRequestError {
 			}
 			LevelRequestError::LevelRequestExists => {
 				write!(f, "Unable to create level request due to conflict: Level has already been requested ")
+			}
+			LevelRequestError::GeometryDashClientError(level_id, client_error) => {
+				write!(
+					f,
+					"Unable to get Geometry Dash level info for level {}: {}",
+					level_id, client_error
+				)
 			}
 		}
 	}

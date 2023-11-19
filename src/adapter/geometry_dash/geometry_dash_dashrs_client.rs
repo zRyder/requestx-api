@@ -1,4 +1,4 @@
-use dash_rs::{request::level::LevelRequest, response::parse_get_gj_levels_response};
+use dash_rs::{request::level::LevelsRequest, response::parse_get_gj_levels_response};
 use reqwest::{
 	header::{HeaderMap, HeaderValue},
 	Client
@@ -22,8 +22,10 @@ pub struct GeometryDashDashrsClient {
 
 impl GeometryDashClient for GeometryDashDashrsClient {
 	async fn get_gd_level_info(self, level_id: u64) -> Result<GDLevel, GeometryDashDashrsError> {
-		let get_level_info_request = LevelRequest::new(level_id);
+		let level_id_str = &level_id.to_string();
+		let get_level_info_request = LevelsRequest::default().search(level_id_str);
 
+		debug!("Calling Geometry Dash servers for level {}", level_id);
 		let raw_response_result = self
 			.client
 			.post(get_level_info_request.to_url())
@@ -37,14 +39,29 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 
 				let gd_level_info_result = parse_get_gj_levels_response(&parsed_response);
 				match gd_level_info_result {
-					Ok(gd_level_info) => match gd_level_info.first() {
-						Some(matched_level) => Ok(GDLevel::from(matched_level)),
-						None => Err(LevelNotFoundError(level_id))
-					},
-					Err(dashrs_error) => Err(DashrsError(dashrs_error.to_string()))
+					Ok(gd_level_info) => {
+						debug!(
+							"Successfully called Geometry Dash servers for level {}",
+							level_id
+						);
+						match gd_level_info.first() {
+							Some(matched_level) => Ok(GDLevel::from(matched_level)),
+							None => Err(LevelNotFoundError(level_id))
+						}
+					}
+					Err(dashrs_error) => {
+						error!(
+							"Error parsing response from Geometry Dash servers: {}",
+							dashrs_error
+						);
+						Err(DashrsError(dashrs_error.to_string()))
+					}
 				}
 			}
-			Err(request_err) => Err(HttpError(request_err))
+			Err(request_err) => {
+				error!("Error calling Geometry Dash servers: {}", request_err);
+				Err(HttpError(request_err))
+			}
 		}
 	}
 }

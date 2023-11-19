@@ -11,3 +11,12 @@ services:
       - "8082"
     ports:
       - "8082:3306/tcp"
+
+  migrations:
+    image: rust:latest
+    build:
+      dockerfile: Dockerfile
+    links:
+      - mysql
+    depends_on:
+      - mysql

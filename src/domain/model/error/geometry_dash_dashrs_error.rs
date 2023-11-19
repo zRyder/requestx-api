@@ -1,7 +1,7 @@
 use std::{
 	error::Error,
 	fmt,
-	fmt::{write, Debug, Display, Formatter}
+	fmt::{Debug, Display, Formatter}
 };
 
 #[derive(Debug)]
@@ -37,3 +37,14 @@ impl Display for GeometryDashDashrsError {
 }
 
 impl Error for GeometryDashDashrsError {}
+
+impl PartialEq for GeometryDashDashrsError {
+	fn eq(&self, other: &Self) -> bool {
+		match (self, other) {
+			(Self::HttpError(_), Self::HttpError(_)) => true,
+			(Self::DashrsError(s1), Self::DashrsError(s2)) => s1 == s2,
+			(Self::LevelNotFoundError(n1), Self::LevelNotFoundError(n2)) => n1 == n2,
+			_ => false
+		}
+	}
+}

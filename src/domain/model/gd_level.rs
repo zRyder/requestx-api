@@ -8,7 +8,7 @@ use crate::{
 
 #[derive(Clone)]
 pub struct GDLevelRequest {
-	pub level: GDLevel,
+	pub gd_level: GDLevel,
 	pub request_rating: RequestRating
 }
 
@@ -23,13 +23,13 @@ pub struct GDLevel {
 impl Into<level_request::ActiveModel> for GDLevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		level_request::ActiveModel {
-			id: ActiveValue::Set(self.level.level_id),
-			name: ActiveValue::Set(self.level.name),
-			description: match self.level.description {
+			id: ActiveValue::Set(self.gd_level.level_id),
+			name: ActiveValue::Set(self.gd_level.name),
+			description: match self.gd_level.description {
 				Some(desc) => ActiveValue::Set(Some(desc)),
 				None => ActiveValue::Set(None)
 			},
-			author: ActiveValue::Set(self.level.creator.name),
+			author: ActiveValue::Set(self.gd_level.creator.name),
 			request_rating: ActiveValue::Set(self.request_rating.into())
 		}
 	}

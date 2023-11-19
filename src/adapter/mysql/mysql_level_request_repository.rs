@@ -11,7 +11,6 @@ pub struct MySqlLevelRequestRepository<'a> {
 	db_conn: &'a DatabaseConnection
 }
 
-#[async_trait]
 impl<'a> LevelRequestRepository for MySqlLevelRequestRepository<'a> {
 	async fn create_record(self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr> {
 		LevelRequest::insert(record).exec(self.db_conn).await
