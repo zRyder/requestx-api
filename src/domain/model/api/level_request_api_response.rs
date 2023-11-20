@@ -34,15 +34,15 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 	fn respond_to(self, request: &'r Request<'_>) -> response::Result<'r> {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
-		let response = response
+		response
 			.raw_header("date", format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
 			LevelRequestApiResponseError::LevelRequestExists => {
-				let response = response.status(Status::Conflict);
+				response.status(Status::Conflict);
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
-				let response = response.status(Status::InternalServerError);
+				response.status(Status::InternalServerError);
 			}
 		}
 
