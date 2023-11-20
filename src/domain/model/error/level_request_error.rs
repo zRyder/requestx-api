@@ -1,12 +1,15 @@
 use std::{
 	error::Error,
 	fmt,
-	fmt::{write, Debug, Display, Formatter}
+	fmt::{Debug, Display, Formatter}
 };
 
 use sea_orm::DbErr;
 
-use crate::domain::model::error::geometry_dash_dashrs_error::GeometryDashDashrsError;
+use crate::domain::model::{
+	api::level_request_api_response::LevelRequestApiResponseError,
+	error::geometry_dash_dashrs_error::GeometryDashDashrsError
+};
 
 #[derive(Debug, PartialEq)]
 pub enum LevelRequestError {
@@ -40,3 +43,17 @@ impl Display for LevelRequestError {
 }
 
 impl Error for LevelRequestError {}
+
+impl Into<LevelRequestApiResponseError> for LevelRequestError {
+	fn into(self) -> LevelRequestApiResponseError {
+		match self {
+			LevelRequestError::DatabaseError(_) => LevelRequestApiResponseError::LevelRequestError,
+			LevelRequestError::LevelRequestExists => {
+				LevelRequestApiResponseError::LevelRequestExists
+			}
+			LevelRequestError::GeometryDashClientError(_, _) => {
+				LevelRequestApiResponseError::LevelRequestError
+			}
+		}
+	}
+}

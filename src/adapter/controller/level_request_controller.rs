@@ -1,4 +1,4 @@
-use rocket_framework::{http::Status, serde::json::Json, State};
+use rocket_framework::{serde::json::Json, State};
 use sea_orm::DatabaseConnection;
 
 use crate::{
@@ -7,12 +7,9 @@ use crate::{
 		mysql::mysql_level_request_repository::MySqlLevelRequestRepository
 	},
 	domain::{
-		model::{
-			api::{
-				level_request_api_request::LevelRequestApiRequest,
-				level_request_api_response::LevelRequestApiResponse
-			},
-			error::level_request_error::LevelRequestError
+		model::api::{
+			level_request_api_request::LevelRequestApiRequest,
+			level_request_api_response::{LevelRequestApiResponse, LevelRequestApiResponseError}
 		},
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}
@@ -22,7 +19,7 @@ use crate::{
 pub async fn request_level(
 	db_conn: &State<DatabaseConnection>,
 	level_request_body: Json<LevelRequestApiRequest<'_>>
-) -> LevelRequestApiResponse {
+) -> Result<LevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
 	let gd_client = GeometryDashDashrsClient::new();
 
@@ -37,29 +34,7 @@ pub async fn request_level(
 		)
 		.await
 	{
-		Ok(()) => LevelRequestApiResponse {
-			json: Json("Created".to_string()),
-			status: Status::Created
-		},
-		Err(level_request_error) => handle_level_request_error(level_request_error)
-	}
-}
-
-fn handle_level_request_error(level_request_error: LevelRequestError) -> LevelRequestApiResponse {
-	match level_request_error {
-		LevelRequestError::DatabaseError(_db_error) => LevelRequestApiResponse {
-			json: Json("Internal Server Error (Database)".to_string()),
-			status: Status::InternalServerError
-		},
-		LevelRequestError::LevelRequestExists => LevelRequestApiResponse {
-			json: Json("Level has already been requested".to_string()),
-			status: Status::Conflict
-		},
-		LevelRequestError::GeometryDashClientError(_level_id, _inner_error) => {
-			LevelRequestApiResponse {
-				json: Json("Internal Server Error (Geometry Dash)".to_string()),
-				status: Status::InternalServerError
-			}
-		}
+		Ok(()) => Ok(LevelRequestApiResponse {}),
+		Err(level_request_error) => Err(level_request_error.into())
 	}
 }
