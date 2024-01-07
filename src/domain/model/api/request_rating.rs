@@ -4,23 +4,31 @@ use crate::domain::model::request_rating;
 
 #[derive(Deserialize, Clone, Copy)]
 pub enum RequestRating {
-	Easy,
-	Normal,
-	Hard,
-	Harder,
-	Insane,
-	Demon
+	One,
+	Two,
+	Three,
+	Four,
+	Five,
+	Six,
+	Seven,
+	Eight,
+	Nine,
+	Ten
 }
 
 impl Into<request_rating::RequestRating> for RequestRating {
 	fn into(self) -> request_rating::RequestRating {
 		match self {
-			RequestRating::Easy => request_rating::RequestRating::Easy,
-			RequestRating::Normal => request_rating::RequestRating::Normal,
-			RequestRating::Hard => request_rating::RequestRating::Hard,
-			RequestRating::Harder => request_rating::RequestRating::Harder,
-			RequestRating::Insane => request_rating::RequestRating::Insane,
-			RequestRating::Demon => request_rating::RequestRating::Demon
+			RequestRating::One => request_rating::RequestRating::One,
+			RequestRating::Two => request_rating::RequestRating::Two,
+			RequestRating::Three => request_rating::RequestRating::Three,
+			RequestRating::Four => request_rating::RequestRating::Four,
+			RequestRating::Five => request_rating::RequestRating::Five,
+			RequestRating::Six => request_rating::RequestRating::Six,
+			RequestRating::Seven => request_rating::RequestRating::Seven,
+			RequestRating::Eight => request_rating::RequestRating::Eight,
+			RequestRating::Nine => request_rating::RequestRating::Nine,
+			RequestRating::Ten => request_rating::RequestRating::Ten
 		}
 	}
 }

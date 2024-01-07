@@ -55,10 +55,12 @@ mod tests {
 
 		let level_request_storable = setup_helper_record(
 			99999999,
+			99999999,
 			"Level Name".to_string(),
 			Some("Level Description".to_string()),
 			"Level Creator".to_string(),
-			RequestRating::Easy
+			RequestRating::Two,
+			None
 		);
 
 		let repository = MySqlLevelRequestRepository { db_conn: &db };
@@ -77,17 +79,21 @@ mod tests {
 	async fn test_update_level_record_should_update_properly() {
 		let initial_result = level_request::Model {
 			id: 99999999,
+			discord_id: 0,
 			name: "Level Name".to_string(),
 			description: Some("Level Description".to_string()),
 			author: "Level Creator".to_string(),
-			request_rating: RequestRating::Easy
+			request_rating: RequestRating::Two,
+			you_tube_video_link: None,
 		};
 		let updated_result = level_request::Model {
 			id: 99999999,
+			discord_id: 0,
 			name: "Level Name".to_string(),
 			description: Some("New Level Description".to_string()),
 			author: "New Level Creator".to_string(),
-			request_rating: RequestRating::Easy
+			request_rating: RequestRating::Two,
+			you_tube_video_link: None,
 		};
 
 		let db = MockDatabase::new(DatabaseBackend::MySql)
@@ -106,10 +112,12 @@ mod tests {
 
 		let initial_record = setup_helper_record(
 			99999999,
+			99999999,
 			"Level Name".to_string(),
 			Some("Level Description".to_string()),
 			"Level Creator".to_string(),
-			RequestRating::Easy
+			RequestRating::Two,
+			None
 		);
 
 		initial_record
@@ -119,10 +127,12 @@ mod tests {
 
 		let level_request_storable = setup_helper_record(
 			99999999,
+			99999999,
 			"New Level Name".to_string(),
 			Some("New Level Description".to_string()),
 			"New Level Creator".to_string(),
-			RequestRating::Hard
+			RequestRating::Four,
+			None
 		);
 
 		let repository = MySqlLevelRequestRepository { db_conn: &db };
@@ -142,10 +152,12 @@ mod tests {
 	async fn test_delete_level_record_should_delete_properly() {
 		let initial_result = level_request::Model {
 			id: 99999999,
+			discord_id: 0,
 			name: "Level Name".to_string(),
 			description: Some("Level Description".to_string()),
 			author: "Level Creator".to_string(),
-			request_rating: RequestRating::Easy
+			request_rating: RequestRating::Two,
+			you_tube_video_link: None,
 		};
 
 		let db = MockDatabase::new(DatabaseBackend::MySql)
@@ -164,10 +176,12 @@ mod tests {
 
 		let initial_record = setup_helper_record(
 			99999999,
+			99999999,
 			"Level Name".to_string(),
 			Some("Level Description".to_string()),
 			"Level Creator".to_string(),
-			RequestRating::Easy
+			RequestRating::Two,
+			None
 		);
 
 		initial_record
@@ -177,10 +191,12 @@ mod tests {
 
 		let level_request_storable = setup_helper_record(
 			99999999,
+			99999999,
 			"Level Name".to_string(),
 			Some("Level Description".to_string()),
 			"Level Creator".to_string(),
-			RequestRating::Easy
+			RequestRating::Two,
+			None
 		);
 
 		let repository = MySqlLevelRequestRepository { db_conn: &db };
@@ -198,17 +214,21 @@ mod tests {
 
 	fn setup_helper_record(
 		id: u64,
+		discord_id: u64,
 		name: String,
 		description: Option<String>,
 		author: String,
-		request_rating: RequestRating
+		request_rating: RequestRating,
+		you_tube_video_link: Option<String>,
 	) -> level_request::ActiveModel {
 		level_request::ActiveModel {
 			id: ActiveValue::Set(id),
+			discord_id: ActiveValue::Set(discord_id),
 			name: ActiveValue::Set(name),
 			description: ActiveValue::Set(description),
 			author: ActiveValue::Set(author),
-			request_rating: ActiveValue::Set(request_rating)
+			request_rating: ActiveValue::Set(request_rating),
+			you_tube_video_link: ActiveValue::Set(you_tube_video_link),
 		}
 	}
 }

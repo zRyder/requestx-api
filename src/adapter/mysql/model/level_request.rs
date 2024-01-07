@@ -9,13 +9,28 @@ use super::sea_orm_active_enums::RequestRating;
 pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
 	pub id: u64,
+	pub discord_id: u64,
 	pub name: String,
 	pub description: Option<String>,
 	pub author: String,
-	pub request_rating: RequestRating
+	pub request_rating: RequestRating,
+	pub you_tube_video_link: Option<String>
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+	#[sea_orm(
+		belongs_to = "super::user::Entity",
+		from = "Column::DiscordId",
+		to = "super::user::Column::DiscordId",
+		on_update = "NoAction",
+		on_delete = "NoAction"
+	)]
+	User
+}
+
+impl Related<super::user::Entity> for Entity {
+	fn to() -> RelationDef { Relation::User.def() }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
