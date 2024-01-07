@@ -12,11 +12,17 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
 	#[sea_orm(has_many = "super::level_request::Entity")]
-	LevelRequest
+	LevelRequest,
+	#[sea_orm(has_many = "super::review::Entity")]
+	Review
 }
 
 impl Related<super::level_request::Entity> for Entity {
 	fn to() -> RelationDef { Relation::LevelRequest.def() }
+}
+
+impl Related<super::review::Entity> for Entity {
+	fn to() -> RelationDef { Relation::Review.def() }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

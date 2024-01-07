@@ -3,5 +3,6 @@
 pub mod prelude;
 
 pub mod level_request;
+pub mod review;
 pub mod sea_orm_active_enums;
 pub mod user;
