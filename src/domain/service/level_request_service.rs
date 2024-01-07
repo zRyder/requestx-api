@@ -11,20 +11,23 @@ use crate::{
 		service::request_service::RequestService
 	}
 };
+use crate::adapter::mysql::user_repository::UserRepository;
+use crate::domain::model::user::User;
 
-pub struct LevelRequestService<R: LevelRequestRepository, G: GeometryDashClient> {
-	level_request_repository: R,
+pub struct LevelRequestService<L: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> {
+	level_request_repository: L,
+	user_repository: U,
 	gd_client: G
 }
 
-impl<R: LevelRequestRepository, G: GeometryDashClient> RequestService
-	for LevelRequestService<R, G>
+impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> RequestService
+	for LevelRequestService<R, U, G>
 {
-	async fn request<'a>(
+	async fn request(
 		self,
 		level_id: u64,
-		youtube_video_link: &'a str,
-		discord_id: &'a str,
+		youtube_video_link: Option<String>,
+		discord_id: u64,
 		request_rating: RequestRating
 	) -> Result<(), LevelRequestError> {
 		let gd_level_result = self.gd_client.get_gd_level_info(level_id).await;
@@ -33,7 +36,11 @@ impl<R: LevelRequestRepository, G: GeometryDashClient> RequestService
 			Ok(gd_level) => {
 				let gd_level_request = GDLevelRequest {
 					gd_level,
-					request_rating
+					discord_user: User {
+						discord_id,
+					},
+					request_rating,
+					youtube_video_link,
 				};
 
 				let request_level_result = self
@@ -45,16 +52,35 @@ impl<R: LevelRequestRepository, G: GeometryDashClient> RequestService
 						if some_request.is_some() {
 							Err(LevelRequestError::LevelRequestExists)
 						} else {
-							let level_request_storable = gd_level_request.into();
-							if let Err(insert_err) = self
-								.level_request_repository
-								.create_record(level_request_storable)
-								.await
-							{
-								error!("Unable to save level request for {} to database", level_id);
-								Err(LevelRequestError::DatabaseError(insert_err))
-							} else {
-								Ok(())
+							match self.user_repository.get_record(gd_level_request.discord_user.discord_id).await {
+								Ok(potential_user) => {
+									if potential_user.is_none() {
+										let user_storable = gd_level_request.discord_user.into();
+										if let Err(user_insert_error) = self.user_repository.create_record(user_storable).await {
+											error!("Unable to save Discord user {} to database: {}", gd_level_request.discord_user.discord_id, user_insert_error);
+											return Err(LevelRequestError::DatabaseError(user_insert_error));
+										}
+									}
+									let level_request_storable = gd_level_request.into();
+									if let Err(level_insert_error) = self
+										.level_request_repository
+										.create_record(level_request_storable)
+										.await
+									{
+										error!("Unable to save level request for {} to database: {}", level_id, level_insert_error);
+										Err(LevelRequestError::DatabaseError(level_insert_error))
+									} else {
+										Ok(())
+									}
+								}
+								Err(err) => {
+									error!(
+									"Error getting Discord user: {} record from database: {}",
+									gd_level_request.discord_user.discord_id,
+									err
+								);
+									Err(LevelRequestError::DatabaseError(err))
+								}
 							}
 						}
 					}
@@ -77,10 +103,11 @@ impl<R: LevelRequestRepository, G: GeometryDashClient> RequestService
 	}
 }
 
-impl<R: LevelRequestRepository, G: GeometryDashClient> LevelRequestService<R, G> {
-	pub fn new(level_request_repository: R, gd_client: G) -> Self {
+impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> LevelRequestService<R, U, G> {
+	pub fn new(level_request_repository: R, user_repository: U, gd_client: G) -> Self {
 		LevelRequestService {
 			level_request_repository,
+			user_repository,
 			gd_client
 		}
 	}
@@ -111,16 +138,20 @@ mod tests {
 			}
 		}
 	};
+	use crate::adapter::mysql::user_repository::MockUserRepository;
+	use crate::domain::model::user::User;
 
 	#[tokio::test]
 	async fn test_request_service_should_return_ok() {
-		let mut mock_repository = MockLevelRequestRepository::new();
+
+		let mut mock_level_request_repository = MockLevelRequestRepository::new();
+		let mut mock_user_repository = MockUserRepository::new();
 		let mut mock_gd_client = MockGeometryDashClient::new();
 
-		mock_repository
+		mock_level_request_repository
 			.expect_get_record()
 			.return_once(move |_| Ok(None));
-		mock_repository
+		mock_level_request_repository
 			.expect_create_record()
 			.return_once(move |_| {
 				Ok(InsertResult {
@@ -144,25 +175,29 @@ mod tests {
 			});
 
 		let service = LevelRequestService {
-			level_request_repository: mock_repository,
+			level_request_repository: mock_level_request_repository,
+			user_repository: mock_user_repository,
 			gd_client: mock_gd_client
 		};
 
-		assert_ok!(service.request(99999999, "", "", RequestRating::Easy).await);
+		assert_ok!(service.request(99999999, None, 99999999, RequestRating::Two).await);
 	}
 
 	#[tokio::test]
 	async fn test_request_service_should_return_error_when_request_already_exists() {
-		let mut mock_repository = MockLevelRequestRepository::new();
+		let mut mock_level_request_repository = MockLevelRequestRepository::new();
+		let mut mock_user_repository = MockUserRepository::new();
 		let mut mock_gd_client = MockGeometryDashClient::new();
 
-		mock_repository.expect_get_record().return_once(move |_| {
+		mock_level_request_repository.expect_get_record().return_once(move |_| {
 			Ok(Some(Model {
 				id: 99999999,
+				discord_id: 99999999,
 				name: "Level Name".to_string(),
 				description: Some("Level Description".to_string()),
 				author: "Creator Name".to_string(),
-				request_rating: RequestRating::Easy.into()
+				request_rating: RequestRating::Two.into(),
+				you_tube_video_link: None,
 			}))
 		});
 
@@ -182,24 +217,27 @@ mod tests {
 			});
 
 		let service = LevelRequestService {
-			level_request_repository: mock_repository,
+			level_request_repository: mock_level_request_repository,
+			user_repository: mock_user_repository,
 			gd_client: mock_gd_client
 		};
 
 		assert_eq!(
-			service.request(99999999, "", "", RequestRating::Easy).await,
+			service.request(99999999, None, 99999999, RequestRating::Two).await,
 			Err(LevelRequestExists)
 		)
 	}
 
 	fn setup_level_helper(
 		level_id: u64,
+		discord_id: u64,
 		name: String,
 		creator_name: String,
 		account_id: u64,
 		player_id: u64,
 		description: Option<String>,
-		request_rating: RequestRating
+		request_rating: RequestRating,
+		youtube_video_link: Option<String>,
 	) -> GDLevelRequest {
 		GDLevelRequest {
 			gd_level: GDLevel {
@@ -212,7 +250,11 @@ mod tests {
 				},
 				description
 			},
-			request_rating
+			discord_user: User {
+				discord_id
+			},
+			request_rating,
+			youtube_video_link,
 		}
 	}
 }

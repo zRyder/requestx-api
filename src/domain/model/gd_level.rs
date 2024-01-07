@@ -5,11 +5,14 @@ use crate::{
 	adapter::mysql::model::{level_request, sea_orm_active_enums},
 	domain::model::{level_creator::LevelCreator, request_rating::RequestRating}
 };
+use crate::domain::model::user::User;
 
 #[derive(Clone)]
 pub struct GDLevelRequest {
 	pub gd_level: GDLevel,
-	pub request_rating: RequestRating
+	pub discord_user: User,
+	pub request_rating: RequestRating,
+	pub youtube_video_link: Option<String>
 }
 
 #[derive(Clone)]
@@ -24,13 +27,15 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		level_request::ActiveModel {
 			id: ActiveValue::Set(self.gd_level.level_id),
+			discord_id: ActiveValue::set(self.discord_user.discord_id),
 			name: ActiveValue::Set(self.gd_level.name),
 			description: match self.gd_level.description {
 				Some(desc) => ActiveValue::Set(Some(desc)),
 				None => ActiveValue::Set(None)
 			},
 			author: ActiveValue::Set(self.gd_level.creator.name),
-			request_rating: ActiveValue::Set(self.request_rating.into())
+			request_rating: ActiveValue::Set(self.request_rating.into()),
+			you_tube_video_link: ActiveValue::Set(self.youtube_video_link)
 		}
 	}
 }
@@ -38,12 +43,16 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 impl Into<sea_orm_active_enums::RequestRating> for RequestRating {
 	fn into(self) -> sea_orm_active_enums::RequestRating {
 		match self {
-			RequestRating::Easy => sea_orm_active_enums::RequestRating::Easy,
-			RequestRating::Normal => sea_orm_active_enums::RequestRating::Normal,
-			RequestRating::Hard => sea_orm_active_enums::RequestRating::Hard,
-			RequestRating::Harder => sea_orm_active_enums::RequestRating::Harder,
-			RequestRating::Insane => sea_orm_active_enums::RequestRating::Insane,
-			RequestRating::Demon => sea_orm_active_enums::RequestRating::Demon
+			RequestRating::One => sea_orm_active_enums::RequestRating::One,
+			RequestRating::Two => sea_orm_active_enums::RequestRating::Two,
+			RequestRating::Three => sea_orm_active_enums::RequestRating::Three,
+			RequestRating::Four => sea_orm_active_enums::RequestRating::Four,
+			RequestRating::Five => sea_orm_active_enums::RequestRating::Five,
+			RequestRating::Six => sea_orm_active_enums::RequestRating::Six,
+			RequestRating::Seven => sea_orm_active_enums::RequestRating::Seven,
+			RequestRating::Eight => sea_orm_active_enums::RequestRating::Eight,
+			RequestRating::Nine => sea_orm_active_enums::RequestRating::Nine,
+			RequestRating::Ten => sea_orm_active_enums::RequestRating::Ten
 		}
 	}
 }

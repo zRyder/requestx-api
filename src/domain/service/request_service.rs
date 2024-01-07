@@ -3,11 +3,11 @@ use crate::domain::model::{
 };
 
 pub trait RequestService {
-	async fn request<'a>(
+	async fn request(
 		self,
 		level_id: u64,
-		youtube_video_link: &'a str,
-		discord_id: &'a str,
+		youtube_video_link: Option<String>,
+		discord_id: u64,
 		request_rating: RequestRating
 	) -> Result<(), LevelRequestError>;
 }

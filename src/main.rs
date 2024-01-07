@@ -12,7 +12,6 @@ use crate::rocket::common::config::common_config::AppConfig;
 async fn launch() -> _ {
 	log4rs::init_file("log4rs.yml", Default::default()).unwrap();
 	info!("Starting requestx-api");
-	dotenv::dotenv().ok();
 	let rocket = rocket_framework::build();
 	let figment = rocket.figment();
 

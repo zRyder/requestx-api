@@ -18,7 +18,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponse {
 	fn respond_to(self, request: &Request) -> response::Result<'r> {
 		Response::build()
 			.status(Status::Created)
-			.raw_header("date", format!("{}", Local::now()))
+			.raw_header("x-timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.ok()
 	}

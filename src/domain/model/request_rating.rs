@@ -1,9 +1,13 @@
 #[derive(Clone, Copy)]
 pub enum RequestRating {
-	Easy,
-	Normal,
-	Hard,
-	Harder,
-	Insane,
-	Demon
+	One,
+	Two,
+	Three,
+	Four,
+	Five,
+	Six,
+	Seven,
+	Eight,
+	Nine,
+	Ten
 }
