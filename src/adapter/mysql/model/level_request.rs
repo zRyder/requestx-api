@@ -14,7 +14,7 @@ pub struct Model {
 	pub description: Option<String>,
 	pub author: String,
 	pub request_rating: RequestRating,
-	pub you_tube_video_link: Option<String>
+	pub you_tube_video_link: String
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

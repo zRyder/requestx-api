@@ -5,13 +5,14 @@ use crate::{
 	adapter::mysql::model::{level_request, sea_orm_active_enums},
 	domain::model::{level_creator::LevelCreator, request_rating::RequestRating, user::User}
 };
+use crate::domain::model::api;
 
 #[derive(Clone)]
 pub struct GDLevelRequest {
 	pub gd_level: GDLevel,
 	pub discord_user: User,
 	pub request_rating: RequestRating,
-	pub youtube_video_link: Option<String>
+	pub youtube_video_link: String
 }
 
 #[derive(Clone)]
@@ -52,6 +53,23 @@ impl Into<sea_orm_active_enums::RequestRating> for RequestRating {
 			RequestRating::Eight => sea_orm_active_enums::RequestRating::Eight,
 			RequestRating::Nine => sea_orm_active_enums::RequestRating::Nine,
 			RequestRating::Ten => sea_orm_active_enums::RequestRating::Ten
+		}
+	}
+}
+
+impl Into<api::request_rating::RequestRating> for RequestRating {
+	fn into(self) -> api::request_rating::RequestRating {
+		match self {
+			RequestRating::One => { api::request_rating::RequestRating::One }
+			RequestRating::Two => { api::request_rating::RequestRating::Two }
+			RequestRating::Three => { api::request_rating::RequestRating::Three }
+			RequestRating::Four => { api::request_rating::RequestRating::Four }
+			RequestRating::Five => { api::request_rating::RequestRating::Five }
+			RequestRating::Six => { api::request_rating::RequestRating::Six }
+			RequestRating::Seven => { api::request_rating::RequestRating::Seven }
+			RequestRating::Eight => { api::request_rating::RequestRating::Eight }
+			RequestRating::Nine => { api::request_rating::RequestRating::Nine }
+			RequestRating::Ten => { api::request_rating::RequestRating::Ten }
 		}
 	}
 }

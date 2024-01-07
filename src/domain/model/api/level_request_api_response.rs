@@ -11,12 +11,23 @@ use rocket_framework::{
 	serde::json::Json,
 	Request, Response
 };
+use rocket::serde::Serialize;
+use crate::domain::model::api::request_rating::RequestRating;
 
-pub struct LevelRequestApiResponse {}
+#[derive(Serialize)]
+pub struct LevelRequestApiResponse {
+	pub level_id: u64,
+	pub discord_id: u64,
+	pub level_name: String,
+	pub level_author: String,
+	pub request_score: RequestRating,
+	pub youtube_video_link: String
+}
 
 impl<'r> Responder<'r, 'r> for LevelRequestApiResponse {
-	fn respond_to(self, _request: &Request) -> response::Result<'r> {
-		Response::build()
+	fn respond_to(self, request: &Request) -> response::Result<'r> {
+		let json =  Json(self);
+		Response::build_from(json.respond_to(&request).unwrap())
 			.status(Status::Created)
 			.raw_header("x-timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON)
@@ -35,7 +46,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("date", format!("{}", Local::now()))
+			.raw_header("x-timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
 			LevelRequestApiResponseError::LevelRequestExists => {

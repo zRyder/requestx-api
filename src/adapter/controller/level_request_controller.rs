@@ -19,9 +19,9 @@ use crate::{
 };
 
 #[post("/request_level", format = "json", data = "<level_request_body>")]
-pub async fn request_level(
+pub async fn request_level<'a>(
 	db_conn: &State<DatabaseConnection>,
-	level_request_body: Json<LevelRequestApiRequest<'_>>
+	level_request_body: Json<LevelRequestApiRequest<'a>>
 ) -> Result<LevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
 	let user_repository = MySqlUserRepository::new(db_conn);
@@ -33,17 +33,22 @@ pub async fn request_level(
 	match level_request_service
 		.request(
 			level_request_body.level_id,
-			if let Some(link) = level_request_body.youtube_video_link {
-				Some(link.to_string())
-			} else {
-				None
-			},
+			level_request_body.youtube_video_link.to_string(),
 			level_request_body.discord_id,
 			request_rating
 		)
 		.await
 	{
-		Ok(()) => Ok(LevelRequestApiResponse {}),
+		Ok(level_request_info) => {
+			Ok(LevelRequestApiResponse{
+				level_id: level_request_info.gd_level.level_id,
+				discord_id: level_request_info.discord_user.discord_id,
+				level_name: level_request_info.gd_level.name,
+				level_author: level_request_info.gd_level.creator.name,
+				request_score: level_request_info.request_rating.into(),
+				youtube_video_link: level_request_info.youtube_video_link
+			})
+		}
 		Err(level_request_error) => Err(level_request_error.into())
 	}
 }

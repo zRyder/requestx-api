@@ -27,10 +27,10 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 	async fn request(
 		self,
 		level_id: u64,
-		youtube_video_link: Option<String>,
+		youtube_video_link: String,
 		discord_id: u64,
 		request_rating: RequestRating
-	) -> Result<(), LevelRequestError> {
+	) -> Result<GDLevelRequest, LevelRequestError> {
 		let gd_level_result = self.gd_client.get_gd_level_info(level_id).await;
 
 		match gd_level_result {
@@ -72,7 +72,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 											));
 										}
 									}
-									let level_request_storable = gd_level_request.into();
+									let level_request_storable = gd_level_request.clone().into();
 									if let Err(level_insert_error) = self
 										.level_request_repository
 										.create_record(level_request_storable)
@@ -84,7 +84,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 										);
 										Err(LevelRequestError::DatabaseError(level_insert_error))
 									} else {
-										Ok(())
+										Ok(gd_level_request)
 									}
 								}
 								Err(err) => {

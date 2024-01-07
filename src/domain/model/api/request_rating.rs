@@ -1,8 +1,8 @@
-use rocket::serde::Deserialize;
+use rocket::serde::{Deserialize, Serialize};
 
 use crate::domain::model::request_rating;
 
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Deserialize, Serialize, Clone, Copy)]
 pub enum RequestRating {
 	One,
 	Two,
