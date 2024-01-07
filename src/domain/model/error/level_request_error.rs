@@ -7,7 +7,7 @@ use std::{
 use sea_orm::DbErr;
 
 use crate::domain::model::{
-	api::level_request_api_response::LevelRequestApiResponseError,
+	api::level_request_api::LevelRequestApiResponseError,
 	error::geometry_dash_dashrs_error::GeometryDashDashrsError
 };
 

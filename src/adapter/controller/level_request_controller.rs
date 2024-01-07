@@ -10,13 +10,11 @@ use crate::{
 		}
 	},
 	domain::{
-		model::api::{
-			level_request_api_request::LevelRequestApiRequest,
-			level_request_api_response::{LevelRequestApiResponse, LevelRequestApiResponseError}
-		},
+		model::api::level_request_api::{LevelRequestApiResponse, LevelRequestApiResponseError},
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}
 };
+use crate::domain::model::api::level_request_api::LevelRequestApiRequest;
 
 #[post("/request_level", format = "json", data = "<level_request_body>")]
 pub async fn request_level<'a>(

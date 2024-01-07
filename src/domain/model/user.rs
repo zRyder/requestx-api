@@ -2,7 +2,7 @@ use sea_orm::ActiveValue;
 
 use crate::adapter::mysql::model::user;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct User {
 	pub discord_id: u64
 }

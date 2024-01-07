@@ -5,3 +5,4 @@ pub mod request_rating;
 
 pub mod api;
 pub mod user;
+pub mod review;

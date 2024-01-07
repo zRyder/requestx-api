@@ -6,13 +6,23 @@ use std::{
 use chrono::Local;
 use rocket_framework::{
 	http::{ContentType, Status},
+	Request,
 	response,
-	response::Responder,
-	serde::json::Json,
-	Request, Response
+	Response,
+	response::Responder, serde::json::Json
 };
 use rocket::serde::Serialize;
+use serde_derive::Deserialize;
+use crate::domain::model::api::request_rating;
 use crate::domain::model::api::request_rating::RequestRating;
+
+#[derive(Deserialize)]
+pub struct LevelRequestApiRequest<'a> {
+	pub level_id: u64,
+	pub youtube_video_link: &'a str,
+	pub discord_id: u64,
+	pub request_rating: request_rating::RequestRating
+}
 
 #[derive(Serialize)]
 pub struct LevelRequestApiResponse {

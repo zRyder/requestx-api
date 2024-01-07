@@ -26,7 +26,7 @@ pub struct GDLevel {
 impl Into<level_request::ActiveModel> for GDLevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		level_request::ActiveModel {
-			id: ActiveValue::Set(self.gd_level.level_id),
+			level_id: ActiveValue::Set(self.gd_level.level_id),
 			discord_id: ActiveValue::set(self.discord_user.discord_id),
 			name: ActiveValue::Set(self.gd_level.name),
 			description: match self.gd_level.description {

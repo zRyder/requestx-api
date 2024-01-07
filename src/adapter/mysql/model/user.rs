@@ -17,12 +17,14 @@ pub enum Relation {
 	Review
 }
 
-impl Related<super::level_request::Entity> for Entity {
-	fn to() -> RelationDef { Relation::LevelRequest.def() }
-}
-
 impl Related<super::review::Entity> for Entity {
 	fn to() -> RelationDef { Relation::Review.def() }
+}
+
+impl Related<super::level_request::Entity> for Entity {
+	fn to() -> RelationDef { super::review::Relation::LevelRequest.def() }
+
+	fn via() -> Option<RelationDef> { Some(super::review::Relation::User.def().rev()) }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

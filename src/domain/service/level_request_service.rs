@@ -196,7 +196,7 @@ mod tests {
 
 		assert_ok!(
 			service
-				.request(99999999, None, 99999999, RequestRating::Two)
+				.request(99999999, "LINK".to_string(), 99999999, RequestRating::Two)
 				.await
 		);
 	}
@@ -211,13 +211,13 @@ mod tests {
 			.expect_get_record()
 			.return_once(move |_| {
 				Ok(Some(Model {
-					id: 99999999,
+					level_id: 99999999,
 					discord_id: 99999999,
 					name: "Level Name".to_string(),
 					description: Some("Level Description".to_string()),
 					author: "Creator Name".to_string(),
 					request_rating: RequestRating::Two.into(),
-					you_tube_video_link: None
+					you_tube_video_link: "LINK".to_string()
 				}))
 			});
 
@@ -244,7 +244,7 @@ mod tests {
 
 		assert_eq!(
 			service
-				.request(99999999, None, 99999999, RequestRating::Two)
+				.request(99999999, "LINK".to_string(), 99999999, RequestRating::Two)
 				.await,
 			Err(LevelRequestExists)
 		)
@@ -259,7 +259,7 @@ mod tests {
 		player_id: u64,
 		description: Option<String>,
 		request_rating: RequestRating,
-		youtube_video_link: Option<String>
+		youtube_video_link: String
 	) -> GDLevelRequest {
 		GDLevelRequest {
 			gd_level: GDLevel {

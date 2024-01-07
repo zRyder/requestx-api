@@ -6,6 +6,7 @@ mod domain;
 
 mod rocket;
 
+use crate::adapter::controller::{level_request_controller, level_review_controller};
 use crate::rocket::common::config::common_config::AppConfig;
 
 #[launch]
@@ -33,6 +34,9 @@ async fn launch() -> _ {
 
 	rocket.manage(db_conn).mount(
 		"/api/v1",
-		routes![adapter::controller::level_request_controller::request_level]
+		routes![
+			level_request_controller::request_level,
+			level_review_controller::review_level
+		]
 	)
 }
