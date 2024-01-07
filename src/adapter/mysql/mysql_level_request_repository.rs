@@ -1,6 +1,4 @@
-use sea_orm::{
-	ActiveModelTrait, DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait, InsertResult
-};
+use sea_orm::{DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait, InsertResult};
 
 use crate::adapter::mysql::{
 	level_request_repository::LevelRequestRepository,
@@ -84,7 +82,7 @@ mod tests {
 			description: Some("Level Description".to_string()),
 			author: "Level Creator".to_string(),
 			request_rating: RequestRating::Two,
-			you_tube_video_link: None,
+			you_tube_video_link: None
 		};
 		let updated_result = level_request::Model {
 			id: 99999999,
@@ -93,7 +91,7 @@ mod tests {
 			description: Some("New Level Description".to_string()),
 			author: "New Level Creator".to_string(),
 			request_rating: RequestRating::Two,
-			you_tube_video_link: None,
+			you_tube_video_link: None
 		};
 
 		let db = MockDatabase::new(DatabaseBackend::MySql)
@@ -157,7 +155,7 @@ mod tests {
 			description: Some("Level Description".to_string()),
 			author: "Level Creator".to_string(),
 			request_rating: RequestRating::Two,
-			you_tube_video_link: None,
+			you_tube_video_link: None
 		};
 
 		let db = MockDatabase::new(DatabaseBackend::MySql)
@@ -219,7 +217,7 @@ mod tests {
 		description: Option<String>,
 		author: String,
 		request_rating: RequestRating,
-		you_tube_video_link: Option<String>,
+		you_tube_video_link: Option<String>
 	) -> level_request::ActiveModel {
 		level_request::ActiveModel {
 			id: ActiveValue::Set(id),
@@ -228,7 +226,7 @@ mod tests {
 			description: ActiveValue::Set(description),
 			author: ActiveValue::Set(author),
 			request_rating: ActiveValue::Set(request_rating),
-			you_tube_video_link: ActiveValue::Set(you_tube_video_link),
+			you_tube_video_link: ActiveValue::Set(you_tube_video_link)
 		}
 	}
 }

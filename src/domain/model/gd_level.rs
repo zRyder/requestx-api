@@ -3,9 +3,8 @@ use sea_orm::ActiveValue;
 
 use crate::{
 	adapter::mysql::model::{level_request, sea_orm_active_enums},
-	domain::model::{level_creator::LevelCreator, request_rating::RequestRating}
+	domain::model::{level_creator::LevelCreator, request_rating::RequestRating, user::User}
 };
-use crate::domain::model::user::User;
 
 #[derive(Clone)]
 pub struct GDLevelRequest {

@@ -15,7 +15,7 @@ use rocket_framework::{
 pub struct LevelRequestApiResponse {}
 
 impl<'r> Responder<'r, 'r> for LevelRequestApiResponse {
-	fn respond_to(self, request: &Request) -> response::Result<'r> {
+	fn respond_to(self, _request: &Request) -> response::Result<'r> {
 		Response::build()
 			.status(Status::Created)
 			.raw_header("x-timestamp", format!("{}", Local::now()))
