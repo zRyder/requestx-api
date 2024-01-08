@@ -15,6 +15,7 @@ use crate::domain::model::{
 pub enum LevelRequestError {
 	DatabaseError(DbErr),
 	LevelRequestExists,
+	LevelRequestDoesNotExist,
 	GeometryDashClientError(u64, GeometryDashDashrsError)
 }
 
@@ -29,7 +30,13 @@ impl Display for LevelRequestError {
 				)
 			}
 			LevelRequestError::LevelRequestExists => {
-				write!(f, "Unable to create level request due to conflict: Level has already been requested ")
+				write!(f, "Unable to create level request due to conflict: Level has already been requested")
+			}
+			LevelRequestError::LevelRequestDoesNotExist => {
+				write!(
+					f,
+					"Unable to update level request due to conflict: Level request does not exist"
+				)
 			}
 			LevelRequestError::GeometryDashClientError(level_id, client_error) => {
 				write!(
@@ -50,6 +57,9 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			LevelRequestError::DatabaseError(_) => LevelRequestApiResponseError::LevelRequestError,
 			LevelRequestError::LevelRequestExists => {
 				LevelRequestApiResponseError::LevelRequestExists
+			}
+			LevelRequestError::LevelRequestDoesNotExist => {
+				LevelRequestApiResponseError::LevelRequestDoesNotExist
 			}
 			LevelRequestError::GeometryDashClientError(_, _) => {
 				LevelRequestApiResponseError::LevelRequestError

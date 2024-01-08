@@ -10,6 +10,10 @@ pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
 	pub level_id: u64,
 	pub discord_id: u64,
+	#[sea_orm(unique)]
+	pub discord_message_id: Option<u64>,
+	#[sea_orm(unique)]
+	pub discord_thread_id: Option<u64>,
 	pub name: String,
 	pub description: Option<String>,
 	pub author: String,

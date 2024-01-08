@@ -10,17 +10,45 @@ use crate::{
 		}
 	},
 	domain::{
-		model::api::level_request_api::{LevelRequestApiResponse, LevelRequestApiResponseError},
+		model::{
+			api::level_request_api::{
+				DiscordID, GetLevelRequestApiResponse, LevelRequestApiResponseError,
+				PostLevelRequestApiRequest, PostLevelRequestApiResponse
+			},
+			error::level_request_error::LevelRequestError,
+			gd_level::GDLevelRequest
+		},
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}
 };
-use crate::domain::model::api::level_request_api::LevelRequestApiRequest;
+
+#[get("/request_level/<level_id>")]
+pub async fn get_level_request(
+	db_conn: &State<DatabaseConnection>,
+	level_id: u64,
+	discord_id: DiscordID
+) -> Result<GetLevelRequestApiResponse, LevelRequestApiResponseError> {
+	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
+	let user_repository = MySqlUserRepository::new(db_conn);
+	let gd_client = GeometryDashDashrsClient::new();
+
+	let level_request_service =
+		LevelRequestService::new(level_request_repository, user_repository, gd_client);
+
+	match level_request_service
+		.get_level_request(level_id, discord_id.into())
+		.await
+	{
+		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),
+		Err(get_level_request_error) => Err(get_level_request_error.into())
+	}
+}
 
 #[post("/request_level", format = "json", data = "<level_request_body>")]
 pub async fn request_level<'a>(
 	db_conn: &State<DatabaseConnection>,
-	level_request_body: Json<LevelRequestApiRequest<'a>>
-) -> Result<LevelRequestApiResponse, LevelRequestApiResponseError> {
+	level_request_body: Json<PostLevelRequestApiRequest<'a>>
+) -> Result<PostLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
 	let user_repository = MySqlUserRepository::new(db_conn);
 	let gd_client = GeometryDashDashrsClient::new();
@@ -29,7 +57,7 @@ pub async fn request_level<'a>(
 		LevelRequestService::new(level_request_repository, user_repository, gd_client);
 	let request_rating = level_request_body.request_rating.into();
 	match level_request_service
-		.request(
+		.make_level_request(
 			level_request_body.level_id,
 			level_request_body.youtube_video_link.to_string(),
 			level_request_body.discord_id,
@@ -37,16 +65,7 @@ pub async fn request_level<'a>(
 		)
 		.await
 	{
-		Ok(level_request_info) => {
-			Ok(LevelRequestApiResponse{
-				level_id: level_request_info.gd_level.level_id,
-				discord_id: level_request_info.discord_user.discord_id,
-				level_name: level_request_info.gd_level.name,
-				level_author: level_request_info.gd_level.creator.name,
-				request_score: level_request_info.request_rating.into(),
-				youtube_video_link: level_request_info.youtube_video_link
-			})
-		}
+		Ok(level_request_info) => Ok(PostLevelRequestApiResponse::from(level_request_info)),
 		Err(level_request_error) => Err(level_request_error.into())
 	}
 }
