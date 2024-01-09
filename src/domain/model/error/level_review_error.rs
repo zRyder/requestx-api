@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{write, Display, Formatter}
+	fmt::{Display, Formatter}
 };
 
 use sea_orm::DbErr;

@@ -10,13 +10,9 @@ use crate::{
 		}
 	},
 	domain::{
-		model::{
-			api::level_request_api::{
-				DiscordID, GetLevelRequestApiResponse, LevelRequestApiResponseError,
-				PostLevelRequestApiRequest, PostLevelRequestApiResponse
-			},
-			error::level_request_error::LevelRequestError,
-			gd_level::GDLevelRequest
+		model::api::level_request_api::{
+			DiscordID, GetLevelRequestApiResponse, LevelRequestApiResponseError,
+			PostLevelRequestApiRequest, PostLevelRequestApiResponse
 		},
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}

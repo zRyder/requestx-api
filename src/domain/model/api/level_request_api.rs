@@ -13,12 +13,10 @@ use rocket_framework::{
 	serde::json::Json,
 	Request, Response
 };
-use sea_orm::ActiveValue;
 use serde_derive::Deserialize;
 
 use crate::domain::model::{
-	api::{request_rating, request_rating::RequestRating},
-	error::level_request_error::LevelRequestError,
+	api::request_rating::RequestRating, error::level_request_error::LevelRequestError,
 	gd_level::GDLevelRequest
 };
 

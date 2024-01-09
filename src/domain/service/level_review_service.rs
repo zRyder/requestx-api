@@ -1,19 +1,13 @@
-use sea_orm::{ActiveValue::Set, DbErr, IntoActiveModel};
+use sea_orm::{ActiveValue::Set, IntoActiveModel};
 
 use crate::{
 	adapter::mysql::{
 		level_request_repository::LevelRequestRepository,
-		model::{
-			review,
-			review::{ActiveModel, Column::ReviewContent, Model}
-		},
+		model::{review, review::ActiveModel},
 		review_repository::ReviewRepository
 	},
 	domain::{
-		model::{
-			error::{level_request_error::LevelRequestError, level_review_error::LevelReviewError},
-			review::LevelReview
-		},
+		model::{error::level_review_error::LevelReviewError, review::LevelReview},
 		service::review_service::ReviewService
 	}
 };

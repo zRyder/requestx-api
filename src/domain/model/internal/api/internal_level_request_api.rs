@@ -9,14 +9,12 @@ use serde_derive::{Deserialize, Serialize};
 #[derive(Deserialize)]
 pub struct InternalUpdateLevelRequestMessageIdApiRequest {
 	pub level_id: u64,
-	pub discord_id: u64,
 	pub discord_message_id: u64
 }
 
 #[derive(Deserialize)]
 pub struct InternalUpdateLevelRequestThreadIdApiRequest {
 	pub level_id: u64,
-	pub discord_id: u64,
 	pub discord_thread_id: u64
 }
 

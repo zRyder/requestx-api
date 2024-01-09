@@ -5,15 +5,13 @@ use rocket::serde::Deserialize;
 use rocket_framework::{
 	http::{ContentType, Status},
 	response,
-	response::{Builder, Responder},
+	response::Responder,
 	serde::json::Json,
 	Request, Response
 };
 use serde_derive::Serialize;
 
-use crate::domain::model::{
-	api::level_request_api::GetLevelRequestApiResponse, review::LevelReview
-};
+use crate::domain::model::review::LevelReview;
 
 #[derive(Serialize)]
 pub struct GetLevelReviewApiRespnse {
@@ -57,8 +55,21 @@ pub struct LevelReviewApiRequest<'a> {
 pub struct LevelReviewApiResponse {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
+	pub discord_message_id: u64,
 	pub review_contents: String,
 	pub is_update: bool
+}
+
+impl From<LevelReview> for LevelReviewApiResponse {
+	fn from(value: LevelReview) -> Self {
+		Self {
+			level_id: value.level_id,
+			reviewer_discord_id: value.reviewer_discord_id,
+			discord_message_id: value.discord_message_id,
+			review_contents: value.review_contents,
+			is_update: value.is_update
+		}
+	}
 }
 
 impl<'r> Responder<'r, 'r> for LevelReviewApiResponse {

@@ -1,7 +1,7 @@
 use sea_orm::{DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait, InsertResult};
 
 use crate::adapter::mysql::{
-	model::{prelude, prelude::Review, review},
+	model::{prelude::Review, review},
 	review_repository::ReviewRepository
 };
 
