@@ -30,7 +30,6 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 	async fn get_level_request(
 		self,
 		level_id: u64,
-		_discord_id: u64
 	) -> Result<GDLevelRequest, LevelRequestError> {
 		match self.level_request_repository.get_record(level_id).await {
 			Ok(potential_level_request) => {

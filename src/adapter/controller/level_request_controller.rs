@@ -10,8 +10,7 @@ use crate::{
 		}
 	},
 	domain::{
-		model::api::level_request_api::{
-			DiscordID, GetLevelRequestApiResponse, LevelRequestApiResponseError,
+		model::api::level_request_api::{GetLevelRequestApiResponse, LevelRequestApiResponseError,
 			PostLevelRequestApiRequest, PostLevelRequestApiResponse
 		},
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
@@ -22,7 +21,6 @@ use crate::{
 pub async fn get_level_request(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
-	discord_id: DiscordID
 ) -> Result<GetLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
 	let user_repository = MySqlUserRepository::new(db_conn);
@@ -32,7 +30,7 @@ pub async fn get_level_request(
 		LevelRequestService::new(level_request_repository, user_repository, gd_client);
 
 	match level_request_service
-		.get_level_request(level_id, discord_id.into())
+		.get_level_request(level_id)
 		.await
 	{
 		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),

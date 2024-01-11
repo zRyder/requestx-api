@@ -7,7 +7,6 @@ pub trait RequestService {
 	async fn get_level_request(
 		self,
 		level_id: u64,
-		discord_id: u64
 	) -> Result<GDLevelRequest, LevelRequestError>;
 
 	async fn make_level_request(

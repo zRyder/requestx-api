@@ -8,7 +8,6 @@ use crate::{
 	},
 	domain::{
 		model::api::{
-			level_request_api::DiscordID,
 			level_review_api::{
 				GetLevelReviewApiRespnse, LevelReviewApiRequest, LevelReviewApiResponse,
 				LevelReviewApiResponseError
@@ -18,11 +17,11 @@ use crate::{
 	}
 };
 
-#[get("/review_level/<level_id>")]
+#[get("/review_level/<level_id>?<discord_id>")]
 pub async fn get_level_review(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
-	discord_id: DiscordID
+	discord_id: u64
 ) -> Result<GetLevelReviewApiRespnse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
