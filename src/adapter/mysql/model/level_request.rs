@@ -40,7 +40,11 @@ impl Related<super::review::Entity> for Entity {
 }
 
 impl Related<super::user::Entity> for Entity {
-	fn to() -> RelationDef { super::review::Relation::User.def() }
+	fn to() -> RelationDef { Relation::User.def() }
+}
+
+impl Related<super::reviewer::Entity> for Entity {
+	fn to() -> RelationDef { super::review::Relation::Reviewer.def() }
 
 	fn via() -> Option<RelationDef> { Some(super::review::Relation::LevelRequest.def().rev()) }
 }

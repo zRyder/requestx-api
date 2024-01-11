@@ -7,7 +7,7 @@ mod domain;
 mod rocket;
 
 use crate::{
-	adapter::controller::{level_request_controller, level_review_controller},
+	adapter::controller::{level_request_controller, level_review_controller, reviewer_controller},
 	rocket::common::{
 		config::common_config::AppConfig, internal::internal::mount_internal_controllers
 	}
@@ -43,6 +43,9 @@ async fn launch() -> _ {
 			level_request_controller::get_level_request,
 			level_review_controller::get_level_review,
 			level_review_controller::review_level,
+			reviewer_controller::get_reviewer,
+			reviewer_controller::create_reviewer,
+			reviewer_controller::remove_reviewer,
 		]
 	);
 	mount_internal_controllers(rocket)

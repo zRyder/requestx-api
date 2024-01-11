@@ -7,3 +7,4 @@ pub mod api;
 pub mod discord;
 pub mod internal;
 pub mod review;
+pub mod reviewer;

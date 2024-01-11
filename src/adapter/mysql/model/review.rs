@@ -24,21 +24,21 @@ pub enum Relation {
 	)]
 	LevelRequest,
 	#[sea_orm(
-		belongs_to = "super::user::Entity",
+		belongs_to = "super::reviewer::Entity",
 		from = "Column::DiscordId",
-		to = "super::user::Column::DiscordId",
+		to = "super::reviewer::Column::DiscordId",
 		on_update = "NoAction",
 		on_delete = "NoAction"
 	)]
-	User
+	Reviewer
 }
 
 impl Related<super::level_request::Entity> for Entity {
 	fn to() -> RelationDef { Relation::LevelRequest.def() }
 }
 
-impl Related<super::user::Entity> for Entity {
-	fn to() -> RelationDef { Relation::User.def() }
+impl Related<super::reviewer::Entity> for Entity {
+	fn to() -> RelationDef { Relation::Reviewer.def() }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

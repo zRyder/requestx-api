@@ -1,7 +1,4 @@
-use crate::domain::model::{
-	error::{level_request_error::LevelRequestError, level_review_error::LevelReviewError},
-	review::LevelReview
-};
+use crate::domain::model::{error::level_review_error::LevelReviewError, review::LevelReview};
 
 pub trait ReviewService {
 	async fn get_level_review(

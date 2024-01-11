@@ -41,7 +41,6 @@ pub async fn update_level_request_message_id<'a>(
 	match level_request_service
 		.update_level_request_message_id(
 			update_level_request_message_id_body.level_id,
-			update_level_request_message_id_body.discord_id,
 			update_level_request_message_id_body.discord_message_id
 		)
 		.await
@@ -69,7 +68,6 @@ pub async fn update_level_request_thread_id<'a>(
 	match level_request_service
 		.update_level_request_thread_id(
 			update_level_request_thread_id_body.level_id,
-			update_level_request_thread_id_body.discord_id,
 			update_level_request_thread_id_body.discord_thread_id
 		)
 		.await

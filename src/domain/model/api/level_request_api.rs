@@ -7,22 +7,17 @@ use chrono::Local;
 use rocket::serde::Serialize;
 use rocket_framework::{
 	http::{ContentType, Status},
-	request::{FromRequest, Outcome},
 	response,
 	response::Responder,
 	serde::json::Json,
 	Request, Response
 };
-use sea_orm::ActiveValue;
 use serde_derive::Deserialize;
 
 use crate::domain::model::{
-	api::{request_rating, request_rating::RequestRating},
-	error::level_request_error::LevelRequestError,
+	api::request_rating::RequestRating,
 	gd_level::GDLevelRequest
 };
-
-pub struct DiscordID(u64);
 
 #[derive(Serialize)]
 pub struct GetLevelRequestApiResponse {
@@ -71,23 +66,6 @@ impl<'r> Responder<'r, 'r> for GetLevelRequestApiResponse {
 			.raw_header("X-Timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.ok()
-	}
-}
-
-impl From<DiscordID> for u64 {
-	fn from(value: DiscordID) -> Self { value.0.into() }
-}
-
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for DiscordID {
-	type Error = LevelRequestError;
-
-	async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-		if let Some(discord_id) = request.headers().get_one("X-Discord-ID") {
-			Outcome::Success(DiscordID(discord_id.parse::<u64>().unwrap()))
-		} else {
-			Outcome::Forward(Status::Unauthorized)
-		}
 	}
 }
 

@@ -7,28 +7,21 @@ use crate::{
 		mysql_review_repository::MySqlReviewRepository
 	},
 	domain::{
-		model::{
-			api::{
-				level_request_api::{
-					DiscordID, LevelRequestApiResponseError, PostLevelRequestApiResponse
-				},
-				level_review_api::{
-					GetLevelReviewApiRespnse, LevelReviewApiRequest, LevelReviewApiResponse,
-					LevelReviewApiResponseError
-				}
-			},
-			error::level_review_error::LevelReviewError,
-			review::LevelReview
+		model::api::{
+			level_review_api::{
+				GetLevelReviewApiRespnse, LevelReviewApiRequest, LevelReviewApiResponse,
+				LevelReviewApiResponseError
+			}
 		},
 		service::{level_review_service::LevelReviewService, review_service::ReviewService}
 	}
 };
 
-#[get("/review_level/<level_id>")]
+#[get("/review_level/<level_id>?<discord_id>")]
 pub async fn get_level_review(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
-	discord_id: DiscordID
+	discord_id: u64
 ) -> Result<GetLevelReviewApiRespnse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
@@ -64,12 +57,7 @@ pub async fn review_level<'a>(
 		)
 		.await
 	{
-		Ok(level_review_info) => Ok(LevelReviewApiResponse {
-			level_id: level_review_info.level_id,
-			reviewer_discord_id: level_review_info.reviewer_discord_id,
-			review_contents: level_review_info.review_contents,
-			is_update: level_review_info.is_update
-		}),
+		Ok(level_review_info) => Ok(LevelReviewApiResponse::from(level_review_info)),
 		Err(level_review_error) => Err(level_review_error.into())
 	}
 }
