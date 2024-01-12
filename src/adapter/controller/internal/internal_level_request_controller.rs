@@ -11,7 +11,7 @@ use crate::{
 	},
 	domain::{
 		model::{
-			api::level_request_api::LevelRequestApiResponseError,
+			api::{auth_api::Auth, level_request_api::LevelRequestApiResponseError},
 			internal::api::internal_level_request_api::{
 				InternalUpdateLevelRequestDiscordDataApiResponse,
 				InternalUpdateLevelRequestMessageIdApiRequest,
@@ -21,7 +21,6 @@ use crate::{
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}
 };
-use crate::domain::model::api::auth_api::Auth;
 
 #[patch(
 	"/request_level",

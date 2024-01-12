@@ -1,11 +1,12 @@
-use serde_derive::Deserialize;
-
-use crate::rocket::common::config::mysql_database_config::MySqlDatabaseConfig;
 use std::{fs, process};
 
 use lazy_static::lazy_static;
+use serde_derive::Deserialize;
 use toml::de::Error;
-use crate::rocket::common::config::auth_config::AuthConfig;
+
+use crate::rocket::common::config::{
+	auth_config::AuthConfig, mysql_database_config::MySqlDatabaseConfig
+};
 
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {

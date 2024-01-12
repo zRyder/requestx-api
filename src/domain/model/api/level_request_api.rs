@@ -7,10 +7,10 @@ use chrono::Local;
 use rocket::serde::Serialize;
 use rocket_framework::{
 	http::{ContentType, Status},
-	Request,
 	response,
-	Response,
-	response::Responder, serde::json::Json
+	response::Responder,
+	serde::json::Json,
+	Request, Response
 };
 use serde_derive::Deserialize;
 
@@ -54,7 +54,7 @@ impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 			level_length: value.gd_level.level_length.into(),
 			request_score: value.request_rating.into(),
 			youtube_video_link: value.youtube_video_link,
-			has_requested_feedback: value.has_requested_feedback,
+			has_requested_feedback: value.has_requested_feedback
 		}
 	}
 }
@@ -129,7 +129,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header("x-requestx-timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
 			LevelRequestApiResponseError::LevelRequestExists => {
@@ -209,12 +209,12 @@ pub enum LevelLength {
 impl Into<gd_level::LevelLength> for LevelLength {
 	fn into(self) -> gd_level::LevelLength {
 		match self {
-			LevelLength::Tiny => {gd_level::LevelLength::Tiny}
-			LevelLength::Short => {gd_level::LevelLength::Short}
-			LevelLength::Medium => {gd_level::LevelLength::Medium}
-			LevelLength::Long => {gd_level::LevelLength::Long}
-			LevelLength::ExtraLong => {gd_level::LevelLength::ExtraLong}
-			LevelLength::Platformer => {gd_level::LevelLength::Platformer}
+			LevelLength::Tiny => gd_level::LevelLength::Tiny,
+			LevelLength::Short => gd_level::LevelLength::Short,
+			LevelLength::Medium => gd_level::LevelLength::Medium,
+			LevelLength::Long => gd_level::LevelLength::Long,
+			LevelLength::ExtraLong => gd_level::LevelLength::ExtraLong,
+			LevelLength::Platformer => gd_level::LevelLength::Platformer
 		}
 	}
 }

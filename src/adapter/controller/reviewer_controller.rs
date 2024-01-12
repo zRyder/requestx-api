@@ -4,15 +4,17 @@ use sea_orm::DatabaseConnection;
 use crate::{
 	adapter::mysql::mysql_reviewer_repository::MySqlReviewerRepository,
 	domain::{
-		model::api::reviewer_api::{
-			CreateReviewerApiRequest, GetReviewerApiResponse, ReviewerApiResponseError
+		model::api::{
+			auth_api::Auth,
+			reviewer_api::{
+				CreateReviewerApiRequest, GetReviewerApiResponse, ReviewerApiResponseError
+			}
 		},
 		service::{
 			level_reviewer_service::LevelReviewerService, reviewer_service::ReviewerService
 		}
 	}
 };
-use crate::domain::model::api::auth_api::Auth;
 
 #[get("/reviewer/<reviewer_discord_id>?<is_active>")]
 pub async fn get_reviewer(

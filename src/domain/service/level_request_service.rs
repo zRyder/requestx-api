@@ -1,22 +1,22 @@
 use sea_orm::{ActiveValue::Set, IntoActiveModel};
 
 use crate::{
-    adapter::{
-        geometry_dash::geometry_dash_client::GeometryDashClient,
-        mysql::{
-            level_request_repository::LevelRequestRepository, model::level_request::ActiveModel,
-            user_repository::UserRepository
-        }
-    },
-    domain::{
-        model::{
-            discord::user::DiscordUser, error::level_request_error::LevelRequestError,
-            gd_level::GDLevelRequest
-        },
-        service::request_service::RequestService
-    }
+	adapter::{
+		geometry_dash::geometry_dash_client::GeometryDashClient,
+		mysql::{
+			level_request_repository::LevelRequestRepository, model::level_request::ActiveModel,
+			user_repository::UserRepository
+		}
+	},
+	domain::{
+		model::{
+			discord::user::DiscordUser,
+			error::level_request_error::LevelRequestError,
+			gd_level::{GDLevelRequest, RequestRating}
+		},
+		service::request_service::RequestService
+	}
 };
-use crate::domain::model::gd_level::RequestRating;
 
 pub struct LevelRequestService<L: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
 {
@@ -28,10 +28,7 @@ pub struct LevelRequestService<L: LevelRequestRepository, U: UserRepository, G: 
 impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> RequestService
 	for LevelRequestService<R, U, G>
 {
-	async fn get_level_request(
-		self,
-		level_id: u64,
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	async fn get_level_request(self, level_id: u64) -> Result<GDLevelRequest, LevelRequestError> {
 		match self.level_request_repository.get_record(level_id).await {
 			Ok(potential_level_request) => {
 				if let Some(level_request_model) = potential_level_request {
@@ -68,7 +65,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 					discord_message_data: None,
 					request_rating,
 					youtube_video_link,
-					has_requested_feedback,
+					has_requested_feedback
 				};
 
 				let request_level_result = self

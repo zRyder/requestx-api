@@ -8,7 +8,7 @@ use crate::{
 	},
 	domain::{
 		model::{
-			api::level_review_api::LevelReviewApiResponseError,
+			api::{auth_api::Auth, level_review_api::LevelReviewApiResponseError},
 			internal::api::internal_level_review_api_request::{
 				InternalUpdateLevelReviewDiscordDataApiResponse,
 				InternalUpdateLevelReviewMessageIdApiRequest
@@ -17,7 +17,6 @@ use crate::{
 		service::{level_review_service::LevelReviewService, review_service::ReviewService}
 	}
 };
-use crate::domain::model::api::auth_api::Auth;
 
 #[patch(
 	"/review_level",

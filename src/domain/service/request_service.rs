@@ -1,13 +1,10 @@
 use crate::domain::model::{
-    error::level_request_error::LevelRequestError, gd_level::GDLevelRequest
+	error::level_request_error::LevelRequestError,
+	gd_level::{GDLevelRequest, RequestRating}
 };
-use crate::domain::model::gd_level::RequestRating;
 
 pub trait RequestService {
-	async fn get_level_request(
-		self,
-		level_id: u64,
-	) -> Result<GDLevelRequest, LevelRequestError>;
+	async fn get_level_request(self, level_id: u64) -> Result<GDLevelRequest, LevelRequestError>;
 
 	async fn make_level_request(
 		self,

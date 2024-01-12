@@ -1,5 +1,4 @@
-use dash_rs::model::level::online_level::ListedLevel;
-use dash_rs::model::level::LevelLength as DashrsLevelLength;
+use dash_rs::model::level::{online_level::ListedLevel, LevelLength as DashrsLevelLength};
 use sea_orm::ActiveValue;
 
 use crate::{
@@ -63,7 +62,7 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 			author: ActiveValue::Set(self.gd_level.creator.name),
 			request_rating: ActiveValue::Set(self.request_rating.into()),
 			you_tube_video_link: ActiveValue::Set(self.youtube_video_link),
-			has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into()),
+			has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into())
 		}
 	}
 }
@@ -79,7 +78,7 @@ impl From<Model> for GDLevelRequest {
 					account_id: 0,
 					player_id: 0
 				},
-				level_length: LevelLength::from(value.level_length),
+				level_length: LevelLength::from(value.level_length)
 			},
 			discord_user_data: DiscordUser {
 				discord_user_id: value.discord_id
@@ -98,7 +97,11 @@ impl From<Model> for GDLevelRequest {
 			},
 			request_rating: RequestRating::from(value.request_rating),
 			youtube_video_link: value.you_tube_video_link,
-			has_requested_feedback: if value.has_requested_feedback != 0 {true} else {false},
+			has_requested_feedback: if value.has_requested_feedback != 0 {
+				true
+			} else {
+				false
+			}
 		}
 	}
 }
@@ -136,12 +139,12 @@ pub enum LevelLength {
 impl From<sea_orm_active_enums::LevelLength> for LevelLength {
 	fn from(value: sea_orm_active_enums::LevelLength) -> Self {
 		match value {
-			sea_orm_active_enums::LevelLength::Tiny => {Self::Tiny}
-			sea_orm_active_enums::LevelLength::Short => {Self::Short}
-			sea_orm_active_enums::LevelLength::Medium => {Self::Medium}
-			sea_orm_active_enums::LevelLength::Long => {Self::Long}
-			sea_orm_active_enums::LevelLength::ExtraLong => {Self::ExtraLong}
-			sea_orm_active_enums::LevelLength::Platformer => {Self::Platformer}
+			sea_orm_active_enums::LevelLength::Tiny => Self::Tiny,
+			sea_orm_active_enums::LevelLength::Short => Self::Short,
+			sea_orm_active_enums::LevelLength::Medium => Self::Medium,
+			sea_orm_active_enums::LevelLength::Long => Self::Long,
+			sea_orm_active_enums::LevelLength::ExtraLong => Self::ExtraLong,
+			sea_orm_active_enums::LevelLength::Platformer => Self::Platformer
 		}
 	}
 }
@@ -149,12 +152,12 @@ impl From<sea_orm_active_enums::LevelLength> for LevelLength {
 impl Into<sea_orm_active_enums::LevelLength> for LevelLength {
 	fn into(self) -> sea_orm_active_enums::LevelLength {
 		match self {
-			LevelLength::Tiny => {sea_orm_active_enums::LevelLength::Tiny}
-			LevelLength::Short => {sea_orm_active_enums::LevelLength::Short}
-			LevelLength::Medium => {sea_orm_active_enums::LevelLength::Medium}
-			LevelLength::Long => {sea_orm_active_enums::LevelLength::Long}
-			LevelLength::ExtraLong => {sea_orm_active_enums::LevelLength::ExtraLong}
-			LevelLength::Platformer => {sea_orm_active_enums::LevelLength::Platformer}
+			LevelLength::Tiny => sea_orm_active_enums::LevelLength::Tiny,
+			LevelLength::Short => sea_orm_active_enums::LevelLength::Short,
+			LevelLength::Medium => sea_orm_active_enums::LevelLength::Medium,
+			LevelLength::Long => sea_orm_active_enums::LevelLength::Long,
+			LevelLength::ExtraLong => sea_orm_active_enums::LevelLength::ExtraLong,
+			LevelLength::Platformer => sea_orm_active_enums::LevelLength::Platformer
 		}
 	}
 }
@@ -162,12 +165,13 @@ impl Into<sea_orm_active_enums::LevelLength> for LevelLength {
 impl From<DashrsLevelLength> for LevelLength {
 	fn from(value: DashrsLevelLength) -> Self {
 		match value {
-			DashrsLevelLength::Unknown(_) => {Self::Tiny}
-			DashrsLevelLength::Tiny => {Self::Tiny}
-			DashrsLevelLength::Short => {Self::Short}
-			DashrsLevelLength::Medium => {Self::Medium}
-			DashrsLevelLength::Long => {Self::Long}
-			DashrsLevelLength::ExtraLong => {Self::ExtraLong}
+			DashrsLevelLength::Unknown(_) => Self::Tiny,
+			DashrsLevelLength::Tiny => Self::Tiny,
+			DashrsLevelLength::Short => Self::Short,
+			DashrsLevelLength::Medium => Self::Medium,
+			DashrsLevelLength::Long => Self::Long,
+			DashrsLevelLength::ExtraLong => Self::ExtraLong,
+			DashrsLevelLength::Platformer => Self::Platformer
 		}
 	}
 }
@@ -175,12 +179,12 @@ impl From<DashrsLevelLength> for LevelLength {
 impl Into<api::level_request_api::LevelLength> for LevelLength {
 	fn into(self) -> api::level_request_api::LevelLength {
 		match self {
-			LevelLength::Tiny => {api::level_request_api::LevelLength::Tiny}
-			LevelLength::Short => {api::level_request_api::LevelLength::Short}
-			LevelLength::Medium => {api::level_request_api::LevelLength::Medium}
-			LevelLength::Long => {api::level_request_api::LevelLength::Long}
-			LevelLength::ExtraLong => {api::level_request_api::LevelLength::ExtraLong}
-			LevelLength::Platformer => {api::level_request_api::LevelLength::Platformer}
+			LevelLength::Tiny => api::level_request_api::LevelLength::Tiny,
+			LevelLength::Short => api::level_request_api::LevelLength::Short,
+			LevelLength::Medium => api::level_request_api::LevelLength::Medium,
+			LevelLength::Long => api::level_request_api::LevelLength::Long,
+			LevelLength::ExtraLong => api::level_request_api::LevelLength::ExtraLong,
+			LevelLength::Platformer => api::level_request_api::LevelLength::Platformer
 		}
 	}
 }

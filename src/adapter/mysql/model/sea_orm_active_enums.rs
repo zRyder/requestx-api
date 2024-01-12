@@ -59,6 +59,8 @@ pub enum RequestRating {
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "score")]
 pub enum Score {
+	#[sea_orm(string_value = "no_rate")]
+	NoRate,
 	#[sea_orm(string_value = "one")]
 	One,
 	#[sea_orm(string_value = "two")]

@@ -1,4 +1,7 @@
-use dash_rs::{request::level::LevelsRequest, response::parse_get_gj_levels_response};
+use dash_rs::{
+	request::{account::LoginRequest, level::LevelsRequest, moderator::SuggestStarsRequest},
+	response::parse_get_gj_levels_response
+};
 use reqwest::{
 	header::{HeaderMap, HeaderValue},
 	Client
@@ -11,9 +14,13 @@ use crate::{
 			GeometryDashDashrsError,
 			GeometryDashDashrsError::{DashrsError, HttpError, LevelNotFoundError}
 		},
-		gd_level::GDLevel
+		gd_level::GDLevel,
+		moderator::Moderator
 	},
-	rocket::common::constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
+	rocket::common::{
+		config::auth_config::AUTH_CONFIG,
+		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
+	}
 };
 
 pub struct GeometryDashDashrsClient {
@@ -21,7 +28,7 @@ pub struct GeometryDashDashrsClient {
 }
 
 impl GeometryDashClient for GeometryDashDashrsClient {
-	async fn get_gd_level_info(self, level_id: u64) -> Result<GDLevel, GeometryDashDashrsError> {
+	async fn get_gd_level_info(&self, level_id: u64) -> Result<GDLevel, GeometryDashDashrsError> {
 		let level_id_str = &level_id.to_string();
 		let get_level_info_request = LevelsRequest::default().search(level_id_str);
 
@@ -62,6 +69,53 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 				error!("Error calling Geometry Dash servers: {}", request_err);
 				Err(HttpError(request_err))
 			}
+		}
+	}
+
+	async fn send_gd_level(
+		&self,
+		moderator_request: Moderator
+	) -> Result<(), GeometryDashDashrsError> {
+		match LoginRequest::default()
+			.user_name(&AUTH_CONFIG.gd_username)
+			.password(&AUTH_CONFIG.gd_password)
+			.to_authenticated_user()
+			.await
+		{
+			Ok(auth_user) => {
+				let send_level_request =
+					SuggestStarsRequest::new(auth_user, moderator_request.level_id)
+						.feature(moderator_request.suggested_rating.into())
+						.stars(moderator_request.suggested_score.into());
+
+				debug!(
+					"Calling Geometry Dash servers for sending level {:?}",
+					&moderator_request
+				);
+				let raw_response_result = self
+					.client
+					.post(send_level_request.to_url())
+					.body(send_level_request.to_string())
+					.send()
+					.await;
+
+				match raw_response_result {
+					Ok(raw_response) => {
+						let parsed_response = raw_response.text().await.unwrap();
+
+						if parsed_response.eq("1") {
+							Ok(())
+						} else {
+							Err(DashrsError("-1".to_string()))
+						}
+					}
+					Err(request_err) => {
+						error!("Error calling Geometry Dash servers: {}", request_err);
+						Err(HttpError(request_err))
+					}
+				}
+			}
+			Err(auth_error) => Err(DashrsError(auth_error.to_string()))
 		}
 	}
 }
