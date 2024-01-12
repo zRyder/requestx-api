@@ -17,6 +17,7 @@ use crate::{
 		service::{level_review_service::LevelReviewService, review_service::ReviewService}
 	}
 };
+use crate::domain::model::api::auth_api::Auth;
 
 #[patch(
 	"/review_level",
@@ -26,7 +27,8 @@ use crate::{
 )]
 pub async fn update_level_review_message_id<'a>(
 	db_conn: &State<DatabaseConnection>,
-	update_level_review_message_id_body: Json<InternalUpdateLevelReviewMessageIdApiRequest>
+	update_level_review_message_id_body: Json<InternalUpdateLevelReviewMessageIdApiRequest>,
+	_auth: Auth
 ) -> Result<InternalUpdateLevelReviewDiscordDataApiResponse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);

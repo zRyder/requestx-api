@@ -2,12 +2,14 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use chrono::Local;
 use jsonwebtoken::errors::Error as JsonWebTokenError;
+use jsonwebtoken::{decode, DecodingKey, Validation};
 use rocket_framework::http::{ContentType, Status};
 use rocket_framework::{Request, Response};
 use rocket_framework::request::{FromRequest, Outcome};
 use rocket_framework::response::Responder;
 use rocket::serde::{Deserialize, Serialize};
 use rocket_framework::serde::json::Json;
+use crate::domain::model::auth::claims::Claims;
 use crate::domain::model::error::level_request_error::LevelRequestError;
 use crate::rocket::common::config::auth_config::AUTH_CONFIG;
 
@@ -21,6 +23,9 @@ pub struct AuthApiRequest {
 pub struct AuthApiResponse {
     jwt: String
 }
+
+#[derive(Deserialize)]
+pub struct Auth {}
 
 #[derive(Debug, PartialEq)]
 pub enum AuthApiError {
@@ -67,6 +72,34 @@ impl<'r> Responder<'r, 'r> for AuthApiResponse {
             .raw_header("AUTHORIZATION", self.jwt)
             .raw_header("X-TIMESTAMP", format!("{}", Local::now()))
             .ok()
+    }
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Auth {
+    type Error = ();
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let discord_app_id = request.headers().get_one("X-REQUESTX-DISCORD-APP-ID");
+        let jwt = request.headers().get_one("AUTHORIZATION");
+        if discord_app_id.is_some() && jwt.is_some() {
+            let mut validation = Validation::default();
+            validation.set_audience(&[discord_app_id.unwrap().to_string()]);
+
+            info!("{:?}", &jwt.unwrap().replace("Bearer ", ""));
+
+            match decode::<Claims>(&jwt.unwrap().replace("Bearer ", ""), &DecodingKey::from_secret(&AUTH_CONFIG.secret_token.as_ref()), &validation) {
+                Ok(_token_claims) => {
+                    Outcome::Success(Auth {})
+                }
+                Err(_err) => {
+                    info!("{:?}", _err);
+                    Outcome::Forward(Status::Forbidden)
+                }
+            }
+        } else {
+            Outcome::Forward(Status::Unauthorized)
+        }
     }
 }
 

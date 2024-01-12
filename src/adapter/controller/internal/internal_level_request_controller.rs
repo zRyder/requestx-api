@@ -21,6 +21,7 @@ use crate::{
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}
 };
+use crate::domain::model::api::auth_api::Auth;
 
 #[patch(
 	"/request_level",
@@ -30,7 +31,8 @@ use crate::{
 )]
 pub async fn update_level_request_message_id<'a>(
 	db_conn: &State<DatabaseConnection>,
-	update_level_request_message_id_body: Json<InternalUpdateLevelRequestMessageIdApiRequest>
+	update_level_request_message_id_body: Json<InternalUpdateLevelRequestMessageIdApiRequest>,
+	_auth: Auth
 ) -> Result<InternalUpdateLevelRequestDiscordDataApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
 	let user_repository = MySqlUserRepository::new(db_conn);

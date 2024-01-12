@@ -12,12 +12,14 @@ use crate::{
 		}
 	}
 };
+use crate::domain::model::api::auth_api::Auth;
 
 #[get("/reviewer/<reviewer_discord_id>?<is_active>")]
 pub async fn get_reviewer(
 	db_conn: &State<DatabaseConnection>,
 	reviewer_discord_id: u64,
-	is_active: bool
+	is_active: bool,
+	_auth: Auth
 ) -> Result<GetReviewerApiResponse, ReviewerApiResponseError> {
 	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(reviewer_repository);
@@ -34,7 +36,8 @@ pub async fn get_reviewer(
 #[post("/reviewer", format = "json", data = "<create_reviewer_api_request>")]
 pub async fn create_reviewer(
 	db_conn: &State<DatabaseConnection>,
-	create_reviewer_api_request: Json<CreateReviewerApiRequest>
+	create_reviewer_api_request: Json<CreateReviewerApiRequest>,
+	_auth: Auth
 ) -> Result<(), ReviewerApiResponseError> {
 	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(reviewer_repository);
@@ -51,7 +54,8 @@ pub async fn create_reviewer(
 #[delete("/reviewer/<reviewer_discord_id>")]
 pub async fn remove_reviewer(
 	db_conn: &State<DatabaseConnection>,
-	reviewer_discord_id: u64
+	reviewer_discord_id: u64,
+	_auth: Auth
 ) -> Result<(), ReviewerApiResponseError> {
 	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(reviewer_repository);

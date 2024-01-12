@@ -1,11 +1,11 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{Duration, Utc};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     aud: u64,
-    iat: DateTime<Utc>,
-    exp: DateTime<Utc>,
+    iat: i64,
+    exp: i64,
 }
 
 impl Claims {
@@ -13,8 +13,8 @@ impl Claims {
         let now = Utc::now();
         Self {
             aud,
-            iat: now,
-            exp: now + Duration::days(7),
+            iat: now.timestamp(),
+            exp: (now + Duration::days(7)).timestamp(),
         }
     }
 }
