@@ -1,7 +1,7 @@
 use crate::domain::model::{
-	error::level_request_error::LevelRequestError, gd_level::GDLevelRequest,
-	request_rating::RequestRating
+    error::level_request_error::LevelRequestError, gd_level::GDLevelRequest
 };
+use crate::domain::model::gd_level::RequestRating;
 
 pub trait RequestService {
 	async fn get_level_request(
@@ -14,7 +14,8 @@ pub trait RequestService {
 		level_id: u64,
 		youtube_video_link: String,
 		discord_id: u64,
-		request_rating: RequestRating
+		request_rating: RequestRating,
+		has_requested_feedback: bool
 	) -> Result<GDLevelRequest, LevelRequestError>;
 
 	async fn update_level_request_message_id(

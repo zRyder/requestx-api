@@ -58,7 +58,8 @@ pub async fn request_level<'a>(
 			level_request_body.level_id,
 			level_request_body.youtube_video_link.to_string(),
 			level_request_body.discord_id,
-			request_rating
+			request_rating,
+			level_request_body.has_requested_feedback
 		)
 		.await
 	{

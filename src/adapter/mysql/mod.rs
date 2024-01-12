@@ -8,3 +8,5 @@ pub mod mysql_user_repository;
 pub mod review_repository;
 pub mod reviewer_repository;
 pub mod user_repository;
+pub mod moderator_repository;
+pub mod my_sql_moderator_repository;

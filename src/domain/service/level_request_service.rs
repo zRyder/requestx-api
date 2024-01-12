@@ -1,21 +1,22 @@
 use sea_orm::{ActiveValue::Set, IntoActiveModel};
 
 use crate::{
-	adapter::{
-		geometry_dash::geometry_dash_client::GeometryDashClient,
-		mysql::{
-			level_request_repository::LevelRequestRepository, model::level_request::ActiveModel,
-			user_repository::UserRepository
-		}
-	},
-	domain::{
-		model::{
-			discord::user::DiscordUser, error::level_request_error::LevelRequestError,
-			gd_level::GDLevelRequest, request_rating::RequestRating
-		},
-		service::request_service::RequestService
-	}
+    adapter::{
+        geometry_dash::geometry_dash_client::GeometryDashClient,
+        mysql::{
+            level_request_repository::LevelRequestRepository, model::level_request::ActiveModel,
+            user_repository::UserRepository
+        }
+    },
+    domain::{
+        model::{
+            discord::user::DiscordUser, error::level_request_error::LevelRequestError,
+            gd_level::GDLevelRequest
+        },
+        service::request_service::RequestService
+    }
 };
+use crate::domain::model::gd_level::RequestRating;
 
 pub struct LevelRequestService<L: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
 {
@@ -56,7 +57,8 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 		level_id: u64,
 		youtube_video_link: String,
 		discord_user_id: u64,
-		request_rating: RequestRating
+		request_rating: RequestRating,
+		has_requested_feedback: bool
 	) -> Result<GDLevelRequest, LevelRequestError> {
 		match self.gd_client.get_gd_level_info(level_id).await {
 			Ok(gd_level) => {
@@ -65,7 +67,8 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 					discord_user_data: DiscordUser { discord_user_id },
 					discord_message_data: None,
 					request_rating,
-					youtube_video_link
+					youtube_video_link,
+					has_requested_feedback,
 				};
 
 				let request_level_result = self

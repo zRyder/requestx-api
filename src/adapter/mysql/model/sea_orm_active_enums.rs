@@ -3,8 +3,62 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "level_length")]
+pub enum LevelLength {
+	#[sea_orm(string_value = "tiny")]
+	Tiny,
+	#[sea_orm(string_value = "short")]
+	Short,
+	#[sea_orm(string_value = "medium")]
+	Medium,
+	#[sea_orm(string_value = "long")]
+	Long,
+	#[sea_orm(string_value = "extra_long")]
+	ExtraLong,
+	#[sea_orm(string_value = "platformer")]
+	Platformer
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "rating")]
+pub enum Rating {
+	#[sea_orm(string_value = "rate")]
+	Rate,
+	#[sea_orm(string_value = "feature")]
+	Feature,
+	#[sea_orm(string_value = "epic")]
+	Epic,
+	#[sea_orm(string_value = "legendary")]
+	Legendary,
+	#[sea_orm(string_value = "mythic")]
+	Mythic
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "request_rating")]
 pub enum RequestRating {
+	#[sea_orm(string_value = "one")]
+	One,
+	#[sea_orm(string_value = "two")]
+	Two,
+	#[sea_orm(string_value = "three")]
+	Three,
+	#[sea_orm(string_value = "four")]
+	Four,
+	#[sea_orm(string_value = "five")]
+	Five,
+	#[sea_orm(string_value = "six")]
+	Six,
+	#[sea_orm(string_value = "seven")]
+	Seven,
+	#[sea_orm(string_value = "eight")]
+	Eight,
+	#[sea_orm(string_value = "nine")]
+	Nine,
+	#[sea_orm(string_value = "ten")]
+	Ten
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "score")]
+pub enum Score {
 	#[sea_orm(string_value = "one")]
 	One,
 	#[sea_orm(string_value = "two")]
