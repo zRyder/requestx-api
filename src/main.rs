@@ -9,23 +9,27 @@ mod rocket;
 use crate::{
 	adapter::controller::{level_request_controller, level_review_controller, reviewer_controller},
 	rocket::common::{
-		config::common_config::AppConfig, internal::internal::mount_internal_controllers
+		internal::internal::mount_internal_controllers
 	}
 };
+use crate::adapter::controller::auth_controller;
+use crate::rocket::common::config::common_config::init_app_config;
+use crate::rocket::common::config::mysql_database_config::MY_SQL_DATABASE_CONFIG;
 
 #[launch]
 async fn launch() -> _ {
 	log4rs::init_file("log4rs.yml", Default::default()).unwrap();
 	info!("Starting requestx-api");
 	let rocket = rocket_framework::build();
-	let figment = rocket.figment();
 
 	info!("Initializing application configuration");
-	let app_config: AppConfig = figment.extract().expect("Some");
+	if let Err(err) = init_app_config() {
+		error!("Failed to load app config: {}", err);
+		panic!("{}", err)
+	}
 
 	info!("Initializing database");
-	let db_conn = match app_config
-		.mysql_database_config
+	let db_conn = match MY_SQL_DATABASE_CONFIG
 		.configure_mysql_database()
 		.await
 	{
@@ -39,6 +43,7 @@ async fn launch() -> _ {
 	let rocket = rocket.manage(db_conn).mount(
 		"/api/v1",
 		routes![
+			auth_controller::generate_jwt,
 			level_request_controller::request_level,
 			level_request_controller::get_level_request,
 			level_review_controller::get_level_review,

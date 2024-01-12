@@ -1,0 +1,11 @@
+[mysql_database_config]
+user = "test_user"
+password = "test_password"
+host = "localhost"
+port = 8082
+name = "test_db"
+
+[auth_config]
+discord_app_id = "0"
+access_token = "fakeaccesstoken"
+secret_token = "testtokentesttokentesttoken"

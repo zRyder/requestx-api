@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use chrono::Local;
-use rocket::serde::Deserialize;
+use rocket::serde::{Deserialize, Serialize};
 use rocket_framework::{
 	http::{ContentType, Status},
 	response,
@@ -9,7 +9,6 @@ use rocket_framework::{
 	serde::json::Json,
 	Request, Response
 };
-use serde_derive::Serialize;
 
 use crate::domain::model::review::LevelReview;
 

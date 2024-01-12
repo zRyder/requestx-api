@@ -16,12 +16,14 @@ use crate::{
 		service::{level_review_service::LevelReviewService, review_service::ReviewService}
 	}
 };
+use crate::domain::model::api::auth_api::Auth;
 
 #[get("/review_level/<level_id>?<discord_id>")]
 pub async fn get_level_review(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
-	discord_id: u64
+	discord_id: u64,
+	_auth: Auth
 ) -> Result<GetLevelReviewApiRespnse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
@@ -41,7 +43,8 @@ pub async fn get_level_review(
 #[post("/review_level", format = "json", data = "<level_review_body>")]
 pub async fn review_level<'a>(
 	db_conn: &State<DatabaseConnection>,
-	level_review_body: Json<LevelReviewApiRequest<'a>>
+	level_review_body: Json<LevelReviewApiRequest<'a>>,
+	_auth: Auth
 ) -> Result<LevelReviewApiResponse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);

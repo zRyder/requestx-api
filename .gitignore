@@ -1,9 +1,9 @@
 /target
 .env
-Rocket.toml
 .idea
 /migration
 /log
 *.iml
 Cargo.lock
 *.DS_Store
+Config.toml

@@ -1,8 +1,9 @@
+use lazy_static::lazy_static;
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbErr, Statement};
 use serde_derive::Deserialize;
+use crate::rocket::common::config::common_config::APP_CONFIG;
 
 #[derive(Debug, Deserialize)]
-#[serde(crate = "rocket::serde")]
 pub struct MySqlDatabaseConfig {
 	user: String,
 	password: String,
@@ -41,4 +42,9 @@ impl MySqlDatabaseConfig {
 			}
 		}
 	}
+}
+
+lazy_static! {
+	pub static ref MY_SQL_DATABASE_CONFIG: &'static MySqlDatabaseConfig =
+		&APP_CONFIG.mysql_database_config;
 }
