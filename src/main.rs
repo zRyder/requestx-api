@@ -7,14 +7,14 @@ mod domain;
 mod rocket;
 
 use crate::{
-	adapter::controller::{level_request_controller, level_review_controller, reviewer_controller},
+	adapter::controller::{
+		auth_controller, level_request_controller, level_review_controller, reviewer_controller
+	},
 	rocket::common::{
+		config::{common_config::init_app_config, mysql_database_config::MY_SQL_DATABASE_CONFIG},
 		internal::internal::mount_internal_controllers
 	}
 };
-use crate::adapter::controller::auth_controller;
-use crate::rocket::common::config::common_config::init_app_config;
-use crate::rocket::common::config::mysql_database_config::MY_SQL_DATABASE_CONFIG;
 
 #[launch]
 async fn launch() -> _ {
@@ -29,10 +29,7 @@ async fn launch() -> _ {
 	}
 
 	info!("Initializing database");
-	let db_conn = match MY_SQL_DATABASE_CONFIG
-		.configure_mysql_database()
-		.await
-	{
+	let db_conn = match MY_SQL_DATABASE_CONFIG.configure_mysql_database().await {
 		Ok(conn) => conn,
 		Err(err) => {
 			error!("Failed to initialize database: {}", err);

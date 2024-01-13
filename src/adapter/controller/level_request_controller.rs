@@ -10,13 +10,16 @@ use crate::{
 		}
 	},
 	domain::{
-		model::api::level_request_api::{GetLevelRequestApiResponse, LevelRequestApiResponseError,
-			PostLevelRequestApiRequest, PostLevelRequestApiResponse
+		model::api::{
+			auth_api::Auth,
+			level_request_api::{
+				GetLevelRequestApiResponse, LevelRequestApiResponseError,
+				PostLevelRequestApiRequest, PostLevelRequestApiResponse
+			}
 		},
 		service::{level_request_service::LevelRequestService, request_service::RequestService}
 	}
 };
-use crate::domain::model::api::auth_api::Auth;
 
 #[get("/request_level/<level_id>")]
 pub async fn get_level_request(
@@ -31,10 +34,7 @@ pub async fn get_level_request(
 	let level_request_service =
 		LevelRequestService::new(level_request_repository, user_repository, gd_client);
 
-	match level_request_service
-		.get_level_request(level_id)
-		.await
-	{
+	match level_request_service.get_level_request(level_id).await {
 		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),
 		Err(get_level_request_error) => Err(get_level_request_error.into())
 	}
@@ -58,7 +58,9 @@ pub async fn request_level<'a>(
 			level_request_body.level_id,
 			level_request_body.youtube_video_link.to_string(),
 			level_request_body.discord_id,
-			request_rating
+			request_rating,
+			level_request_body.has_requested_feedback,
+			level_request_body.notify
 		)
 		.await
 	{

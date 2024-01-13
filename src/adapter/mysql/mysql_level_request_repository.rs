@@ -1,8 +1,15 @@
-use sea_orm::{DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait, InsertResult};
+use sea_orm::{
+	ColumnTrait, DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait, InsertResult,
+	QueryFilter
+};
 
 use crate::adapter::mysql::{
 	level_request_repository::LevelRequestRepository,
-	model::{level_request::ActiveModel, prelude::*, *}
+	model::{
+		level_request::{ActiveModel, Model},
+		prelude::*,
+		*
+	}
 };
 
 pub struct MySqlLevelRequestRepository<'a> {
@@ -16,6 +23,17 @@ impl<'a> LevelRequestRepository for MySqlLevelRequestRepository<'a> {
 
 	async fn get_record(&self, level_id: u64) -> Result<Option<level_request::Model>, DbErr> {
 		LevelRequest::find_by_id(level_id).one(self.db_conn).await
+	}
+
+	async fn get_record_filter_feedback(
+		&self,
+		level_id: u64,
+		has_requested_feedback: bool
+	) -> Result<Option<Model>, DbErr> {
+		LevelRequest::find_by_id(level_id)
+			.filter(level_request::Column::HasRequestedFeedback.eq(has_requested_feedback))
+			.one(self.db_conn)
+			.await
 	}
 
 	async fn update_record(self, record: ActiveModel) -> Result<level_request::Model, DbErr> {

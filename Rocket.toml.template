@@ -1,6 +1,0 @@
-[default.mysql_database_config]
-user =
-password =
-host =
-port =
-name =

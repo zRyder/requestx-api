@@ -8,6 +8,12 @@ pub trait LevelRequestRepository {
 
 	async fn get_record(&self, level_id: u64) -> Result<Option<level_request::Model>, DbErr>;
 
+	async fn get_record_filter_feedback(
+		&self,
+		level_id: u64,
+		has_requested_feedback: bool
+	) -> Result<Option<level_request::Model>, DbErr>;
+
 	async fn update_record(self, record: ActiveModel) -> Result<level_request::Model, DbErr>;
 
 	async fn delete_record(self, record: ActiveModel) -> Result<DeleteResult, DbErr>;

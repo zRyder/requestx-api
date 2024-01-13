@@ -13,6 +13,7 @@ use crate::domain::model::{
 
 #[derive(Debug, PartialEq)]
 pub enum LevelRequestError {
+	MalformedRequest,
 	DatabaseError(DbErr),
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
@@ -22,6 +23,9 @@ pub enum LevelRequestError {
 impl Display for LevelRequestError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
 		match self {
+			LevelRequestError::MalformedRequest => {
+				write!(f, "Level request is malformed")
+			}
 			LevelRequestError::DatabaseError(db_err) => {
 				write!(
 					f,
@@ -54,6 +58,7 @@ impl Error for LevelRequestError {}
 impl Into<LevelRequestApiResponseError> for LevelRequestError {
 	fn into(self) -> LevelRequestApiResponseError {
 		match self {
+			LevelRequestError::MalformedRequest => LevelRequestApiResponseError::MalformedRequest,
 			LevelRequestError::DatabaseError(_) => LevelRequestApiResponseError::LevelRequestError,
 			LevelRequestError::LevelRequestExists => {
 				LevelRequestApiResponseError::LevelRequestExists

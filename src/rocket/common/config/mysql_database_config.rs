@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbErr, Statement};
 use serde_derive::Deserialize;
+
 use crate::rocket::common::config::common_config::APP_CONFIG;
 
 #[derive(Debug, Deserialize)]

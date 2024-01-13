@@ -2,7 +2,7 @@
 
 use sea_orm::entity::prelude::*;
 
-use super::sea_orm_active_enums::RequestRating;
+use super::sea_orm_active_enums::{LevelLength, RequestRating};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "level_request")]
@@ -15,14 +15,18 @@ pub struct Model {
 	#[sea_orm(unique)]
 	pub discord_thread_id: Option<u64>,
 	pub name: String,
-	pub description: Option<String>,
 	pub author: String,
 	pub request_rating: RequestRating,
-	pub you_tube_video_link: String
+	pub level_length: LevelLength,
+	pub you_tube_video_link: String,
+	pub has_requested_feedback: i8,
+	pub notify: i8
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+	#[sea_orm(has_many = "super::moderator::Entity")]
+	Moderator,
 	#[sea_orm(has_many = "super::review::Entity")]
 	Review,
 	#[sea_orm(
@@ -33,6 +37,10 @@ pub enum Relation {
 		on_delete = "NoAction"
 	)]
 	User
+}
+
+impl Related<super::moderator::Entity> for Entity {
+	fn to() -> RelationDef { Relation::Moderator.def() }
 }
 
 impl Related<super::review::Entity> for Entity {

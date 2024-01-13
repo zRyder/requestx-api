@@ -8,6 +8,7 @@ use crate::{
 	},
 	domain::{
 		model::api::{
+			auth_api::Auth,
 			level_review_api::{
 				GetLevelReviewApiRespnse, LevelReviewApiRequest, LevelReviewApiResponse,
 				LevelReviewApiResponseError
@@ -16,7 +17,6 @@ use crate::{
 		service::{level_review_service::LevelReviewService, review_service::ReviewService}
 	}
 };
-use crate::domain::model::api::auth_api::Auth;
 
 #[get("/review_level/<level_id>?<discord_id>")]
 pub async fn get_level_review(

@@ -14,10 +14,7 @@ use rocket_framework::{
 };
 use serde_derive::Deserialize;
 
-use crate::domain::model::{
-	api::request_rating::RequestRating,
-	gd_level::GDLevelRequest
-};
+use crate::domain::model::{gd_level, gd_level::GDLevelRequest};
 
 #[derive(Serialize)]
 pub struct GetLevelRequestApiResponse {
@@ -27,8 +24,11 @@ pub struct GetLevelRequestApiResponse {
 	pub discord_thread_id: Option<u64>,
 	pub level_name: String,
 	pub level_author: String,
+	pub level_length: LevelLength,
 	pub request_score: RequestRating,
-	pub youtube_video_link: String
+	pub youtube_video_link: String,
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 impl From<GDLevelRequest> for GetLevelRequestApiResponse {
@@ -52,8 +52,11 @@ impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 			},
 			level_name: value.gd_level.name,
 			level_author: value.gd_level.creator.name,
+			level_length: value.gd_level.level_length.into(),
 			request_score: value.request_rating.into(),
-			youtube_video_link: value.youtube_video_link
+			youtube_video_link: value.youtube_video_link,
+			has_requested_feedback: value.has_requested_feedback,
+			notify: value.notify,
 		}
 	}
 }
@@ -74,7 +77,9 @@ pub struct PostLevelRequestApiRequest<'a> {
 	pub level_id: u64,
 	pub youtube_video_link: &'a str,
 	pub discord_id: u64,
-	pub request_rating: RequestRating
+	pub request_rating: RequestRating,
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 #[derive(Serialize)]
@@ -83,8 +88,11 @@ pub struct PostLevelRequestApiResponse {
 	pub discord_id: u64,
 	pub level_name: String,
 	pub level_author: String,
+	pub level_length: LevelLength,
 	pub request_score: RequestRating,
-	pub youtube_video_link: String
+	pub youtube_video_link: String,
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 impl From<GDLevelRequest> for PostLevelRequestApiResponse {
@@ -94,8 +102,11 @@ impl From<GDLevelRequest> for PostLevelRequestApiResponse {
 			discord_id: value.discord_user_data.discord_user_id,
 			level_name: value.gd_level.name,
 			level_author: value.gd_level.creator.name,
+			level_length: value.gd_level.level_length.into(),
 			request_score: value.request_rating.into(),
-			youtube_video_link: value.youtube_video_link
+			youtube_video_link: value.youtube_video_link,
+			has_requested_feedback: value.has_requested_feedback,
+			notify: value.notify
 		}
 	}
 }
@@ -113,6 +124,7 @@ impl<'r> Responder<'r, 'r> for PostLevelRequestApiResponse {
 
 #[derive(Debug, PartialEq)]
 pub enum LevelRequestApiResponseError {
+	MalformedRequest,
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	LevelRequestError
@@ -123,9 +135,12 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header("x-requestx-timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
+			LevelRequestApiResponseError::MalformedRequest => {
+				response.status(Status::BadRequest);
+			}
 			LevelRequestApiResponseError::LevelRequestExists => {
 				response.status(Status::Conflict);
 			}
@@ -144,6 +159,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 impl Display for LevelRequestApiResponseError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
+			LevelRequestApiResponseError::MalformedRequest => {
+				write!(f, "{{\"message\": \"Level request was malformed\"}}")
+			}
 			LevelRequestApiResponseError::LevelRequestExists => {
 				write!(f, "{{\"message\": \"Level has already been requested\"}}")
 			}
@@ -158,3 +176,57 @@ impl Display for LevelRequestApiResponseError {
 }
 
 impl Error for LevelRequestApiResponseError {}
+
+#[derive(Deserialize, Serialize, Clone, Copy)]
+pub enum RequestRating {
+	One,
+	Two,
+	Three,
+	Four,
+	Five,
+	Six,
+	Seven,
+	Eight,
+	Nine,
+	Ten
+}
+
+impl Into<gd_level::RequestRating> for RequestRating {
+	fn into(self) -> gd_level::RequestRating {
+		match self {
+			RequestRating::One => gd_level::RequestRating::One,
+			RequestRating::Two => gd_level::RequestRating::Two,
+			RequestRating::Three => gd_level::RequestRating::Three,
+			RequestRating::Four => gd_level::RequestRating::Four,
+			RequestRating::Five => gd_level::RequestRating::Five,
+			RequestRating::Six => gd_level::RequestRating::Six,
+			RequestRating::Seven => gd_level::RequestRating::Seven,
+			RequestRating::Eight => gd_level::RequestRating::Eight,
+			RequestRating::Nine => gd_level::RequestRating::Nine,
+			RequestRating::Ten => gd_level::RequestRating::Ten
+		}
+	}
+}
+
+#[derive(Deserialize, Serialize, Clone, Copy)]
+pub enum LevelLength {
+	Tiny,
+	Short,
+	Medium,
+	Long,
+	ExtraLong,
+	Platformer
+}
+
+impl Into<gd_level::LevelLength> for LevelLength {
+	fn into(self) -> gd_level::LevelLength {
+		match self {
+			LevelLength::Tiny => gd_level::LevelLength::Tiny,
+			LevelLength::Short => gd_level::LevelLength::Short,
+			LevelLength::Medium => gd_level::LevelLength::Medium,
+			LevelLength::Long => gd_level::LevelLength::Long,
+			LevelLength::ExtraLong => gd_level::LevelLength::ExtraLong,
+			LevelLength::Platformer => gd_level::LevelLength::Platformer
+		}
+	}
+}
