@@ -19,7 +19,8 @@ pub struct Model {
 	pub request_rating: RequestRating,
 	pub level_length: LevelLength,
 	pub you_tube_video_link: String,
-	pub has_requested_feedback: i8
+	pub has_requested_feedback: i8,
+	pub notify: i8
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

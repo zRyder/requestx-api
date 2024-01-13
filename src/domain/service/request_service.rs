@@ -12,7 +12,8 @@ pub trait RequestService {
 		youtube_video_link: String,
 		discord_id: u64,
 		request_rating: RequestRating,
-		has_requested_feedback: bool
+		has_requested_feedback: bool,
+		notify: bool
 	) -> Result<GDLevelRequest, LevelRequestError>;
 
 	async fn update_level_request_message_id(

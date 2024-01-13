@@ -16,7 +16,8 @@ pub struct GDLevelRequest {
 	pub discord_message_data: Option<DiscordMessage>,
 	pub request_rating: RequestRating,
 	pub youtube_video_link: String,
-	pub has_requested_feedback: bool
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 #[derive(Clone)]
@@ -62,7 +63,8 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 			author: ActiveValue::Set(self.gd_level.creator.name),
 			request_rating: ActiveValue::Set(self.request_rating.into()),
 			you_tube_video_link: ActiveValue::Set(self.youtube_video_link),
-			has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into())
+			has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into()),
+			notify: ActiveValue::Set(self.notify.into())
 		}
 	}
 }
@@ -101,7 +103,8 @@ impl From<Model> for GDLevelRequest {
 				true
 			} else {
 				false
-			}
+			},
+			notify: if value.notify != 0 { true } else { false }
 		}
 	}
 }

@@ -1,0 +1,18 @@
+[client_config]
+discord_app_id = "{{REQUESTX_DISCORD_APP_ID}}"
+discord_bot_admin_id = "{{REQUESTX_DISCORD_BOT_ADMIN_ID}}"
+
+[mysql_database_config]
+user = "{{REQUESTX_DB_USERNAME}}"
+password = "{{REQUESTX_DB_PWD}}"
+host = "{{REQUESTX_DB_HOST}}"
+port = "{{REQUESTX_DB_PORT}}"
+name = "{{REQUESTX_DB_NAME}}"
+
+[auth_config]
+access_token = "{{REQUESTX_ACCESS_TOKEN}}"
+secret_token = "{{REQUESTX_SECRET_TOKEN}}"
+
+[geometry_dash_config]
+gd_username="{{REQUESTX_GD_USERNAME}}"
+gd_password="{{REQUESTX_GD_PWD}}"

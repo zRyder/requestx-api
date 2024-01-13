@@ -1,6 +1,8 @@
-use crate::domain::model::{error::moderator_error::ModeratorError};
-use crate::domain::model::gd_level::GDLevelRequest;
-use crate::domain::model::moderator::{SuggestedRating, SuggestedScore};
+use crate::domain::model::{
+	error::moderator_error::ModeratorError,
+	gd_level::GDLevelRequest,
+	moderator::{SuggestedRating, SuggestedScore}
+};
 
 pub trait ModerateService {
 	async fn send_level(

@@ -15,7 +15,8 @@ use crate::{
 			gd_level::{GDLevelRequest, RequestRating}
 		},
 		service::request_service::RequestService
-	}
+	},
+	rocket::common::constants::YOUTUBE_LINK_REGEX
 };
 
 pub struct LevelRequestService<L: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
@@ -55,8 +56,12 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 		youtube_video_link: String,
 		discord_user_id: u64,
 		request_rating: RequestRating,
-		has_requested_feedback: bool
+		has_requested_feedback: bool,
+		notify: bool
 	) -> Result<GDLevelRequest, LevelRequestError> {
+		if !Self::is_valid_youtube_link(&youtube_video_link) {
+			return Err(LevelRequestError::MalformedRequest);
+		}
 		match self.gd_client.get_gd_level_info(level_id).await {
 			Ok(gd_level) => {
 				let gd_level_request = GDLevelRequest {
@@ -65,7 +70,8 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 					discord_message_data: None,
 					request_rating,
 					youtube_video_link,
-					has_requested_feedback
+					has_requested_feedback,
+					notify
 				};
 
 				let request_level_result = self
@@ -225,6 +231,16 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
 			user_repository,
 			gd_client
 		}
+	}
+
+	fn is_valid_youtube_link(youtube_link: &str) -> bool {
+		let regex = regex::RegexBuilder::new(YOUTUBE_LINK_REGEX)
+			.case_insensitive(true)
+			.multi_line(true)
+			.build()
+			.unwrap();
+
+		regex.is_match(youtube_link)
 	}
 }
 

@@ -18,10 +18,10 @@ use crate::{
 		moderator::Moderator
 	},
 	rocket::common::{
-		config::auth_config::AUTH_CONFIG,
 		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
 	}
 };
+use crate::rocket::common::config::geometry_dash_config::GEOMETRY_DASH_CONFIG;
 
 pub struct GeometryDashDashrsClient {
 	client: Client
@@ -77,8 +77,8 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 		moderator_request: Moderator
 	) -> Result<(), GeometryDashDashrsError> {
 		match LoginRequest::default()
-			.user_name(&AUTH_CONFIG.gd_username)
-			.password(&AUTH_CONFIG.gd_password)
+			.user_name(&GEOMETRY_DASH_CONFIG.gd_username)
+			.password(&GEOMETRY_DASH_CONFIG.gd_password)
 			.to_authenticated_user()
 			.await
 		{

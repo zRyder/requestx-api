@@ -4,6 +4,7 @@ use std::{
 };
 
 use sea_orm::DbErr;
+
 use crate::domain::model::internal::api::moderator_api::ModeratorApiResponseError;
 
 #[derive(Debug, PartialEq)]
@@ -36,10 +37,12 @@ impl Display for ModeratorError {
 impl Into<ModeratorApiResponseError> for ModeratorError {
 	fn into(self) -> ModeratorApiResponseError {
 		match self {
-			ModeratorError::DatabaseError(_) => {ModeratorApiResponseError::ModeratorError}
-			ModeratorError::LevelRequestDoesNotExists => {ModeratorApiResponseError::LevelRequestDoesNotExist}
-			ModeratorError::UnsendableLevel => {ModeratorApiResponseError::UnsendableLevel}
-			ModeratorError::GeometryDashDashrsError => {ModeratorApiResponseError::ModeratorError}
+			ModeratorError::DatabaseError(_) => ModeratorApiResponseError::ModeratorError,
+			ModeratorError::LevelRequestDoesNotExists => {
+				ModeratorApiResponseError::LevelRequestDoesNotExist
+			}
+			ModeratorError::UnsendableLevel => ModeratorApiResponseError::UnsendableLevel,
+			ModeratorError::GeometryDashDashrsError => ModeratorApiResponseError::ModeratorError
 		}
 	}
 }

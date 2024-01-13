@@ -1,6 +1,9 @@
 use rocket_framework::{Build, Rocket};
 
-use crate::adapter::controller::internal::{internal_level_request_controller, internal_level_review_controller, internal_moderator_controller};
+use crate::adapter::controller::internal::{
+	internal_level_request_controller, internal_level_review_controller,
+	internal_moderator_controller
+};
 
 pub fn mount_internal_controllers(rocket: Rocket<Build>) -> Rocket<Build> {
 	rocket.mount(

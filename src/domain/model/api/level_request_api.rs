@@ -27,7 +27,8 @@ pub struct GetLevelRequestApiResponse {
 	pub level_length: LevelLength,
 	pub request_score: RequestRating,
 	pub youtube_video_link: String,
-	pub has_requested_feedback: bool
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 impl From<GDLevelRequest> for GetLevelRequestApiResponse {
@@ -54,7 +55,8 @@ impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 			level_length: value.gd_level.level_length.into(),
 			request_score: value.request_rating.into(),
 			youtube_video_link: value.youtube_video_link,
-			has_requested_feedback: value.has_requested_feedback
+			has_requested_feedback: value.has_requested_feedback,
+			notify: value.notify,
 		}
 	}
 }
@@ -76,7 +78,8 @@ pub struct PostLevelRequestApiRequest<'a> {
 	pub youtube_video_link: &'a str,
 	pub discord_id: u64,
 	pub request_rating: RequestRating,
-	pub has_requested_feedback: bool
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 #[derive(Serialize)]
@@ -88,7 +91,8 @@ pub struct PostLevelRequestApiResponse {
 	pub level_length: LevelLength,
 	pub request_score: RequestRating,
 	pub youtube_video_link: String,
-	pub has_requested_feedback: bool
+	pub has_requested_feedback: bool,
+	pub notify: bool
 }
 
 impl From<GDLevelRequest> for PostLevelRequestApiResponse {
@@ -101,7 +105,8 @@ impl From<GDLevelRequest> for PostLevelRequestApiResponse {
 			level_length: value.gd_level.level_length.into(),
 			request_score: value.request_rating.into(),
 			youtube_video_link: value.youtube_video_link,
-			has_requested_feedback: value.has_requested_feedback
+			has_requested_feedback: value.has_requested_feedback,
+			notify: value.notify
 		}
 	}
 }
@@ -119,6 +124,7 @@ impl<'r> Responder<'r, 'r> for PostLevelRequestApiResponse {
 
 #[derive(Debug, PartialEq)]
 pub enum LevelRequestApiResponseError {
+	MalformedRequest,
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	LevelRequestError
@@ -132,6 +138,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			.raw_header("x-requestx-timestamp", format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
+			LevelRequestApiResponseError::MalformedRequest => {
+				response.status(Status::BadRequest);
+			}
 			LevelRequestApiResponseError::LevelRequestExists => {
 				response.status(Status::Conflict);
 			}
@@ -150,6 +159,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 impl Display for LevelRequestApiResponseError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
+			LevelRequestApiResponseError::MalformedRequest => {
+				write!(f, "{{\"message\": \"Level request was malformed\"}}")
+			}
 			LevelRequestApiResponseError::LevelRequestExists => {
 				write!(f, "{{\"message\": \"Level has already been requested\"}}")
 			}

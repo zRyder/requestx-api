@@ -11,13 +11,12 @@ use crate::{
 	domain::{
 		model::{
 			error::moderator_error::ModeratorError,
-			moderator::{Moderator, SuggestedScore}
+			gd_level::GDLevelRequest,
+			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
 		service::moderate_service::ModerateService
 	}
 };
-use crate::domain::model::gd_level::GDLevelRequest;
-use crate::domain::model::moderator::SuggestedRating;
 
 pub struct ModeratorService<
 	R: ModeratorRepository,
@@ -41,7 +40,7 @@ impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> M
 		let moderator_data = Moderator {
 			level_id,
 			suggested_score,
-			suggested_rating,
+			suggested_rating
 		};
 
 		match self
@@ -50,8 +49,7 @@ impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> M
 			.await
 		{
 			Ok(potential_level_request) => {
-				if let Some(level_request) = potential_level_request
-				{
+				if let Some(level_request) = potential_level_request {
 					match self
 						.moderator_repository
 						.get_record(moderator_data.level_id)
@@ -125,12 +123,14 @@ impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> M
 	}
 }
 
-impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> ModeratorService<R, L, G> {
+impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient>
+	ModeratorService<R, L, G>
+{
 	pub fn new(moderator_repository: R, level_request_repository: L, gd_client: G) -> Self {
 		ModeratorService {
 			moderator_repository,
 			level_request_repository,
-			gd_client,
+			gd_client
 		}
 	}
 }

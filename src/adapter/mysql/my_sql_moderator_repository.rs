@@ -31,7 +31,5 @@ impl<'a> ModeratorRepository for MySqlModeratorRepository<'a> {
 }
 
 impl<'a> MySqlModeratorRepository<'a> {
-	pub fn new(db_conn: &'a DbConn) -> Self {
-		MySqlModeratorRepository{db_conn}
-	}
+	pub fn new(db_conn: &'a DbConn) -> Self { MySqlModeratorRepository { db_conn } }
 }

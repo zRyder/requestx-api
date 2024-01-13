@@ -6,4 +6,3 @@
 *.iml
 Cargo.lock
 *.DS_Store
-Config.toml

@@ -1,10 +1,8 @@
 use dash_rs::request::moderator::{SuggestedFeatureScore, SuggestedStars};
 use sea_orm::ActiveValue;
 
-use crate::{
-	adapter::mysql::model::{
-		moderator, moderator::Model, sea_orm_active_enums, sea_orm_active_enums::Score
-	},
+use crate::adapter::mysql::model::{
+	moderator, moderator::Model, sea_orm_active_enums, sea_orm_active_enums::Score
 };
 
 #[derive(Clone, Copy, Debug)]

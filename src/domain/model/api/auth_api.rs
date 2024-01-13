@@ -18,6 +18,7 @@ use crate::{
 	domain::model::{auth::claims::Claims, error::level_request_error::LevelRequestError},
 	rocket::common::config::auth_config::AUTH_CONFIG
 };
+use crate::rocket::common::config::client_config::CLIENT_CONFIG;
 
 #[derive(Deserialize)]
 pub struct AuthApiRequest {
@@ -50,7 +51,7 @@ impl<'r> FromRequest<'r> for AuthApiRequest {
 		let discord_app_id = request.headers().get_one("X-REQUESTX-DISCORD-APP-ID");
 		let access_token = request.headers().get_one("X-REQUESTX-ACCESS-TOKEN");
 		if discord_app_id.is_some() && access_token.is_some() {
-			if discord_app_id.unwrap().ne(&AUTH_CONFIG.discord_app_id) {
+			if discord_app_id.unwrap().parse::<u64>().unwrap().ne(&CLIENT_CONFIG.discord_app_id) {
 				Outcome::Forward(Status::Unauthorized)
 			} else if access_token.unwrap().ne(&AUTH_CONFIG.access_token) {
 				Outcome::Forward(Status::Forbidden)

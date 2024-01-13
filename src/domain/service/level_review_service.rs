@@ -11,6 +11,7 @@ use crate::{
 		service::review_service::ReviewService
 	}
 };
+use crate::rocket::common::config::client_config::CLIENT_CONFIG;
 
 pub struct LevelReviewService<R: ReviewRepository, L: LevelRequestRepository> {
 	review_repository: R,
@@ -57,7 +58,21 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 		discord_message_id: u64,
 		review_contents: String
 	) -> Result<LevelReview, LevelReviewError> {
-		match self.level_request_repository.get_record(level_id).await {
+		let potential_level_request_result;
+
+		if reviewer_discord_id.eq(&CLIENT_CONFIG.discord_bot_admin_id) {
+			potential_level_request_result = self
+				.level_request_repository
+				.get_record(level_id)
+				.await
+		} else {
+			potential_level_request_result = self
+				.level_request_repository
+				.get_record_filter_feedback(level_id, true)
+				.await
+		}
+
+		match potential_level_request_result {
 			Ok(potential_level_request) => {
 				if let Some(level_request) = potential_level_request {
 					match self
@@ -123,7 +138,11 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 						}
 					}
 				} else {
-					warn!("Reviewer {} attempted to write review for level ID {} which does not exist", reviewer_discord_id, level_id);
+					warn!(
+						"Reviewer {} attempted to write review for level ID \
+						{} which does not exist or feedback was not requested",
+						reviewer_discord_id, level_id
+					);
 					Err(LevelReviewError::LevelRequestDoesNotExist)
 				}
 			}
