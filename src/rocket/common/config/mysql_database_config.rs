@@ -19,8 +19,8 @@ impl MySqlDatabaseConfig {
 			"mysql://{}:{}@{}:{}",
 			&self.user, &self.password, &self.host, &self.port
 		);
+		info!("{}", &url);
 		let db_conn_result = Database::connect(&url).await;
-		debug!("{}", &url);
 
 		match db_conn_result {
 			Ok(db_conn) => {
@@ -38,7 +38,7 @@ impl MySqlDatabaseConfig {
 				}
 			}
 			Err(err) => {
-				error!("Unable to connect to database during initialization{}", err);
+				error!("Unable to connect to database during initialization {}", err);
 				Err(err)
 			}
 		}

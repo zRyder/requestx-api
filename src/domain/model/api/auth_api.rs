@@ -88,8 +88,6 @@ impl<'r> FromRequest<'r> for Auth {
 			let mut validation = Validation::default();
 			validation.set_audience(&[discord_app_id.unwrap().to_string()]);
 
-			info!("{:?}", &jwt.unwrap().replace("Bearer ", ""));
-
 			match decode::<Claims>(
 				&jwt.unwrap().replace("Bearer ", ""),
 				&DecodingKey::from_secret(&AUTH_CONFIG.secret_token.as_ref()),
