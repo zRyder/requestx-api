@@ -1,8 +1,7 @@
 steps:
   - name: gcr.io/cloud-builders/docker
-    args: ['build', '-t', 'us-west1-docker.pkg.dev/solar-scion-411201/requestx-docker-repo/requestx-api:${SHORT_SHA}', '.']
+    args: ['build', '-t', 'us-west1-docker.pkg.dev/$PROJECT_ID/requestx-docker-repo/requestx-api:${SHORT_SHA}', '.']
   - name: gcr.io/cloud-builders/docker
-    args: ['push', 'us-west1-docker.pkg.dev/solar-scion-411201/requestx-docker-repo/requestx-api:${SHORT_SHA}']
-
-images:
-  - us-west1-docker.pkg.dev/solar-scion-411201/requestx-docker-repo/requestx-api:${SHORT_SHA}
+    args: ['push', 'us-west1-docker.pkg.dev/$PROJECT_ID/requestx-docker-repo/requestx-api:${SHORT_SHA}']
+  - name: gcr.io/cloud-builders/docker
+    args: [ 'tag', 'us-west1-docker.pkg.dev/$PROJECT_ID/requestx-docker-repo/requestx-api:${SHORT_SHA}', 'us-west1-docker.pkg.dev/$PROJECT_ID/requestx-docker-repo/requestx-api:latest' ]
