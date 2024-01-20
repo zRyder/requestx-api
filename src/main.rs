@@ -40,6 +40,7 @@ async fn launch() -> _ {
 
 	let mut rocket = rocket_framework::custom(
 		Config::figment()
+			.merge(("address", &APP_CONFIG.client_config.host))
 			.merge(("port", &APP_CONFIG.client_config.port))
 	);
 
