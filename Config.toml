@@ -1,4 +1,5 @@
 [client_config]
+port = "{{REQUESTX_PORT}}"
 discord_app_id = "{{REQUESTX_DISCORD_APP_ID}}"
 discord_bot_admin_id = "{{REQUESTX_DISCORD_BOT_ADMIN_ID}}"
 

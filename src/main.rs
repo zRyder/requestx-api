@@ -6,6 +6,7 @@ mod domain;
 
 mod rocket;
 
+use rocket_framework::Config;
 use crate::{
 	adapter::controller::{
 		auth_controller, level_request_controller, level_review_controller, reviewer_controller, health
@@ -15,12 +16,12 @@ use crate::{
 		internal::internal::mount_internal_controllers
 	}
 };
+use crate::rocket::common::config::common_config::APP_CONFIG;
 
 #[launch]
 async fn launch() -> _ {
 	log4rs::init_file("log4rs.yml", Default::default()).unwrap();
 	info!("Starting requestx-api");
-	let rocket = rocket_framework::build();
 
 	info!("Initializing application configuration");
 	if let Err(err) = init_app_config() {
@@ -37,7 +38,12 @@ async fn launch() -> _ {
 		}
 	};
 
-	let rocket = rocket.manage(db_conn).mount(
+	let mut rocket = rocket_framework::custom(
+		Config::figment()
+			.merge(("port", &APP_CONFIG.client_config.port))
+	);
+
+	rocket = rocket.manage(db_conn).mount(
 		"/api/v1",
 		routes![
 			auth_controller::generate_jwt,
