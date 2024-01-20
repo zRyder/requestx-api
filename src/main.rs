@@ -8,7 +8,7 @@ mod rocket;
 
 use crate::{
 	adapter::controller::{
-		auth_controller, level_request_controller, level_review_controller, reviewer_controller
+		auth_controller, level_request_controller, level_review_controller, reviewer_controller, health
 	},
 	rocket::common::{
 		config::{common_config::init_app_config, mysql_database_config::MY_SQL_DATABASE_CONFIG},
@@ -48,6 +48,7 @@ async fn launch() -> _ {
 			reviewer_controller::get_reviewer,
 			reviewer_controller::create_reviewer,
 			reviewer_controller::remove_reviewer,
+			health::get_health
 		]
 	);
 	mount_internal_controllers(rocket)
