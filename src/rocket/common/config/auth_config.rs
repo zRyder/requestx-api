@@ -6,7 +6,7 @@ use crate::rocket::common::config::common_config::APP_CONFIG;
 #[derive(Debug, Deserialize)]
 pub struct AuthConfig {
 	pub secret_token: String,
-	pub access_token: String,
+	pub access_token: String
 }
 
 lazy_static! {

@@ -9,9 +9,9 @@ use crate::{
 	domain::{
 		model::{error::level_review_error::LevelReviewError, review::LevelReview},
 		service::review_service::ReviewService
-	}
+	},
+	rocket::common::config::client_config::CLIENT_CONFIG
 };
-use crate::rocket::common::config::client_config::CLIENT_CONFIG;
 
 pub struct LevelReviewService<R: ReviewRepository, L: LevelRequestRepository> {
 	review_repository: R,
@@ -61,10 +61,8 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 		let potential_level_request_result;
 
 		if reviewer_discord_id.eq(&CLIENT_CONFIG.discord_bot_admin_id) {
-			potential_level_request_result = self
-				.level_request_repository
-				.get_record(level_id)
-				.await
+			potential_level_request_result =
+				self.level_request_repository.get_record(level_id).await
 		} else {
 			potential_level_request_result = self
 				.level_request_repository

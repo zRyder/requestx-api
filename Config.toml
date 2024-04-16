@@ -3,6 +3,8 @@ host = "{{REQUESTX_HOST}}"
 port = "{{REQUESTX_PORT}}"
 discord_app_id = "{{REQUESTX_DISCORD_APP_ID}}"
 discord_bot_admin_id = "{{REQUESTX_DISCORD_BOT_ADMIN_ID}}"
+cooldown_duration = 0
+enable_requests = true
 
 [mysql_database_config]
 user = "{{REQUESTX_DB_USERNAME}}"

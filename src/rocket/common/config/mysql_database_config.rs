@@ -38,7 +38,10 @@ impl MySqlDatabaseConfig {
 				}
 			}
 			Err(err) => {
-				error!("Unable to connect to database during initialization {}", err);
+				error!(
+					"Unable to connect to database during initialization {}",
+					err
+				);
 				Err(err)
 			}
 		}
