@@ -20,7 +20,7 @@ appenders:
     encoder:
       kind: json
 root:
-  level: error
+  level: info
   appenders:
     - stdout
 loggers:

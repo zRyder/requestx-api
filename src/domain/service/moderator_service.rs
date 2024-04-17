@@ -58,6 +58,7 @@ impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> M
 						Ok(potential_level_send) => {
 							if let Some(level_send) = potential_level_send {
 								if moderator_data.suggested_score == SuggestedScore::NoRate {
+									error!("Cannot send level with ID {} for no rate", moderator_data.level_id);
 									return Err(ModeratorError::UnsendableLevel);
 								}
 								let mut previous_level_send = level_send.into_active_model();

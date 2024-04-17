@@ -66,6 +66,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 		notify: bool
 	) -> Result<GDLevelRequest, LevelRequestError> {
 		if !Self::is_valid_youtube_link(&youtube_video_link) {
+			warn!("Malformed YouTube link: {}", youtube_video_link);
 			return Err(LevelRequestError::MalformedRequest);
 		}
 		let now = Utc::now();
@@ -133,6 +134,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 						{
 							Ok(some_request) => {
 								if some_request.is_some() {
+									warn!("Level requests with ID: {} already exists", level_id);
 									Err(LevelRequestError::LevelRequestExists)
 								} else {
 									let level_request_storable = gd_level_request.clone().into();
@@ -205,6 +207,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 						}
 					}
 				} else {
+					warn!("Level request with ID: {} does not exist", level_id);
 					Err(LevelRequestError::LevelRequestDoesNotExist)
 				}
 			}
@@ -241,6 +244,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 						}
 					}
 				} else {
+					warn!("Level request with ID: {} does not exist", level_id);
 					Err(LevelRequestError::LevelRequestDoesNotExist)
 				}
 			}
