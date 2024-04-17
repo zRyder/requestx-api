@@ -182,6 +182,7 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 						}
 					}
 				} else {
+					warn!("Level request with ID: {} does not exist", level_id);
 					Err(LevelReviewError::LevelRequestDoesNotExist)
 				}
 			}

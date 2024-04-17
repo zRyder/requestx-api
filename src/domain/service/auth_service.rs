@@ -12,6 +12,7 @@ impl AuthService {
 	pub fn new(claims: Claims) -> Self { Self { claims } }
 
 	pub fn generate_jwt(&self) -> jsonwebtoken::errors::Result<String> {
+		info!("Generating new JWT");
 		encode(
 			&Header::default(),
 			&self.claims,

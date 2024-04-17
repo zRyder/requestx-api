@@ -19,7 +19,6 @@ impl MySqlDatabaseConfig {
 			"mysql://{}:{}@{}:{}",
 			&self.user, &self.password, &self.host, &self.port
 		);
-		info!("{}", &url);
 		let db_conn_result = Database::connect(&url).await;
 
 		match db_conn_result {
