@@ -6,18 +6,21 @@ mod domain;
 
 mod rocket;
 
-use rocket_framework::fairing::AdHoc;
-use rocket_framework::Config;
+use rocket_framework::{fairing::AdHoc, Config};
+
 use crate::{
 	adapter::controller::{
-		auth_controller, level_request_controller, level_review_controller, reviewer_controller, health
+		auth_controller, health, level_request_controller, level_review_controller,
+		reviewer_controller
 	},
 	rocket::common::{
-		config::{common_config::init_app_config, mysql_database_config::MY_SQL_DATABASE_CONFIG},
+		config::{
+			common_config::{init_app_config, APP_CONFIG},
+			mysql_database_config::MY_SQL_DATABASE_CONFIG
+		},
 		internal::internal::mount_internal_controllers
 	}
 };
-use crate::rocket::common::config::common_config::APP_CONFIG;
 
 #[launch]
 async fn launch() -> _ {
@@ -45,10 +48,11 @@ async fn launch() -> _ {
 			.merge(("port", &APP_CONFIG.client_config.port))
 	);
 
-	rocket = rocket.manage(db_conn)
+	rocket = rocket
+		.manage(db_conn)
 		.attach(AdHoc::on_request("API Logger", |req, _| {
 			if req.uri() != "/api/v1/health" {
-				Box::pin(async move {info!("Request recieved: {}", req.uri())})
+				Box::pin(async move { info!("Request recieved: {}", req.uri()) })
 			} else {
 				Box::pin(async move {})
 			}

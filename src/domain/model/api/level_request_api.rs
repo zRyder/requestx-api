@@ -3,7 +3,7 @@ use std::{
 	fmt::{Display, Formatter}
 };
 
-use chrono::Local;
+use chrono::{DateTime, Local, Utc};
 use rocket::serde::Serialize;
 use rocket_framework::{
 	http::{ContentType, Status},
@@ -14,7 +14,10 @@ use rocket_framework::{
 };
 use serde_derive::Deserialize;
 
-use crate::domain::model::{gd_level, gd_level::GDLevelRequest};
+use crate::{
+	domain::model::{gd_level, gd_level::GDLevelRequest},
+	rocket::common::constants::TIMESTAMP_HEADER_NAME
+};
 
 #[derive(Serialize)]
 pub struct GetLevelRequestApiResponse {
@@ -28,14 +31,15 @@ pub struct GetLevelRequestApiResponse {
 	pub request_score: RequestRating,
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
-	pub notify: bool
+	pub notify: bool,
+	pub timestamp: DateTime<Utc>
 }
 
 impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 	fn from(value: GDLevelRequest) -> Self {
 		Self {
 			level_id: value.gd_level.level_id,
-			discord_id: value.discord_user_data.discord_user_id,
+			discord_id: value.discord_user_id,
 			discord_message_id: if let Some(message_data) = value.discord_message_data {
 				Some(message_data.message_id)
 			} else {
@@ -57,6 +61,7 @@ impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 			youtube_video_link: value.youtube_video_link,
 			has_requested_feedback: value.has_requested_feedback,
 			notify: value.notify,
+			timestamp: value.timestamp
 		}
 	}
 }
@@ -99,7 +104,7 @@ impl From<GDLevelRequest> for PostLevelRequestApiResponse {
 	fn from(value: GDLevelRequest) -> Self {
 		Self {
 			level_id: value.gd_level.level_id,
-			discord_id: value.discord_user_data.discord_user_id,
+			discord_id: value.discord_user_id,
 			level_name: value.gd_level.name,
 			level_author: value.gd_level.creator.name,
 			level_length: value.gd_level.level_length.into(),
@@ -116,7 +121,7 @@ impl<'r> Responder<'r, 'r> for PostLevelRequestApiResponse {
 		let json = Json(self);
 		Response::build_from(json.respond_to(&request).unwrap())
 			.status(Status::Created)
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.ok()
 	}
@@ -127,6 +132,7 @@ pub enum LevelRequestApiResponseError {
 	MalformedRequest,
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
+	UserOnCooldown,
 	LevelRequestError
 }
 
@@ -135,7 +141,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-requestx-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
 			LevelRequestApiResponseError::MalformedRequest => {
@@ -146,6 +152,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::LevelRequestDoesNotExist => {
 				response.status(Status::NotFound);
+			}
+			LevelRequestApiResponseError::UserOnCooldown => {
+				response.status(Status::TooManyRequests);
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
 				response.status(Status::InternalServerError);
@@ -167,6 +176,9 @@ impl Display for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::LevelRequestDoesNotExist => {
 				write!(f, "{{\"message\": \"Level request does not exist\"}}")
+			}
+			LevelRequestApiResponseError::UserOnCooldown => {
+				write!(f, "{{\"message\": \"User is on cooldown\"}}")
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
 				write!(f, "{{\"message\": \"Internal server error\"}}")

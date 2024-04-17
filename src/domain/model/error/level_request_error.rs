@@ -17,6 +17,7 @@ pub enum LevelRequestError {
 	DatabaseError(DbErr),
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
+	UserOnCooldown,
 	GeometryDashClientError(u64, GeometryDashDashrsError)
 }
 
@@ -42,6 +43,9 @@ impl Display for LevelRequestError {
 					"Unable to update level request due to conflict: Level request does not exist"
 				)
 			}
+			LevelRequestError::UserOnCooldown => {
+				write!(f, "The user is still on cooldown")
+			}
 			LevelRequestError::GeometryDashClientError(level_id, client_error) => {
 				write!(
 					f,
@@ -66,6 +70,7 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			LevelRequestError::LevelRequestDoesNotExist => {
 				LevelRequestApiResponseError::LevelRequestDoesNotExist
 			}
+			LevelRequestError::UserOnCooldown => LevelRequestApiResponseError::UserOnCooldown,
 			LevelRequestError::GeometryDashClientError(_, _) => {
 				LevelRequestApiResponseError::LevelRequestError
 			}

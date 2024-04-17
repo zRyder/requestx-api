@@ -1,15 +1,13 @@
-use std::{env, fs, process};
-use std::collections::HashMap;
-use config::{Config, ConfigError, File, FileFormat};
+use std::{collections::HashMap, env, fs, process};
 
+use config::{Config, ConfigError, File, FileFormat};
 use lazy_static::lazy_static;
 use serde_derive::Deserialize;
 
 use crate::rocket::common::config::{
-	auth_config::AuthConfig, mysql_database_config::MySqlDatabaseConfig
+	auth_config::AuthConfig, client_config::ClientConfig, geometry_dash_config::GeometryDashConfig,
+	mysql_database_config::MySqlDatabaseConfig
 };
-use crate::rocket::common::config::client_config::ClientConfig;
-use crate::rocket::common::config::geometry_dash_config::GeometryDashConfig;
 
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {

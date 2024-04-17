@@ -18,10 +18,10 @@ use crate::{
 		moderator::Moderator
 	},
 	rocket::common::{
+		config::geometry_dash_config::GEOMETRY_DASH_CONFIG,
 		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
 	}
 };
-use crate::rocket::common::config::geometry_dash_config::GEOMETRY_DASH_CONFIG;
 
 pub struct GeometryDashDashrsClient {
 	client: Client

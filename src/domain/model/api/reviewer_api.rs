@@ -12,7 +12,7 @@ use rocket_framework::{
 };
 use serde_derive::{Deserialize, Serialize};
 
-use crate::domain::model::reviewer::Reviewer;
+use crate::{domain::model::reviewer::Reviewer, rocket::common::constants::TIMESTAMP_HEADER_NAME};
 
 #[derive(Serialize)]
 pub struct GetReviewerApiResponse {
@@ -56,7 +56,7 @@ impl<'r> Responder<'r, 'r> for ReviewerApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
 			ReviewerApiResponseError::ReviewerDoesNotExist => {

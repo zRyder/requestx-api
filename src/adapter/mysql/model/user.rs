@@ -6,7 +6,8 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "user")]
 pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
-	pub discord_id: u64
+	pub discord_id: u64,
+	pub timestamp: Option<DateTimeUtc>
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

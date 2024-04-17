@@ -20,7 +20,8 @@ pub struct Model {
 	pub level_length: LevelLength,
 	pub you_tube_video_link: String,
 	pub has_requested_feedback: i8,
-	pub notify: i8
+	pub notify: i8,
+	pub timestamp: DateTimeUtc
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

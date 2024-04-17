@@ -9,7 +9,7 @@ use crate::{
 	domain::{
 		model::{
 			api::{auth_api::Auth, level_review_api::LevelReviewApiResponseError},
-			internal::api::internal_level_review_api_request::{
+			internal::api::internal_level_review_api::{
 				InternalUpdateLevelReviewDiscordDataApiResponse,
 				InternalUpdateLevelReviewMessageIdApiRequest
 			}

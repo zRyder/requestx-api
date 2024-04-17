@@ -9,21 +9,16 @@ use serde_derive::{Deserialize, Serialize};
 use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
 
 #[derive(Deserialize)]
-pub struct InternalUpdateLevelRequestMessageIdApiRequest {
-	pub level_id: u64,
-	pub discord_message_id: u64
-}
-
-#[derive(Deserialize)]
-pub struct InternalUpdateLevelRequestThreadIdApiRequest {
-	pub level_id: u64,
-	pub discord_thread_id: u64
+pub struct InternalUpdateRequestConfigApiRequest {
+	#[serde(rename = "duration")]
+	pub duration_in_minutes: Option<u64>,
+	pub enable_requests: Option<bool>
 }
 
 #[derive(Serialize)]
-pub struct InternalUpdateLevelRequestDiscordDataApiResponse {}
+pub struct InternalUpdateRequestConfigApiResponse {}
 
-impl<'r> Responder<'r, 'r> for InternalUpdateLevelRequestDiscordDataApiResponse {
+impl<'r> Responder<'r, 'r> for InternalUpdateRequestConfigApiResponse {
 	fn respond_to(self, _request: &'r Request<'_>) -> rocket_framework::response::Result<'r> {
 		Response::build()
 			.status(Status::Ok)

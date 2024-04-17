@@ -10,7 +10,7 @@ use rocket_framework::{
 	Request, Response
 };
 
-use crate::domain::model::review::LevelReview;
+use crate::{domain::model::review::LevelReview, rocket::common::constants::TIMESTAMP_HEADER_NAME};
 
 #[derive(Serialize)]
 pub struct GetLevelReviewApiRespnse {
@@ -76,7 +76,7 @@ impl<'r> Responder<'r, 'r> for LevelReviewApiResponse {
 		let json = Json(&self);
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		if self.is_update {
 			response.status(Status::Ok);
@@ -99,7 +99,7 @@ impl<'r> Responder<'r, 'r> for LevelReviewApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
 
 		match self {

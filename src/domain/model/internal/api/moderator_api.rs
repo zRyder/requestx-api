@@ -9,7 +9,7 @@ use rocket_framework::{
 };
 use serde_derive::{Deserialize, Serialize};
 
-use crate::domain::model::moderator;
+use crate::{domain::model::moderator, rocket::common::constants::TIMESTAMP_HEADER_NAME};
 
 #[derive(Deserialize)]
 pub struct PostModeratorApiRequest {
@@ -44,7 +44,7 @@ impl<'r> Responder<'r, 'r> for ModeratorApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-requestx-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
 
 		match self {

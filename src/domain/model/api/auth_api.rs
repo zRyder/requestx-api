@@ -16,9 +16,11 @@ use rocket_framework::{
 
 use crate::{
 	domain::model::{auth::claims::Claims, error::level_request_error::LevelRequestError},
-	rocket::common::config::auth_config::AUTH_CONFIG
+	rocket::common::{
+		config::{auth_config::AUTH_CONFIG, client_config::CLIENT_CONFIG},
+		constants::TIMESTAMP_HEADER_NAME
+	}
 };
-use crate::rocket::common::config::client_config::CLIENT_CONFIG;
 
 #[derive(Deserialize)]
 pub struct AuthApiRequest {
@@ -51,7 +53,12 @@ impl<'r> FromRequest<'r> for AuthApiRequest {
 		let discord_app_id = request.headers().get_one("X-REQUESTX-DISCORD-APP-ID");
 		let access_token = request.headers().get_one("X-REQUESTX-ACCESS-TOKEN");
 		if discord_app_id.is_some() && access_token.is_some() {
-			if discord_app_id.unwrap().parse::<u64>().unwrap().ne(&CLIENT_CONFIG.discord_app_id) {
+			if discord_app_id
+				.unwrap()
+				.parse::<u64>()
+				.unwrap()
+				.ne(&CLIENT_CONFIG.discord_app_id)
+			{
 				Outcome::Forward(Status::Unauthorized)
 			} else if access_token.unwrap().ne(&AUTH_CONFIG.access_token) {
 				Outcome::Forward(Status::Forbidden)
@@ -111,7 +118,7 @@ impl<'r> Responder<'r, 'r> for AuthApiError {
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.status(Status::InternalServerError)
 			.ok()
