@@ -14,7 +14,10 @@ use rocket_framework::{
 };
 use serde_derive::Deserialize;
 
-use crate::domain::model::{gd_level, gd_level::GDLevelRequest};
+use crate::{
+	domain::model::{gd_level, gd_level::GDLevelRequest},
+	rocket::common::constants::TIMESTAMP_HEADER_NAME
+};
 
 #[derive(Serialize)]
 pub struct GetLevelRequestApiResponse {
@@ -118,7 +121,7 @@ impl<'r> Responder<'r, 'r> for PostLevelRequestApiResponse {
 		let json = Json(self);
 		Response::build_from(json.respond_to(&request).unwrap())
 			.status(Status::Created)
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.ok()
 	}
@@ -138,7 +141,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 		let json = Json(self.to_string());
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
-			.raw_header("x-requestx-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
 		match self {
 			LevelRequestApiResponseError::MalformedRequest => {

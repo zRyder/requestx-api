@@ -16,7 +16,10 @@ use rocket_framework::{
 
 use crate::{
 	domain::model::{auth::claims::Claims, error::level_request_error::LevelRequestError},
-	rocket::common::config::{auth_config::AUTH_CONFIG, client_config::CLIENT_CONFIG}
+	rocket::common::{
+		config::{auth_config::AUTH_CONFIG, client_config::CLIENT_CONFIG},
+		constants::TIMESTAMP_HEADER_NAME
+	}
 };
 
 #[derive(Deserialize)]
@@ -115,7 +118,7 @@ impl<'r> Responder<'r, 'r> for AuthApiError {
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 
 		response
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.status(Status::InternalServerError)
 			.ok()

@@ -6,6 +6,8 @@ use rocket_framework::{
 };
 use serde_derive::{Deserialize, Serialize};
 
+use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
+
 #[derive(Deserialize)]
 pub struct InternalUpdateLevelReviewMessageIdApiRequest {
 	pub level_id: u64,
@@ -20,7 +22,7 @@ impl<'r> Responder<'r, 'r> for InternalUpdateLevelReviewDiscordDataApiResponse {
 	fn respond_to(self, _request: &'r Request<'_>) -> rocket_framework::response::Result<'r> {
 		Response::build()
 			.status(Status::Ok)
-			.raw_header("x-timestamp", format!("{}", Local::now()))
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON)
 			.ok()
 	}
