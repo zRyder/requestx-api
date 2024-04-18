@@ -2,13 +2,13 @@ use crate::domain::model::{error::level_review_error::LevelReviewError, review::
 
 pub trait ReviewService {
 	async fn get_level_review(
-		self,
+		&self,
 		level_id: u64,
 		discord_id: u64
 	) -> Result<LevelReview, LevelReviewError>;
 
 	async fn review_level(
-		self,
+		&self,
 		level_id: u64,
 		reviewer_discord_id: u64,
 		discord_message_id: u64,
@@ -16,7 +16,7 @@ pub trait ReviewService {
 	) -> Result<LevelReview, LevelReviewError>;
 
 	async fn update_level_request_thread_id(
-		self,
+		&self,
 		level_id: u64,
 		discord_id: u64,
 		discord_message_id: u64

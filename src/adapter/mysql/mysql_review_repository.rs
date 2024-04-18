@@ -11,7 +11,7 @@ pub struct MySqlReviewRepository<'a> {
 
 impl<'a> ReviewRepository for MySqlReviewRepository<'a> {
 	async fn create_record(
-		self,
+		&self,
 		record: review::ActiveModel
 	) -> Result<InsertResult<review::ActiveModel>, DbErr> {
 		Review::insert(record).exec(self.db_conn).await
@@ -27,11 +27,11 @@ impl<'a> ReviewRepository for MySqlReviewRepository<'a> {
 			.await
 	}
 
-	async fn update_record(self, record: review::ActiveModel) -> Result<review::Model, DbErr> {
+	async fn update_record(&self, record: review::ActiveModel) -> Result<review::Model, DbErr> {
 		Review::update(record).exec(self.db_conn).await
 	}
 
-	async fn delete_record(self, record: review::ActiveModel) -> Result<DeleteResult, DbErr> {
+	async fn delete_record(&self, record: review::ActiveModel) -> Result<DeleteResult, DbErr> {
 		Review::delete(record).exec(self.db_conn).await
 	}
 }

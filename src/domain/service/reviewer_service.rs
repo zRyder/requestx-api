@@ -2,12 +2,12 @@ use crate::domain::model::{error::reviewer_error::ReviewerError, reviewer::Revie
 
 pub trait ReviewerService {
 	async fn get_reviewer(
-		self,
+		&self,
 		reviewer_discord_id: u64,
-		include_active: bool
+		include_active: Option<bool>
 	) -> Result<Reviewer, ReviewerError>;
 
-	async fn create_reviewer(self, reviewer_discord_id: u64) -> Result<(), ReviewerError>;
+	async fn create_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError>;
 
-	async fn remove_reviewer(self, reviewer_discord_id: u64) -> Result<(), ReviewerError>;
+	async fn remove_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError>;
 }

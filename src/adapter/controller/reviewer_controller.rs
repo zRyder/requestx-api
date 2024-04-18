@@ -27,7 +27,7 @@ pub async fn get_reviewer(
 	let reviewer_service = LevelReviewerService::new(reviewer_repository);
 
 	match reviewer_service
-		.get_reviewer(reviewer_discord_id, is_active)
+		.get_reviewer(reviewer_discord_id, Some(is_active))
 		.await
 	{
 		Ok(reviewer) => Ok(GetReviewerApiResponse::from(reviewer)),

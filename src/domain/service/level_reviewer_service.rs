@@ -1,4 +1,4 @@
-use sea_orm::{ActiveValue, IntoActiveModel};
+use sea_orm::{ActiveValue};
 
 use crate::{
 	adapter::mysql::reviewer_repository::ReviewerRepository,
@@ -7,6 +7,7 @@ use crate::{
 		service::reviewer_service::ReviewerService
 	}
 };
+use crate::adapter::mysql::model::reviewer::ActiveModel;
 
 pub struct LevelReviewerService<R: ReviewerRepository> {
 	reviewer_repository: R
@@ -14,22 +15,21 @@ pub struct LevelReviewerService<R: ReviewerRepository> {
 
 impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 	async fn get_reviewer(
-		self,
+		&self,
 		reviewer_discord_id: u64,
-		include_active: bool
+		include_active: Option<bool>
 	) -> Result<Reviewer, ReviewerError> {
 		match self
 			.reviewer_repository
 			.get_record(reviewer_discord_id, include_active)
 			.await
 		{
-			Ok(potential_reviewer) => {
-				if let Some(reviewer) = potential_reviewer {
-					Ok(Reviewer::from(reviewer))
-				} else {
-					warn!("Reviewer with ID: {} does not exist", reviewer_discord_id);
-					Err(ReviewerError::ReviewerDoesNotExist)
-				}
+			Ok(Some(level_reviewer)) => {
+				Ok(Reviewer::from(level_reviewer))
+			}
+			Ok(None) => {
+				warn!("Reviewer with ID: {} does not exist", reviewer_discord_id);
+				Err(ReviewerError::ReviewerDoesNotExist)
 			}
 			Err(get_reviewer_error) => {
 				error!(
@@ -41,100 +41,82 @@ impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 		}
 	}
 
-	async fn create_reviewer(self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
-		match self
-			.reviewer_repository
-			.get_record_ignore_active(reviewer_discord_id)
+	async fn create_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
+		match self.get_reviewer(reviewer_discord_id, None)
 			.await
 		{
-			Ok(potential_existing_reviewer) => {
-				if let Some(existing_reviewer) = potential_existing_reviewer {
-					warn!(
-						"reviewer {} already exists, updating state",
-						reviewer_discord_id
+			Ok(level_reviewer) => {
+				warn!(
+					"reviewer {} already exists, updating state",
+					reviewer_discord_id
 					);
-					let mut create_reviewer_request = existing_reviewer.into_active_model();
-					create_reviewer_request.active = ActiveValue::Set(1);
-					if let Err(remove_reviewer_error) = self
-						.reviewer_repository
-						.update_record(create_reviewer_request)
-						.await
-					{
-						error!(
-							"Error removing reviewer {}: {}",
-							reviewer_discord_id, remove_reviewer_error
-						);
-						Err(ReviewerError::DatabaseError(remove_reviewer_error))
-					} else {
-						Ok(())
-					}
-				} else {
-					let reviewer_request = Reviewer {
-						discord_id: reviewer_discord_id,
-						is_active: true
-					};
+				let mut create_reviewer_request: ActiveModel = level_reviewer.into();
+				create_reviewer_request.active = ActiveValue::Set(1);
 
-					if let Err(create_reviewer_error) = self
-						.reviewer_repository
-						.create_record(reviewer_request.into())
-						.await
-					{
-						error!(
-							"Error creating reviewer {} record: {}",
-							reviewer_discord_id, create_reviewer_error
-						);
-						Err(ReviewerError::DatabaseError(create_reviewer_error))
-					} else {
-						Ok(())
-					}
+				if let Err(db_err) = self
+					.reviewer_repository
+					.update_record(create_reviewer_request)
+					.await
+				{
+					error!(
+						"Error removing reviewer {}: {}",
+						reviewer_discord_id, db_err
+					);
+					return Err(ReviewerError::DatabaseError(db_err))
 				}
 			}
-			Err(get_reviewer_error) => {
-				error!(
-					"Error getting reviewer with ID {}: {}",
-					reviewer_discord_id, get_reviewer_error
-				);
-				Err(ReviewerError::DatabaseError(get_reviewer_error))
+			Err(ReviewerError::ReviewerDoesNotExist) => {
+				let level_reviewer = Reviewer {
+					discord_id: reviewer_discord_id,
+					is_active: true
+				};
+
+				if let Err(db_err) = self
+					.reviewer_repository
+					.create_record(level_reviewer.into())
+					.await
+				{
+					error!(
+						"Error creating reviewer {} record: {}",
+						reviewer_discord_id, db_err
+					);
+					return Err(ReviewerError::DatabaseError(db_err))
+				}
+			}
+			Err(reviewer_error) => {
+				return Err(reviewer_error)
 			}
 		}
+		Ok(())
 	}
 
-	async fn remove_reviewer(self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
+	async fn remove_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
 		match self
-			.reviewer_repository
-			.get_record(reviewer_discord_id, true)
+			.get_reviewer(reviewer_discord_id, Some(true))
 			.await
 		{
-			Ok(potential_existing_reviewer) => {
-				if let Some(existing_reviewer) = potential_existing_reviewer {
-					let mut remove_reviewer_request = existing_reviewer.into_active_model();
-					remove_reviewer_request.active = ActiveValue::Set(0);
-					if let Err(remove_reviewer_error) = self
-						.reviewer_repository
-						.update_record(remove_reviewer_request)
-						.await
-					{
-						error!(
-							"Error removing reviewer {}: {}",
-							reviewer_discord_id, remove_reviewer_error
-						);
-						Err(ReviewerError::DatabaseError(remove_reviewer_error))
-					} else {
-						Ok(())
-					}
-				} else {
-					warn!("Reviewer with ID: {} does not exist", reviewer_discord_id);
-					Err(ReviewerError::ReviewerDoesNotExist)
+			Ok(existing_level_reviewer) => {
+				let mut remove_reviewer_request: ActiveModel = existing_level_reviewer.into();
+				remove_reviewer_request.active = ActiveValue::Set(0);
+
+				if let Err(db_err) = self
+					.reviewer_repository
+					.update_record(remove_reviewer_request)
+					.await
+				{
+					error!(
+						"Error removing reviewer {}: {}",
+						reviewer_discord_id, db_err
+					);
+					return Err(ReviewerError::DatabaseError(db_err))
 				}
 			}
-			Err(get_reviewer_error) => {
-				error!(
-					"Error getting reviewer with ID {}: {}",
-					reviewer_discord_id, get_reviewer_error
-				);
-				Err(ReviewerError::DatabaseError(get_reviewer_error))
+			Err(reviewer_error) => {
+				return Err(reviewer_error)
 			}
 		}
+
+		Ok(())
 	}
 }
 
