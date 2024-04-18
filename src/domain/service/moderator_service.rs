@@ -14,7 +14,10 @@ use crate::{
 			gd_level::GDLevelRequest,
 			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
-		service::moderate_service::ModerateService
+		service::{
+			internal::request_manager_service::RequestManagerService,
+			moderate_service::ModerateService
+		}
 	}
 };
 
@@ -26,7 +29,8 @@ pub struct ModeratorService<
 > {
 	moderator_repository: &'a R,
 	level_request_repository: &'a L,
-	gd_client: &'a G
+	gd_client: &'a G,
+	request_manager: &'a RequestManagerService
 }
 
 impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> ModerateService
@@ -101,7 +105,9 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 					}
 				}
 
-				if moderator_data.suggested_score != SuggestedScore::NoRate {
+				if self.request_manager.get_enable_gd_request()
+					&& moderator_data.suggested_score != SuggestedScore::NoRate
+				{
 					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
 						error!("Error sending level {:?}: {}", moderator_data, dashrs_error);
 						return Err(ModeratorError::GeometryDashDashrsError);
@@ -132,7 +138,8 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 		ModeratorService {
 			moderator_repository,
 			level_request_repository,
-			gd_client
+			gd_client,
+			request_manager: &RequestManagerService {}
 		}
 	}
 }

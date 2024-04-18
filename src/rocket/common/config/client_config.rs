@@ -13,7 +13,8 @@ pub struct ClientConfig {
 	pub discord_app_id: u64,
 	pub discord_bot_admin_id: u64,
 	pub cooldown_duration: u64,
-	pub enable_requests: bool
+	pub enable_requests: bool,
+	pub enable_gd_requests: bool
 }
 
 lazy_static! {
@@ -27,4 +28,8 @@ lazy_static! {
 
 lazy_static! {
 	pub static ref ENABLE_REQUESTS: Mutex<bool> = Mutex::new(CLIENT_CONFIG.enable_requests);
+}
+
+lazy_static! {
+	pub static ref ENABLE_GD_REQUESTS: Mutex<bool> = Mutex::new(CLIENT_CONFIG.enable_gd_requests);
 }
