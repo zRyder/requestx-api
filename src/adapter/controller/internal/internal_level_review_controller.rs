@@ -2,9 +2,13 @@ use rocket_framework::{serde::json::Json, State};
 use sea_orm::DatabaseConnection;
 
 use crate::{
-	adapter::mysql::{
-		mysql_level_request_repository::MySqlLevelRequestRepository,
-		mysql_review_repository::MySqlReviewRepository
+	adapter::{
+		geometry_dash::geometry_dash_dashrs_client::GeometryDashDashrsClient,
+		mysql::{
+			mysql_level_request_repository::MySqlLevelRequestRepository,
+			mysql_review_repository::MySqlReviewRepository,
+			mysql_user_repository::MySqlUserRepository
+		}
 	},
 	domain::{
 		model::{
@@ -14,7 +18,10 @@ use crate::{
 				InternalUpdateLevelReviewMessageIdApiRequest
 			}
 		},
-		service::{level_review_service::LevelReviewService, review_service::ReviewService}
+		service::{
+			level_request_service::LevelRequestService, level_review_service::LevelReviewService,
+			review_service::ReviewService
+		}
 	}
 };
 
@@ -31,9 +38,13 @@ pub async fn update_level_review_message_id<'a>(
 ) -> Result<InternalUpdateLevelReviewDiscordDataApiResponse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
-	let level_review_service =
-		LevelReviewService::new(level_review_repository, level_request_repository);
+	let user_repository = MySqlUserRepository::new(db_conn);
+	let gd_client = GeometryDashDashrsClient::new();
+	let level_request_service =
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
+	let level_review_service =
+		LevelReviewService::new(&level_review_repository, &level_request_service);
 	match level_review_service
 		.update_level_request_thread_id(
 			update_level_review_message_id_body.level_id,

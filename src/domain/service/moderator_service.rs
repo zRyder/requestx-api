@@ -19,17 +19,18 @@ use crate::{
 };
 
 pub struct ModeratorService<
+	'a,
 	R: ModeratorRepository,
 	L: LevelRequestRepository,
 	G: GeometryDashClient
 > {
-	moderator_repository: R,
-	level_request_repository: L,
-	gd_client: G
+	moderator_repository: &'a R,
+	level_request_repository: &'a L,
+	gd_client: &'a G
 }
 
-impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> ModerateService
-	for ModeratorService<R, L, G>
+impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> ModerateService
+	for ModeratorService<'a, R, L, G>
 {
 	async fn send_level(
 		&self,
@@ -120,10 +121,14 @@ impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> M
 	}
 }
 
-impl<R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient>
-	ModeratorService<R, L, G>
+impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient>
+	ModeratorService<'a, R, L, G>
 {
-	pub fn new(moderator_repository: R, level_request_repository: L, gd_client: G) -> Self {
+	pub fn new(
+		moderator_repository: &'a R,
+		level_request_repository: &'a L,
+		gd_client: &'a G
+	) -> Self {
 		ModeratorService {
 			moderator_repository,
 			level_request_repository,

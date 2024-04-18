@@ -1,19 +1,18 @@
-use sea_orm::{ActiveValue};
+use sea_orm::ActiveValue;
 
 use crate::{
-	adapter::mysql::reviewer_repository::ReviewerRepository,
+	adapter::mysql::{model::reviewer::ActiveModel, reviewer_repository::ReviewerRepository},
 	domain::{
 		model::{error::reviewer_error::ReviewerError, reviewer::Reviewer},
 		service::reviewer_service::ReviewerService
 	}
 };
-use crate::adapter::mysql::model::reviewer::ActiveModel;
 
-pub struct LevelReviewerService<R: ReviewerRepository> {
-	reviewer_repository: R
+pub struct LevelReviewerService<'a, R: ReviewerRepository> {
+	reviewer_repository: &'a R
 }
 
-impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
+impl<'a, R: ReviewerRepository> ReviewerService for LevelReviewerService<'a, R> {
 	async fn get_reviewer(
 		&self,
 		reviewer_discord_id: u64,
@@ -24,9 +23,7 @@ impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 			.get_record(reviewer_discord_id, include_active)
 			.await
 		{
-			Ok(Some(level_reviewer)) => {
-				Ok(Reviewer::from(level_reviewer))
-			}
+			Ok(Some(level_reviewer)) => Ok(Reviewer::from(level_reviewer)),
 			Ok(None) => {
 				warn!("Reviewer with ID: {} does not exist", reviewer_discord_id);
 				Err(ReviewerError::ReviewerDoesNotExist)
@@ -42,14 +39,12 @@ impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 	}
 
 	async fn create_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
-		match self.get_reviewer(reviewer_discord_id, None)
-			.await
-		{
+		match self.get_reviewer(reviewer_discord_id, None).await {
 			Ok(level_reviewer) => {
 				warn!(
 					"reviewer {} already exists, updating state",
 					reviewer_discord_id
-					);
+				);
 				let mut create_reviewer_request: ActiveModel = level_reviewer.into();
 				create_reviewer_request.active = ActiveValue::Set(1);
 
@@ -62,7 +57,7 @@ impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 						"Error removing reviewer {}: {}",
 						reviewer_discord_id, db_err
 					);
-					return Err(ReviewerError::DatabaseError(db_err))
+					return Err(ReviewerError::DatabaseError(db_err));
 				}
 			}
 			Err(ReviewerError::ReviewerDoesNotExist) => {
@@ -80,21 +75,16 @@ impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 						"Error creating reviewer {} record: {}",
 						reviewer_discord_id, db_err
 					);
-					return Err(ReviewerError::DatabaseError(db_err))
+					return Err(ReviewerError::DatabaseError(db_err));
 				}
 			}
-			Err(reviewer_error) => {
-				return Err(reviewer_error)
-			}
+			Err(reviewer_error) => return Err(reviewer_error)
 		}
 		Ok(())
 	}
 
 	async fn remove_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
-		match self
-			.get_reviewer(reviewer_discord_id, Some(true))
-			.await
-		{
+		match self.get_reviewer(reviewer_discord_id, Some(true)).await {
 			Ok(existing_level_reviewer) => {
 				let mut remove_reviewer_request: ActiveModel = existing_level_reviewer.into();
 				remove_reviewer_request.active = ActiveValue::Set(0);
@@ -108,20 +98,18 @@ impl<R: ReviewerRepository> ReviewerService for LevelReviewerService<R> {
 						"Error removing reviewer {}: {}",
 						reviewer_discord_id, db_err
 					);
-					return Err(ReviewerError::DatabaseError(db_err))
+					return Err(ReviewerError::DatabaseError(db_err));
 				}
 			}
-			Err(reviewer_error) => {
-				return Err(reviewer_error)
-			}
+			Err(reviewer_error) => return Err(reviewer_error)
 		}
 
 		Ok(())
 	}
 }
 
-impl<R: ReviewerRepository> LevelReviewerService<R> {
-	pub fn new(reviewer_repository: R) -> Self {
+impl<'a, R: ReviewerRepository> LevelReviewerService<'a, R> {
+	pub fn new(reviewer_repository: &'a R) -> Self {
 		LevelReviewerService {
 			reviewer_repository
 		}

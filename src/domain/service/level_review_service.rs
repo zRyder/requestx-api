@@ -1,23 +1,23 @@
-use sea_orm::{ActiveValue::Set, IntoActiveModel};
+use sea_orm::ActiveValue::Set;
 
 use crate::{
-	adapter::mysql::{
-		level_request_repository::LevelRequestRepository, model::review::ActiveModel,
-		review_repository::ReviewRepository
-	},
+	adapter::mysql::{model::review::ActiveModel, review_repository::ReviewRepository},
 	domain::{
-		model::{error::level_review_error::LevelReviewError, review::LevelReview},
-		service::review_service::ReviewService
+		model::{
+			error::{level_request_error::LevelRequestError, level_review_error::LevelReviewError},
+			review::LevelReview
+		},
+		service::{request_service::RequestService, review_service::ReviewService}
 	},
 	rocket::common::config::client_config::CLIENT_CONFIG
 };
 
-pub struct LevelReviewService<R: ReviewRepository, L: LevelRequestRepository> {
-	review_repository: R,
-	level_request_repository: L
+pub struct LevelReviewService<'a, R: ReviewRepository, L: RequestService> {
+	review_repository: &'a R,
+	level_request_service: &'a L
 }
 
-impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelReviewService<R, L> {
+impl<'a, R: ReviewRepository, L: RequestService> ReviewService for LevelReviewService<'a, R, L> {
 	async fn get_level_review(
 		&self,
 		level_id: u64,
@@ -54,15 +54,17 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 		review_contents: String
 	) -> Result<LevelReview, LevelReviewError> {
 		let level_request_result = if reviewer_discord_id.eq(&CLIENT_CONFIG.discord_bot_admin_id) {
-			self.level_request_repository.get_record(level_id).await
+			self.level_request_service
+				.get_level_request(level_id, None)
+				.await
 		} else {
-			self.level_request_repository
-				.get_record_filter_feedback(level_id, true)
+			self.level_request_service
+				.get_level_request(level_id, Some(true))
 				.await
 		};
 
 		match level_request_result {
-			Ok(Some(level_request)) => {
+			Ok(level_request) => {
 				let mut level_review = LevelReview {
 					reviewer_discord_id,
 					discord_message_id,
@@ -124,7 +126,7 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 					}
 				}
 			}
-			Ok(None) => {
+			Err(LevelRequestError::LevelRequestDoesNotExist) => {
 				warn!(
 					"Reviewer {} attempted to write review for level ID \
 						{} which does not exist or feedback was not requested",
@@ -132,9 +134,11 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 				);
 				Err(LevelReviewError::LevelRequestDoesNotExist)
 			}
-			Err(error) => {
-				error!("Error reading level request from database: {}", error);
-				Err(LevelReviewError::DatabaseError(error))
+			Err(LevelRequestError::DatabaseError(db_err)) => {
+				Err(LevelReviewError::DatabaseError(db_err))
+			}
+			Err(_) => {
+				unreachable!()
 			}
 		}
 	}
@@ -145,14 +149,9 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 		discord_id: u64,
 		discord_message_id: u64
 	) -> Result<(), LevelReviewError> {
-		match self
-			.review_repository
-			.get_record(level_id, discord_id)
-			.await
-		{
-			Ok(Some(level_review)) => {
-				let mut update_level_review_storable: ActiveModel =
-					level_review.into_active_model();
+		match self.get_level_review(level_id, discord_id).await {
+			Ok(level_review) => {
+				let mut update_level_review_storable: ActiveModel = level_review.into();
 				update_level_review_storable.message_id = Set(discord_message_id);
 
 				if let Err(db_err) = self
@@ -169,23 +168,20 @@ impl<R: ReviewRepository, L: LevelRequestRepository> ReviewService for LevelRevi
 					Ok(())
 				}
 			}
-			Ok(None) => {
+			Err(LevelReviewError::LevelRequestDoesNotExist) => {
 				warn!("Level request with ID: {} does not exist", level_id);
 				Err(LevelReviewError::LevelRequestDoesNotExist)
 			}
-			Err(error) => {
-				error!("Error reading level request from database: {}", error);
-				Err(LevelReviewError::DatabaseError(error))
-			}
+			Err(error) => Err(error)
 		}
 	}
 }
 
-impl<R: ReviewRepository, L: LevelRequestRepository> LevelReviewService<R, L> {
-	pub fn new(review_repository: R, level_request_repository: L) -> Self {
+impl<'a, R: ReviewRepository, L: RequestService> LevelReviewService<'a, R, L> {
+	pub fn new(review_repository: &'a R, level_request_service: &'a L) -> Self {
 		LevelReviewService {
 			review_repository,
-			level_request_repository
+			level_request_service
 		}
 	}
 }

@@ -37,7 +37,7 @@ pub async fn update_level_request_message_id<'a>(
 	let user_repository = MySqlUserRepository::new(db_conn);
 	let gd_client = GeometryDashDashrsClient::new();
 	let level_request_service =
-		LevelRequestService::new(level_request_repository, user_repository, gd_client);
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
 	match level_request_service
 		.update_level_request_message_id(
@@ -65,7 +65,7 @@ pub async fn update_level_request_thread_id<'a>(
 	let user_repository = MySqlUserRepository::new(db_conn);
 	let gd_client = GeometryDashDashrsClient::new();
 	let level_request_service =
-		LevelRequestService::new(level_request_repository, user_repository, gd_client);
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
 	match level_request_service
 		.update_level_request_thread_id(

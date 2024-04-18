@@ -133,6 +133,7 @@ pub enum LevelRequestApiResponseError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown,
+	LevelRequetsDisabled,
 	LevelRequestError
 }
 
@@ -155,6 +156,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::UserOnCooldown => {
 				response.status(Status::TooManyRequests);
+			}
+			LevelRequestApiResponseError::LevelRequetsDisabled => {
+				response.status(Status::ServiceUnavailable);
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
 				response.status(Status::InternalServerError);
@@ -179,6 +183,9 @@ impl Display for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::UserOnCooldown => {
 				write!(f, "{{\"message\": \"User is on cooldown\"}}")
+			}
+			LevelRequestApiResponseError::LevelRequetsDisabled => {
+				write!(f, "{{\"message\": \"Level requests are disabled\"}}")
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
 				write!(f, "{{\"message\": \"Internal server error\"}}")

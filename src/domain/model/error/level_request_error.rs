@@ -18,6 +18,7 @@ pub enum LevelRequestError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown,
+	LevelRequestsDisabled,
 	GeometryDashClientError(u64, GeometryDashDashrsError)
 }
 
@@ -46,6 +47,9 @@ impl Display for LevelRequestError {
 			LevelRequestError::UserOnCooldown => {
 				write!(f, "The user is still on cooldown")
 			}
+			LevelRequestError::LevelRequestsDisabled => {
+				write!(f, "Level requests are disabled")
+			}
 			LevelRequestError::GeometryDashClientError(level_id, client_error) => {
 				write!(
 					f,
@@ -71,6 +75,9 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 				LevelRequestApiResponseError::LevelRequestDoesNotExist
 			}
 			LevelRequestError::UserOnCooldown => LevelRequestApiResponseError::UserOnCooldown,
+			LevelRequestError::LevelRequestsDisabled => {
+				LevelRequestApiResponseError::LevelRequetsDisabled
+			}
 			LevelRequestError::GeometryDashClientError(_, _) => {
 				LevelRequestApiResponseError::LevelRequestError
 			}
