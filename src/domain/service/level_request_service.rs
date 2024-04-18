@@ -24,27 +24,40 @@ use crate::{
 	rocket::common::constants::YOUTUBE_LINK_REGEX
 };
 
-pub struct LevelRequestService<L: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
-{
-	level_request_repository: L,
-	user_repository: U,
-	gd_client: G,
-	request_manager: RequestManagerService
+pub struct LevelRequestService<
+	'a,
+	L: LevelRequestRepository,
+	U: UserRepository,
+	G: GeometryDashClient
+> {
+	level_request_repository: &'a L,
+	user_repository: &'a U,
+	gd_client: &'a G,
+	request_manager: &'a RequestManagerService
 }
 
-impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> RequestService
-	for LevelRequestService<R, U, G>
+impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> RequestService
+	for LevelRequestService<'a, R, U, G>
 {
-	async fn get_level_request(self, level_id: u64) -> Result<GDLevelRequest, LevelRequestError> {
-		match self.level_request_repository.get_record(level_id).await {
-			Ok(potential_level_request) => {
-				if let Some(level_request_model) = potential_level_request {
-					let gd_level_request = GDLevelRequest::from(level_request_model);
-					Ok(gd_level_request)
-				} else {
-					warn!("Level request with ID {} does not exist", level_id);
-					Err(LevelRequestError::LevelRequestDoesNotExist)
-				}
+	async fn get_level_request(
+		&self,
+		level_id: u64,
+		has_requested_feedback: Option<bool>
+	) -> Result<GDLevelRequest, LevelRequestError> {
+		let get_level_request_result =
+			if let Some(has_requested_feedback_toggle) = has_requested_feedback {
+				self.level_request_repository
+					.get_record_filter_feedback(level_id, has_requested_feedback_toggle)
+					.await
+			} else {
+				self.level_request_repository.get_record(level_id).await
+			};
+
+		match get_level_request_result {
+			Ok(Some(level_request)) => Ok(GDLevelRequest::from(level_request)),
+			Ok(None) => {
+				warn!("Level request with ID {} does not exist", level_id);
+				Err(LevelRequestError::LevelRequestDoesNotExist)
 			}
 			Err(db_err) => {
 				error!(
@@ -57,7 +70,7 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 	}
 
 	async fn make_level_request(
-		self,
+		&self,
 		level_id: u64,
 		youtube_video_link: String,
 		discord_user_id: u64,
@@ -65,6 +78,9 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 		has_requested_feedback: bool,
 		notify: bool
 	) -> Result<GDLevelRequest, LevelRequestError> {
+		if !self.request_manager.get_enable_request() {
+			return Err(LevelRequestError::LevelRequestsDisabled);
+		}
 		if !Self::is_valid_youtube_link(&youtube_video_link) {
 			warn!("Malformed YouTube link: {}", youtube_video_link);
 			return Err(LevelRequestError::MalformedRequest);
@@ -72,102 +88,44 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 		let now = Utc::now();
 
 		match self.user_repository.get_record(discord_user_id).await {
-			Ok(potential_discord_user) => {
-				if let Some(discord_user) = potential_discord_user {
-					if self.is_user_on_cooldown(&discord_user, &now) {
-						warn!(
-							"User {} attempted to request while on cooldown",
-							discord_user_id
-						);
-						return Err(LevelRequestError::UserOnCooldown);
-					}
-
-					let mut update_discord_user_last_request_time_storable =
-						discord_user.into_active_model();
-					update_discord_user_last_request_time_storable.timestamp = Set(Some(now));
-
-					if let Err(db_err) = self
-						.user_repository
-						.update_record(update_discord_user_last_request_time_storable)
-						.await
-					{
-						error!(
-							"Error updating last updated time for user: {}",
-							discord_user_id
-						);
-						return Err(LevelRequestError::DatabaseError(db_err));
-					}
-				} else {
-					let user_storable = DiscordUser {
-						discord_user_id,
-						last_request_time: Some(now)
-					}
-					.into();
-					if let Err(user_insert_error) =
-						self.user_repository.create_record(user_storable).await
-					{
-						error!(
-							"Unable to save Discord user {} to database: {}",
-							discord_user_id, user_insert_error
-						);
-						return Err(LevelRequestError::DatabaseError(user_insert_error));
-					}
+			Ok(Some(user)) => {
+				if self.is_user_on_cooldown(&user, &now) {
+					warn!(
+						"User {} attempted to request while on cooldown",
+						discord_user_id
+					);
+					return Err(LevelRequestError::UserOnCooldown);
 				}
 
-				match self.gd_client.get_gd_level_info(level_id).await {
-					Ok(gd_level) => {
-						let gd_level_request = GDLevelRequest {
-							gd_level,
-							discord_user_id,
-							discord_message_data: None,
-							request_rating,
-							youtube_video_link,
-							has_requested_feedback,
-							notify,
-							timestamp: now
-						};
+				let mut update_discord_user_last_request_time_storable = user.into_active_model();
+				update_discord_user_last_request_time_storable.timestamp = Set(Some(now));
+				if let Err(db_err) = self
+					.user_repository
+					.update_record(update_discord_user_last_request_time_storable)
+					.await
+				{
+					error!(
+						"Error updating last updated time for user: {}",
+						discord_user_id
+					);
+					return Err(LevelRequestError::DatabaseError(db_err));
+				}
+			}
+			Ok(None) => {
+				let user_storable = DiscordUser {
+					discord_user_id,
+					last_request_time: Some(now)
+				}
+				.into();
 
-						match self
-							.level_request_repository
-							.get_record(gd_level_request.gd_level.level_id)
-							.await
-						{
-							Ok(some_request) => {
-								if some_request.is_some() {
-									warn!("Level requests with ID: {} already exists", level_id);
-									Err(LevelRequestError::LevelRequestExists)
-								} else {
-									let level_request_storable = gd_level_request.clone().into();
-									if let Err(level_insert_error) = self
-										.level_request_repository
-										.create_record(level_request_storable)
-										.await
-									{
-										error!(
-											"Unable to save level request for {} to database: {}",
-											level_id, level_insert_error
-										);
-										Err(LevelRequestError::DatabaseError(level_insert_error))
-									} else {
-										Ok(gd_level_request)
-									}
-								}
-							}
-							Err(err) => {
-								error!(
-							"Error making get level request for level {} record database: {}",
-							level_id, err
-						);
-								Err(LevelRequestError::DatabaseError(err))
-							}
-						}
-					}
-					Err(dashrs_err) => {
-						error!("Error getting level info for level {}", level_id);
-						Err(LevelRequestError::GeometryDashClientError(
-							level_id, dashrs_err
-						))
-					}
+				if let Err(user_insert_error) =
+					self.user_repository.create_record(user_storable).await
+				{
+					error!(
+						"Unable to save Discord user {} to database: {}",
+						discord_user_id, user_insert_error
+					);
+					return Err(LevelRequestError::DatabaseError(user_insert_error));
 				}
 			}
 			Err(err) => {
@@ -175,96 +133,123 @@ impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Reques
 					"Error getting Discord user: {} record from database: {}",
 					discord_user_id, err
 				);
-				Err(LevelRequestError::DatabaseError(err))
+				return Err(LevelRequestError::DatabaseError(err));
 			}
+		};
+
+		let gd_level = self
+			.gd_client
+			.get_gd_level_info(level_id)
+			.await
+			.map_err(|err| {
+				error!("Error getting level info for level {}", level_id);
+				LevelRequestError::GeometryDashClientError(level_id, err)
+			})?;
+
+		if let Ok(_existing_level_request) = self.get_level_request(level_id, None).await {
+			warn!("Level requests with ID: {} already exists", level_id);
+			return Err(LevelRequestError::LevelRequestExists);
 		}
+
+		let gd_level_request = GDLevelRequest {
+			gd_level,
+			discord_user_id,
+			discord_message_data: None,
+			request_rating,
+			youtube_video_link,
+			has_requested_feedback,
+			notify,
+			timestamp: now
+		};
+		let level_request_storable = gd_level_request.clone().into();
+		if let Err(level_insert_error) = self
+			.level_request_repository
+			.create_record(level_request_storable)
+			.await
+		{
+			error!(
+				"Unable to save level request for {} to database: {}",
+				level_id, level_insert_error
+			);
+			return Err(LevelRequestError::DatabaseError(level_insert_error));
+		}
+		Ok(gd_level_request)
 	}
 
 	async fn update_level_request_message_id(
-		self,
+		&self,
 		level_id: u64,
 		discord_message_id: u64
 	) -> Result<(), LevelRequestError> {
-		match self.level_request_repository.get_record(level_id).await {
-			Ok(potential_level_request) => {
-				if let Some(level_request) = potential_level_request {
-					let mut update_level_request_storable: ActiveModel =
-						level_request.into_active_model();
-					update_level_request_storable.discord_message_id =
-						Set(Some(discord_message_id));
-					match self
-						.level_request_repository
-						.update_record(update_level_request_storable)
-						.await
-					{
-						Ok(_updated_record) => Ok(()),
-						Err(db_err) => {
-							error!(
-								"Error updating level request with level ID: {}: {}",
-								level_id, db_err
-							);
-							Err(LevelRequestError::DatabaseError(db_err))
-						}
-					}
+		match self.get_level_request(level_id, None).await {
+			Ok(level_request) => {
+				let mut update_level_request_storable: ActiveModel = level_request.into();
+				update_level_request_storable.discord_message_id = Set(Some(discord_message_id));
+
+				if let Err(db_err) = self
+					.level_request_repository
+					.update_record(update_level_request_storable)
+					.await
+				{
+					error!(
+						"Error updating level request with level ID: {}: {}",
+						level_id, db_err
+					);
+					Err(LevelRequestError::DatabaseError(db_err))
 				} else {
-					warn!("Level request with ID: {} does not exist", level_id);
-					Err(LevelRequestError::LevelRequestDoesNotExist)
+					Ok(())
 				}
 			}
-			Err(db_err) => {
-				error!("Error getting level info for level {}", level_id);
-				Err(LevelRequestError::DatabaseError(db_err))
+			Err(LevelRequestError::LevelRequestDoesNotExist) => {
+				warn!("Level request with ID: {} does not exist", level_id);
+				Err(LevelRequestError::LevelRequestDoesNotExist)
 			}
+			Err(level_request_error) => Err(level_request_error)
 		}
 	}
 
 	async fn update_level_request_thread_id(
-		self,
+		&self,
 		level_id: u64,
 		discord_thread_id: u64
 	) -> Result<(), LevelRequestError> {
-		match self.level_request_repository.get_record(level_id).await {
-			Ok(potential_level_request) => {
-				if let Some(level_request) = potential_level_request {
-					let mut update_level_request_storable: ActiveModel =
-						level_request.into_active_model();
-					update_level_request_storable.discord_thread_id = Set(Some(discord_thread_id));
-					match self
-						.level_request_repository
-						.update_record(update_level_request_storable)
-						.await
-					{
-						Ok(_updated_record) => Ok(()),
-						Err(db_err) => {
-							error!(
-								"Error updating level request with level ID: {}: {}",
-								level_id, db_err
-							);
-							Err(LevelRequestError::DatabaseError(db_err))
-						}
-					}
+		match self.get_level_request(level_id, None).await {
+			Ok(level_request) => {
+				let mut update_level_request_storable: ActiveModel = level_request.into();
+				update_level_request_storable.discord_thread_id = Set(Some(discord_thread_id));
+
+				if let Err(db_err) = self
+					.level_request_repository
+					.update_record(update_level_request_storable)
+					.await
+				{
+					error!(
+						"Error updating level request with level ID: {}: {}",
+						level_id, db_err
+					);
+					Err(LevelRequestError::DatabaseError(db_err))
 				} else {
-					warn!("Level request with ID: {} does not exist", level_id);
-					Err(LevelRequestError::LevelRequestDoesNotExist)
+					Ok(())
 				}
 			}
-			Err(db_err) => {
-				error!("Error getting level info for level {}", level_id);
-				Err(LevelRequestError::DatabaseError(db_err))
+			Err(LevelRequestError::LevelRequestDoesNotExist) => {
+				warn!("Level request with ID: {} does not exist", level_id);
+				Err(LevelRequestError::LevelRequestDoesNotExist)
 			}
+			Err(level_request_error) => Err(level_request_error)
 		}
 	}
 }
 
-impl<R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
-	LevelRequestService<R, U, G>
+impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
+	LevelRequestService<'a, R, U, G>
 {
-	pub fn new(level_request_repository: R, user_repository: U, gd_client: G) -> Self {
+	pub fn new(level_request_repository: &'a R, user_repository: &'a U, gd_client: &'a G) -> Self {
 		LevelRequestService {
 			level_request_repository,
 			user_repository,
 			gd_client,
-			request_manager: RequestManagerService {}
+			request_manager: &RequestManagerService {}
 		}
 	}
 

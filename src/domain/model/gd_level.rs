@@ -7,7 +7,7 @@ use crate::{
 	domain::model::{api, discord::message::DiscordMessage}
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GDLevelRequest {
 	pub gd_level: GDLevel,
 	pub discord_user_id: u64,
@@ -19,7 +19,7 @@ pub struct GDLevelRequest {
 	pub timestamp: chrono::DateTime<Utc>
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GDLevel {
 	pub level_id: u64,
 	pub name: String,
@@ -27,7 +27,7 @@ pub struct GDLevel {
 	pub level_length: LevelLength
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct LevelCreator {
 	pub name: String,
 	pub account_id: u64,
@@ -128,7 +128,7 @@ impl From<&ListedLevel<'_>> for GDLevel {
 	}
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum LevelLength {
 	Tiny,
 	Short,

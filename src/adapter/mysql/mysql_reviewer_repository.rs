@@ -17,19 +17,25 @@ pub struct MySqlReviewerRepository<'a> {
 }
 
 impl<'a> ReviewerRepository for MySqlReviewerRepository<'a> {
-	async fn create_record(self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr> {
+	async fn create_record(&self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr> {
 		Reviewer::insert(record).exec(self.db_conn).await
 	}
 
 	async fn get_record(
 		&self,
 		reviewer_discord_id: u64,
-		is_active: bool
+		is_active: Option<bool>
 	) -> Result<Option<Model>, DbErr> {
-		Reviewer::find_by_id(reviewer_discord_id)
-			.filter(reviewer::Column::Active.eq(is_active))
-			.one(self.db_conn)
-			.await
+		if let Some(active_toggle) = is_active {
+			Reviewer::find_by_id(reviewer_discord_id)
+				.filter(reviewer::Column::Active.eq(active_toggle))
+				.one(self.db_conn)
+				.await
+		} else {
+			Reviewer::find_by_id(reviewer_discord_id)
+				.one(self.db_conn)
+				.await
+		}
 	}
 
 	async fn get_record_ignore_active(
@@ -41,11 +47,11 @@ impl<'a> ReviewerRepository for MySqlReviewerRepository<'a> {
 			.await
 	}
 
-	async fn update_record(self, record: ActiveModel) -> Result<Model, DbErr> {
+	async fn update_record(&self, record: ActiveModel) -> Result<Model, DbErr> {
 		Reviewer::update(record).exec(self.db_conn).await
 	}
 
-	async fn delete_record(self, record: ActiveModel) -> Result<DeleteResult, DbErr> {
+	async fn delete_record(&self, record: ActiveModel) -> Result<DeleteResult, DbErr> {
 		Reviewer::delete(record).exec(self.db_conn).await
 	}
 }

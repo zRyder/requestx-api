@@ -32,9 +32,12 @@ pub async fn get_level_request(
 	let gd_client = GeometryDashDashrsClient::new();
 
 	let level_request_service =
-		LevelRequestService::new(level_request_repository, user_repository, gd_client);
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
-	match level_request_service.get_level_request(level_id).await {
+	match level_request_service
+		.get_level_request(level_id, None)
+		.await
+	{
 		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),
 		Err(get_level_request_error) => Err(get_level_request_error.into())
 	}
@@ -51,7 +54,7 @@ pub async fn request_level<'a>(
 	let gd_client = GeometryDashDashrsClient::new();
 
 	let level_request_service =
-		LevelRequestService::new(level_request_repository, user_repository, gd_client);
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 	let request_rating = level_request_body.request_rating.into();
 	match level_request_service
 		.make_level_request(

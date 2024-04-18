@@ -24,10 +24,10 @@ pub async fn get_reviewer(
 	_auth: Auth
 ) -> Result<GetReviewerApiResponse, ReviewerApiResponseError> {
 	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
-	let reviewer_service = LevelReviewerService::new(reviewer_repository);
+	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service
-		.get_reviewer(reviewer_discord_id, is_active)
+		.get_reviewer(reviewer_discord_id, Some(is_active))
 		.await
 	{
 		Ok(reviewer) => Ok(GetReviewerApiResponse::from(reviewer)),
@@ -42,7 +42,7 @@ pub async fn create_reviewer(
 	_auth: Auth
 ) -> Result<(), ReviewerApiResponseError> {
 	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
-	let reviewer_service = LevelReviewerService::new(reviewer_repository);
+	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service
 		.create_reviewer(create_reviewer_api_request.reviewer_discord_id)
@@ -60,7 +60,7 @@ pub async fn remove_reviewer(
 	_auth: Auth
 ) -> Result<(), ReviewerApiResponseError> {
 	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
-	let reviewer_service = LevelReviewerService::new(reviewer_repository);
+	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service.remove_reviewer(reviewer_discord_id).await {
 		Ok(()) => Ok(()),

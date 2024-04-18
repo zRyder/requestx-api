@@ -28,7 +28,7 @@ pub async fn send_level<'a>(
 	let moderator_repository = MySqlModeratorRepository::new(db_conn);
 	let gd_client = GeometryDashDashrsClient::new();
 	let moderator_service =
-		ModeratorService::new(moderator_repository, level_request_repository, gd_client);
+		ModeratorService::new(&moderator_repository, &level_request_repository, &gd_client);
 
 	match moderator_service
 		.send_level(

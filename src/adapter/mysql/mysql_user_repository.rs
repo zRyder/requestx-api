@@ -10,7 +10,7 @@ pub struct MySqlUserRepository<'a> {
 }
 
 impl<'a> UserRepository for MySqlUserRepository<'a> {
-	async fn create_record(self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr> {
+	async fn create_record(&self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr> {
 		User::insert(record).exec(self.db_conn).await
 	}
 
@@ -18,11 +18,11 @@ impl<'a> UserRepository for MySqlUserRepository<'a> {
 		User::find_by_id(discord_id).one(self.db_conn).await
 	}
 
-	async fn update_record(self, record: ActiveModel) -> Result<user::Model, DbErr> {
+	async fn update_record(&self, record: ActiveModel) -> Result<user::Model, DbErr> {
 		User::update(record).exec(self.db_conn).await
 	}
 
-	async fn delete_record(self, record: ActiveModel) -> Result<DeleteResult, DbErr> {
+	async fn delete_record(&self, record: ActiveModel) -> Result<DeleteResult, DbErr> {
 		User::delete(record).exec(self.db_conn).await
 	}
 }

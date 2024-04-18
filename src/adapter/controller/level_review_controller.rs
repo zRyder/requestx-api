@@ -2,9 +2,13 @@ use rocket_framework::{serde::json::Json, State};
 use sea_orm::DatabaseConnection;
 
 use crate::{
-	adapter::mysql::{
-		mysql_level_request_repository::MySqlLevelRequestRepository,
-		mysql_review_repository::MySqlReviewRepository
+	adapter::{
+		geometry_dash::geometry_dash_dashrs_client::GeometryDashDashrsClient,
+		mysql::{
+			mysql_level_request_repository::MySqlLevelRequestRepository,
+			mysql_review_repository::MySqlReviewRepository,
+			mysql_user_repository::MySqlUserRepository
+		}
 	},
 	domain::{
 		model::api::{
@@ -14,7 +18,10 @@ use crate::{
 				LevelReviewApiResponseError
 			}
 		},
-		service::{level_review_service::LevelReviewService, review_service::ReviewService}
+		service::{
+			level_request_service::LevelRequestService, level_review_service::LevelReviewService,
+			review_service::ReviewService
+		}
 	}
 };
 
@@ -27,9 +34,13 @@ pub async fn get_level_review(
 ) -> Result<GetLevelReviewApiRespnse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
+	let user_repository = MySqlUserRepository::new(db_conn);
+	let gd_client = GeometryDashDashrsClient::new();
+	let level_request_service =
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
 	let level_review_service =
-		LevelReviewService::new(level_review_repository, level_request_repository);
+		LevelReviewService::new(&level_review_repository, &level_request_service);
 
 	match level_review_service
 		.get_level_review(level_id, u64::from(discord_id))
@@ -48,8 +59,13 @@ pub async fn review_level<'a>(
 ) -> Result<LevelReviewApiResponse, LevelReviewApiResponseError> {
 	let level_review_repository = MySqlReviewRepository::new(db_conn);
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
+	let user_repository = MySqlUserRepository::new(db_conn);
+	let gd_client = GeometryDashDashrsClient::new();
+	let level_request_service =
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
+
 	let level_review_service =
-		LevelReviewService::new(level_review_repository, level_request_repository);
+		LevelReviewService::new(&level_review_repository, &level_request_service);
 
 	match level_review_service
 		.review_level(

@@ -5,11 +5,7 @@ use sea_orm::{
 
 use crate::adapter::mysql::{
 	level_request_repository::LevelRequestRepository,
-	model::{
-		level_request::{ActiveModel, Model},
-		prelude::*,
-		*
-	}
+	model::{level_request, prelude::LevelRequest}
 };
 
 pub struct MySqlLevelRequestRepository<'a> {
@@ -17,7 +13,10 @@ pub struct MySqlLevelRequestRepository<'a> {
 }
 
 impl<'a> LevelRequestRepository for MySqlLevelRequestRepository<'a> {
-	async fn create_record(self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr> {
+	async fn create_record(
+		&self,
+		record: level_request::ActiveModel
+	) -> Result<InsertResult<level_request::ActiveModel>, DbErr> {
 		LevelRequest::insert(record).exec(self.db_conn).await
 	}
 
@@ -29,18 +28,24 @@ impl<'a> LevelRequestRepository for MySqlLevelRequestRepository<'a> {
 		&self,
 		level_id: u64,
 		has_requested_feedback: bool
-	) -> Result<Option<Model>, DbErr> {
+	) -> Result<Option<level_request::Model>, DbErr> {
 		LevelRequest::find_by_id(level_id)
 			.filter(level_request::Column::HasRequestedFeedback.eq(has_requested_feedback))
 			.one(self.db_conn)
 			.await
 	}
 
-	async fn update_record(self, record: ActiveModel) -> Result<level_request::Model, DbErr> {
+	async fn update_record(
+		&self,
+		record: level_request::ActiveModel
+	) -> Result<level_request::Model, DbErr> {
 		LevelRequest::update(record).exec(self.db_conn).await
 	}
 
-	async fn delete_record(self, record: ActiveModel) -> Result<DeleteResult, DbErr> {
+	async fn delete_record(
+		&self,
+		record: level_request::ActiveModel
+	) -> Result<DeleteResult, DbErr> {
 		LevelRequest::delete(record).exec(self.db_conn).await
 	}
 }
