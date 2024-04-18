@@ -28,5 +28,10 @@ pub async fn update_request_cooldown<'a>(
 	if let Some(enable_requests) = update_request_config_body.enable_requests {
 		request_manager_service.set_enable_request(enable_requests)
 	}
+
+	if let Some(enable_gd_requests) = update_request_config_body.enable_gd_requests {
+		request_manager_service.set_enable_gd_request(enable_gd_requests)
+	}
+
 	Ok(InternalUpdateRequestConfigApiResponse {})
 }

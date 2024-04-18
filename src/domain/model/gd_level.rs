@@ -9,7 +9,8 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct GDLevelRequest {
-	pub gd_level: GDLevel,
+	pub gd_level: Option<GDLevel>,
+	pub level_id: u64,
 	pub discord_user_id: u64,
 	pub discord_message_data: Option<DiscordMessage>,
 	pub request_rating: RequestRating,
@@ -21,7 +22,6 @@ pub struct GDLevelRequest {
 
 #[derive(Clone, Debug)]
 pub struct GDLevel {
-	pub level_id: u64,
 	pub name: String,
 	pub creator: LevelCreator,
 	pub level_length: LevelLength
@@ -36,35 +36,68 @@ pub struct LevelCreator {
 
 impl Into<level_request::ActiveModel> for GDLevelRequest {
 	fn into(self) -> level_request::ActiveModel {
-		level_request::ActiveModel {
-			level_id: ActiveValue::Set(self.gd_level.level_id),
-			discord_id: ActiveValue::set(self.discord_user_id),
-			discord_message_id: ActiveValue::Set(
-				if let Some(discord_message) = self.discord_message_data {
-					Some(discord_message.message_id)
-				} else {
-					None
-				}
-			),
-			discord_thread_id: ActiveValue::Set(
-				if let Some(discord_message) = self.discord_message_data {
-					if let Some(thread_id) = discord_message.thread_id {
-						Some(thread_id)
+		if let Some(gd_level) = self.gd_level {
+			level_request::ActiveModel {
+				level_id: ActiveValue::Set(self.level_id),
+				discord_id: ActiveValue::set(self.discord_user_id),
+				discord_message_id: ActiveValue::Set(
+					if let Some(discord_message) = self.discord_message_data {
+						Some(discord_message.message_id)
 					} else {
 						None
 					}
-				} else {
-					None
-				}
-			),
-			name: ActiveValue::Set(self.gd_level.name),
-			level_length: ActiveValue::Set(self.gd_level.level_length.into()),
-			author: ActiveValue::Set(self.gd_level.creator.name),
-			request_rating: ActiveValue::Set(self.request_rating.into()),
-			you_tube_video_link: ActiveValue::Set(self.youtube_video_link),
-			has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into()),
-			notify: ActiveValue::Set(self.notify.into()),
-			timestamp: ActiveValue::Set(self.timestamp)
+				),
+				discord_thread_id: ActiveValue::Set(
+					if let Some(discord_message) = self.discord_message_data {
+						if let Some(thread_id) = discord_message.thread_id {
+							Some(thread_id)
+						} else {
+							None
+						}
+					} else {
+						None
+					}
+				),
+				name: ActiveValue::Set(Some(gd_level.name)),
+				level_length: ActiveValue::Set(Some(gd_level.level_length.into())),
+				author: ActiveValue::Set(Some(gd_level.creator.name)),
+				request_rating: ActiveValue::Set(self.request_rating.into()),
+				you_tube_video_link: ActiveValue::Set(self.youtube_video_link),
+				has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into()),
+				notify: ActiveValue::Set(self.notify.into()),
+				timestamp: ActiveValue::Set(self.timestamp)
+			}
+		} else {
+			level_request::ActiveModel {
+				level_id: ActiveValue::Set(self.level_id),
+				discord_id: ActiveValue::set(self.discord_user_id),
+				discord_message_id: ActiveValue::Set(
+					if let Some(discord_message) = self.discord_message_data {
+						Some(discord_message.message_id)
+					} else {
+						None
+					}
+				),
+				discord_thread_id: ActiveValue::Set(
+					if let Some(discord_message) = self.discord_message_data {
+						if let Some(thread_id) = discord_message.thread_id {
+							Some(thread_id)
+						} else {
+							None
+						}
+					} else {
+						None
+					}
+				),
+				name: ActiveValue::Set(None),
+				level_length: ActiveValue::Set(None),
+				author: ActiveValue::Set(None),
+				request_rating: ActiveValue::Set(self.request_rating.into()),
+				you_tube_video_link: ActiveValue::Set(self.youtube_video_link),
+				has_requested_feedback: ActiveValue::Set(self.has_requested_feedback.into()),
+				notify: ActiveValue::Set(self.notify.into()),
+				timestamp: ActiveValue::Set(self.timestamp)
+			}
 		}
 	}
 }
@@ -72,16 +105,22 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 impl From<Model> for GDLevelRequest {
 	fn from(value: Model) -> Self {
 		Self {
-			gd_level: GDLevel {
-				level_id: value.level_id,
-				name: value.name,
-				creator: LevelCreator {
-					name: value.author,
-					account_id: 0,
-					player_id: 0
-				},
-				level_length: LevelLength::from(value.level_length)
+			gd_level: if let (Some(name), Some(author), Some(level_length)) =
+				(value.name, value.author, value.level_length)
+			{
+				Some(GDLevel {
+					name,
+					creator: LevelCreator {
+						name: author,
+						player_id: 0,
+						account_id: 0
+					},
+					level_length: level_length.into()
+				})
+			} else {
+				None
 			},
+			level_id: value.level_id,
 			discord_user_id: value.discord_id,
 			discord_message_data: if let Some(message_id) = value.discord_message_id {
 				Some(DiscordMessage {
@@ -111,7 +150,6 @@ impl From<Model> for GDLevelRequest {
 impl From<&ListedLevel<'_>> for GDLevel {
 	fn from(listed_level: &ListedLevel) -> Self {
 		GDLevel {
-			level_id: listed_level.level_id.clone(),
 			name: listed_level.name.to_string(),
 			creator: LevelCreator {
 				name: listed_level.creator.as_ref().unwrap().name.to_string(),

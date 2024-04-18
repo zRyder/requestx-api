@@ -12,7 +12,8 @@ use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
 pub struct InternalUpdateRequestConfigApiRequest {
 	#[serde(rename = "duration")]
 	pub duration_in_minutes: Option<u64>,
-	pub enable_requests: Option<bool>
+	pub enable_requests: Option<bool>,
+	pub enable_gd_requests: Option<bool>
 }
 
 #[derive(Serialize)]

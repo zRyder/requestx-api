@@ -137,30 +137,47 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			}
 		};
 
-		let gd_level = self
-			.gd_client
-			.get_gd_level_info(level_id)
-			.await
-			.map_err(|err| {
-				error!("Error getting level info for level {}", level_id);
-				LevelRequestError::GeometryDashClientError(level_id, err)
-			})?;
-
 		if let Ok(_existing_level_request) = self.get_level_request(level_id, None).await {
 			warn!("Level requests with ID: {} already exists", level_id);
 			return Err(LevelRequestError::LevelRequestExists);
 		}
 
-		let gd_level_request = GDLevelRequest {
-			gd_level,
-			discord_user_id,
-			discord_message_data: None,
-			request_rating,
-			youtube_video_link,
-			has_requested_feedback,
-			notify,
-			timestamp: now
-		};
+		let gd_level_request: GDLevelRequest;
+		if self.request_manager.get_enable_gd_request() {
+			let gd_level = self
+				.gd_client
+				.get_gd_level_info(level_id)
+				.await
+				.map_err(|err| {
+					error!("Error getting level info for level {}", level_id);
+					LevelRequestError::GeometryDashClientError(level_id, err)
+				})?;
+
+			gd_level_request = GDLevelRequest {
+				gd_level: Some(gd_level),
+				level_id,
+				discord_user_id,
+				discord_message_data: None,
+				request_rating,
+				youtube_video_link,
+				has_requested_feedback,
+				notify,
+				timestamp: now
+			};
+		} else {
+			gd_level_request = GDLevelRequest {
+				gd_level: None,
+				level_id,
+				discord_user_id,
+				discord_message_data: None,
+				request_rating,
+				youtube_video_link,
+				has_requested_feedback,
+				notify,
+				timestamp: now
+			};
+		}
+
 		let level_request_storable = gd_level_request.clone().into();
 		if let Err(level_insert_error) = self
 			.level_request_repository

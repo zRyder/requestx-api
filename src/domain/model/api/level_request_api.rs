@@ -25,9 +25,9 @@ pub struct GetLevelRequestApiResponse {
 	pub discord_id: u64,
 	pub discord_message_id: Option<u64>,
 	pub discord_thread_id: Option<u64>,
-	pub level_name: String,
-	pub level_author: String,
-	pub level_length: LevelLength,
+	pub level_name: Option<String>,
+	pub level_author: Option<String>,
+	pub level_length: Option<LevelLength>,
 	pub request_score: RequestRating,
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
@@ -37,31 +37,60 @@ pub struct GetLevelRequestApiResponse {
 
 impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 	fn from(value: GDLevelRequest) -> Self {
-		Self {
-			level_id: value.gd_level.level_id,
-			discord_id: value.discord_user_id,
-			discord_message_id: if let Some(message_data) = value.discord_message_data {
-				Some(message_data.message_id)
-			} else {
-				None
-			},
-			discord_thread_id: if let Some(discord_message) = value.discord_message_data {
-				if let Some(thread_id) = discord_message.thread_id {
-					Some(thread_id)
+		if let Some(gd_level) = value.gd_level {
+			Self {
+				level_id: value.level_id,
+				discord_id: value.discord_user_id,
+				discord_message_id: if let Some(message_data) = value.discord_message_data {
+					Some(message_data.message_id)
 				} else {
 					None
-				}
-			} else {
-				None
-			},
-			level_name: value.gd_level.name,
-			level_author: value.gd_level.creator.name,
-			level_length: value.gd_level.level_length.into(),
-			request_score: value.request_rating.into(),
-			youtube_video_link: value.youtube_video_link,
-			has_requested_feedback: value.has_requested_feedback,
-			notify: value.notify,
-			timestamp: value.timestamp
+				},
+				discord_thread_id: if let Some(discord_message) = value.discord_message_data {
+					if let Some(thread_id) = discord_message.thread_id {
+						Some(thread_id)
+					} else {
+						None
+					}
+				} else {
+					None
+				},
+				level_name: Some(gd_level.name),
+				level_author: Some(gd_level.creator.name),
+				level_length: Some(gd_level.level_length.into()),
+				request_score: value.request_rating.into(),
+				youtube_video_link: value.youtube_video_link,
+				has_requested_feedback: value.has_requested_feedback,
+				notify: value.notify,
+				timestamp: value.timestamp
+			}
+		} else {
+			Self {
+				level_id: value.level_id,
+				discord_id: value.discord_user_id,
+				discord_message_id: if let Some(message_data) = value.discord_message_data {
+					Some(message_data.message_id)
+				} else {
+					None
+				},
+				discord_thread_id: if let Some(discord_message) = value.discord_message_data {
+					if let Some(thread_id) = discord_message.thread_id {
+						Some(thread_id)
+					} else {
+						None
+					}
+				} else {
+					None
+				},
+				level_name: None,
+				level_author: None,
+				level_length: None,
+				request_score: value.request_rating.into(),
+				youtube_video_link: value.youtube_video_link,
+				has_requested_feedback: value.has_requested_feedback,
+				notify: value.notify,
+				timestamp: value.timestamp
+			}
 		}
 	}
 }
@@ -91,9 +120,9 @@ pub struct PostLevelRequestApiRequest<'a> {
 pub struct PostLevelRequestApiResponse {
 	pub level_id: u64,
 	pub discord_id: u64,
-	pub level_name: String,
-	pub level_author: String,
-	pub level_length: LevelLength,
+	pub level_name: Option<String>,
+	pub level_author: Option<String>,
+	pub level_length: Option<LevelLength>,
 	pub request_score: RequestRating,
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
@@ -102,16 +131,30 @@ pub struct PostLevelRequestApiResponse {
 
 impl From<GDLevelRequest> for PostLevelRequestApiResponse {
 	fn from(value: GDLevelRequest) -> Self {
-		Self {
-			level_id: value.gd_level.level_id,
-			discord_id: value.discord_user_id,
-			level_name: value.gd_level.name,
-			level_author: value.gd_level.creator.name,
-			level_length: value.gd_level.level_length.into(),
-			request_score: value.request_rating.into(),
-			youtube_video_link: value.youtube_video_link,
-			has_requested_feedback: value.has_requested_feedback,
-			notify: value.notify
+		if let Some(gd_level) = value.gd_level {
+			Self {
+				level_id: value.level_id,
+				discord_id: value.discord_user_id,
+				level_name: Some(gd_level.name),
+				level_author: Some(gd_level.creator.name),
+				level_length: Some(gd_level.level_length.into()),
+				request_score: value.request_rating.into(),
+				youtube_video_link: value.youtube_video_link,
+				has_requested_feedback: value.has_requested_feedback,
+				notify: value.notify
+			}
+		} else {
+			Self {
+				level_id: value.level_id,
+				discord_id: value.discord_user_id,
+				level_name: None,
+				level_author: None,
+				level_length: None,
+				request_score: value.request_rating.into(),
+				youtube_video_link: value.youtube_video_link,
+				has_requested_feedback: value.has_requested_feedback,
+				notify: value.notify
+			}
 		}
 	}
 }
