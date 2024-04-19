@@ -1,9 +1,9 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Debug, Display, Formatter}
 };
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Duration, Local, Utc};
 use rocket::serde::Serialize;
 use rocket_framework::{
 	http::{ContentType, Status},
@@ -12,6 +12,7 @@ use rocket_framework::{
 	serde::json::Json,
 	Request, Response
 };
+use serde::{ser::SerializeStruct, Serializer};
 use serde_derive::Deserialize;
 
 use crate::{
@@ -175,14 +176,35 @@ pub enum LevelRequestApiResponseError {
 	MalformedRequest,
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
-	UserOnCooldown,
+	UserOnCooldown(DateTime<Utc>, Duration),
 	LevelRequetsDisabled,
 	LevelRequestError
 }
 
+impl Serialize for LevelRequestApiResponseError {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer
+	{
+		let mut state = serializer.serialize_struct("LevelRequestApiResponseError", 3)?;
+
+		state.serialize_field("message", &self.to_string())?;
+
+		match self {
+			LevelRequestApiResponseError::UserOnCooldown(last_request_time, request_cooldown) => {
+				state.serialize_field("last_request_time", last_request_time)?;
+				state.serialize_field("request_cooldown", &request_cooldown.num_minutes())?;
+			}
+			_ => {}
+		}
+
+		state.end()
+	}
+}
+
 impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 	fn respond_to(self, request: &'r Request<'_>) -> response::Result<'r> {
-		let json = Json(self.to_string());
+		let json = Json(&self);
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
 			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
@@ -197,7 +219,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::LevelRequestDoesNotExist => {
 				response.status(Status::NotFound);
 			}
-			LevelRequestApiResponseError::UserOnCooldown => {
+			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
 				response.status(Status::TooManyRequests);
 			}
 			LevelRequestApiResponseError::LevelRequetsDisabled => {
@@ -216,22 +238,22 @@ impl Display for LevelRequestApiResponseError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
 			LevelRequestApiResponseError::MalformedRequest => {
-				write!(f, "{{\"message\": \"Level request was malformed\"}}")
+				write!(f, "Level request was malformed")
 			}
 			LevelRequestApiResponseError::LevelRequestExists => {
-				write!(f, "{{\"message\": \"Level has already been requested\"}}")
+				write!(f, "Level has already been requested")
 			}
 			LevelRequestApiResponseError::LevelRequestDoesNotExist => {
-				write!(f, "{{\"message\": \"Level request does not exist\"}}")
+				write!(f, "evel request does not exist")
 			}
-			LevelRequestApiResponseError::UserOnCooldown => {
-				write!(f, "{{\"message\": \"User is on cooldown\"}}")
+			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
+				write!(f, "User is on cooldown")
 			}
 			LevelRequestApiResponseError::LevelRequetsDisabled => {
-				write!(f, "{{\"message\": \"Level requests are disabled\"}}")
+				write!(f, "Level requests are disabled")
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
-				write!(f, "{{\"message\": \"Internal server error\"}}")
+				write!(f, "Internal server error")
 			}
 		}
 	}

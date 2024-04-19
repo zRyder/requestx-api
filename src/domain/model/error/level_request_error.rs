@@ -4,6 +4,7 @@ use std::{
 	fmt::{Debug, Display, Formatter}
 };
 
+use chrono::{DateTime, Duration, Utc};
 use sea_orm::DbErr;
 
 use crate::domain::model::{
@@ -17,7 +18,7 @@ pub enum LevelRequestError {
 	DatabaseError(DbErr),
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
-	UserOnCooldown,
+	UserOnCooldown(DateTime<Utc>, Duration),
 	LevelRequestsDisabled,
 	GeometryDashClientError(u64, GeometryDashDashrsError)
 }
@@ -44,7 +45,7 @@ impl Display for LevelRequestError {
 					"Unable to update level request due to conflict: Level request does not exist"
 				)
 			}
-			LevelRequestError::UserOnCooldown => {
+			LevelRequestError::UserOnCooldown(_last_request_time, _request_cooldown) => {
 				write!(f, "The user is still on cooldown")
 			}
 			LevelRequestError::LevelRequestsDisabled => {
@@ -74,7 +75,9 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			LevelRequestError::LevelRequestDoesNotExist => {
 				LevelRequestApiResponseError::LevelRequestDoesNotExist
 			}
-			LevelRequestError::UserOnCooldown => LevelRequestApiResponseError::UserOnCooldown,
+			LevelRequestError::UserOnCooldown(last_request_time, request_cooldown) => {
+				LevelRequestApiResponseError::UserOnCooldown(last_request_time, request_cooldown)
+			}
 			LevelRequestError::LevelRequestsDisabled => {
 				LevelRequestApiResponseError::LevelRequetsDisabled
 			}

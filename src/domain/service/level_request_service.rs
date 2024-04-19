@@ -94,7 +94,10 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 						"User {} attempted to request while on cooldown",
 						discord_user_id
 					);
-					return Err(LevelRequestError::UserOnCooldown);
+					return Err(LevelRequestError::UserOnCooldown(
+						user.timestamp.unwrap(),
+						self.request_manager.get_request_cooldown()
+					));
 				}
 
 				let mut update_discord_user_last_request_time_storable = user.into_active_model();

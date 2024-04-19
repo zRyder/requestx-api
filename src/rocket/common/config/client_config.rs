@@ -12,7 +12,7 @@ pub struct ClientConfig {
 	pub port: u16,
 	pub discord_app_id: u64,
 	pub discord_bot_admin_id: u64,
-	pub cooldown_duration: u64,
+	pub cooldown_duration: u16,
 	pub enable_requests: bool,
 	pub enable_gd_requests: bool
 }
