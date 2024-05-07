@@ -61,8 +61,10 @@ async fn launch() -> _ {
 			"/api/v1",
 			routes![
 				auth_controller::generate_jwt,
-				level_request_controller::request_level,
 				level_request_controller::get_level_request,
+				level_request_controller::request_level,
+				level_request_controller::update_level_request,
+				level_request_controller::delete_level_request,
 				level_review_controller::get_level_review,
 				level_review_controller::review_level,
 				reviewer_controller::get_reviewer,
