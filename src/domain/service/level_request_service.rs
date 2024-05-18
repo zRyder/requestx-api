@@ -87,6 +87,11 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		}
 		let now = Utc::now();
 
+		if let Ok(_existing_level_request) = self.get_level_request(level_id, None).await {
+			warn!("Level requests with ID: {} already exists", level_id);
+			return Err(LevelRequestError::LevelRequestExists);
+		}
+
 		match self.user_repository.get_record(discord_user_id).await {
 			Ok(Some(user)) => {
 				if self.is_user_on_cooldown(&user, &now) {
@@ -139,11 +144,6 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				return Err(LevelRequestError::DatabaseError(err));
 			}
 		};
-
-		if let Ok(_existing_level_request) = self.get_level_request(level_id, None).await {
-			warn!("Level requests with ID: {} already exists", level_id);
-			return Err(LevelRequestError::LevelRequestExists);
-		}
 
 		let gd_level_request: GDLevelRequest;
 		if self.request_manager.get_enable_gd_request() {
