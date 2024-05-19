@@ -78,7 +78,7 @@ pub async fn update_level_request<'a>(
 	db_conn: &State<DatabaseConnection>,
 	update_level_request_body: Json<PatchLevelRequestApiRequest<'a>>,
 	_auth: Auth
-) -> Result<PostLevelRequestApiResponse, LevelRequestApiResponseError> {
+) -> Result<GetLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
 	let user_repository = MySqlUserRepository::new(db_conn);
 	let gd_client = GeometryDashDashrsClient::new();
@@ -93,7 +93,7 @@ pub async fn update_level_request<'a>(
 		update_level_request_body.has_requested_feedback,
 		update_level_request_body.notify
 	).await {
-		Ok(level_request_info) => Ok(PostLevelRequestApiResponse::from(level_request_info)),
+		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),
 		Err(level_request_error) => Err(level_request_error.into())
 	}
 }
