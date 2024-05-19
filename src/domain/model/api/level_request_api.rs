@@ -130,6 +130,15 @@ pub struct PostLevelRequestApiResponse {
 	pub notify: bool
 }
 
+#[derive(Deserialize)]
+pub struct PatchLevelRequestApiRequest<'a> {
+	pub level_id: u64,
+	pub youtube_video_link: Option<&'a str>,
+	pub request_rating: Option<RequestRating>,
+	pub has_requested_feedback: Option<bool>,
+	pub notify: Option<bool>
+}
+
 impl From<GDLevelRequest> for PostLevelRequestApiResponse {
 	fn from(value: GDLevelRequest) -> Self {
 		if let Some(gd_level) = value.gd_level {
@@ -244,7 +253,7 @@ impl Display for LevelRequestApiResponseError {
 				write!(f, "Level has already been requested")
 			}
 			LevelRequestApiResponseError::LevelRequestDoesNotExist => {
-				write!(f, "evel request does not exist")
+				write!(f, "Level request does not exist")
 			}
 			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
 				write!(f, "User is on cooldown")

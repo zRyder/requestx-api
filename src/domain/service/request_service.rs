@@ -20,6 +20,20 @@ pub trait RequestService {
 		notify: bool
 	) -> Result<GDLevelRequest, LevelRequestError>;
 
+	async fn update_level_request(
+		&self,
+		level_id: u64,
+		youtube_video_link: Option<String>,
+		request_rating: Option<RequestRating>,
+		has_requested_feedback: Option<bool>,
+		notify: Option <bool>
+	) -> Result<GDLevelRequest, LevelRequestError>;
+
+	async fn delete_level_request(
+		&self,
+		level_id: u64
+	) -> Result<GDLevelRequest, LevelRequestError>;
+
 	async fn update_level_request_message_id(
 		&self,
 		level_id: u64,
