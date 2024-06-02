@@ -133,6 +133,7 @@ pub struct PostLevelRequestApiResponse {
 #[derive(Deserialize)]
 pub struct PatchLevelRequestApiRequest<'a> {
 	pub level_id: u64,
+	pub discord_id: u64,
 	pub youtube_video_link: Option<&'a str>,
 	pub request_rating: Option<RequestRating>,
 	pub has_requested_feedback: Option<bool>,
@@ -186,6 +187,7 @@ pub enum LevelRequestApiResponseError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
+	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequetsDisabled,
 	LevelRequestError
 }
@@ -231,6 +233,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
 				response.status(Status::TooManyRequests);
 			}
+			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
+				response.status(Status::Forbidden);
+			}
 			LevelRequestApiResponseError::LevelRequetsDisabled => {
 				response.status(Status::ServiceUnavailable);
 			}
@@ -257,6 +262,9 @@ impl Display for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
 				write!(f, "User is on cooldown")
+			}
+			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
+				write!(f, "User attempted to edit a request they do not own")
 			}
 			LevelRequestApiResponseError::LevelRequetsDisabled => {
 				write!(f, "Level requests are disabled")

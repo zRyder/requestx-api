@@ -21,7 +21,7 @@ use crate::{
 			request_service::RequestService
 		}
 	},
-	rocket::common::constants::YOUTUBE_LINK_REGEX
+	rocket::common::{config::client_config::CLIENT_CONFIG, constants::YOUTUBE_LINK_REGEX}
 };
 
 pub struct LevelRequestService<
@@ -200,11 +200,20 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 	async fn update_level_request(
 		&self,
 		level_id: u64,
+		discord_user_id: u64,
 		youtube_video_link: Option<String>,
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
 		notify: Option<bool>
 	) -> Result<GDLevelRequest, LevelRequestError> {
+		if youtube_video_link.is_none()
+			&& request_rating.is_none()
+			&& has_requested_feedback.is_none()
+			&& notify.is_none()
+		{
+			warn!("No edited data");
+			return Err(LevelRequestError::MalformedRequest);
+		}
 		if youtube_video_link.is_some()
 			&& !Self::is_valid_youtube_link(&youtube_video_link.as_ref().unwrap())
 		{
@@ -217,6 +226,16 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				return Err(get_existing_level_request_error);
 			}
 			Ok(existing_level_request) => {
+				if !discord_user_id.eq(&CLIENT_CONFIG.discord_bot_admin_id)
+					&& !discord_user_id.eq(&existing_level_request.discord_user_id)
+				{
+					return Err(LevelRequestError::EditUnownedLevelRequest(
+						existing_level_request.level_id,
+						existing_level_request.discord_user_id,
+						discord_user_id
+					));
+				}
+
 				let mut update_level_request_storable: ActiveModel = existing_level_request.into();
 
 				if youtube_video_link.is_some() {

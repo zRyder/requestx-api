@@ -93,6 +93,7 @@ pub async fn update_level_request<'a>(
 	match level_request_service
 		.update_level_request(
 			update_level_request_body.level_id,
+			update_level_request_body.discord_id,
 			update_level_request_body
 				.youtube_video_link
 				.map(|s| s.to_string()),

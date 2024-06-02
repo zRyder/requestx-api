@@ -23,6 +23,7 @@ pub trait RequestService {
 	async fn update_level_request(
 		&self,
 		level_id: u64,
+		discord_user_id: u64,
 		youtube_video_link: Option<String>,
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,

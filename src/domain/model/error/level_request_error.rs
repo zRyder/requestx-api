@@ -19,6 +19,7 @@ pub enum LevelRequestError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
+	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestsDisabled,
 	GeometryDashClientError(u64, GeometryDashDashrsError)
 }
@@ -47,6 +48,13 @@ impl Display for LevelRequestError {
 			}
 			LevelRequestError::UserOnCooldown(_last_request_time, _request_cooldown) => {
 				write!(f, "The user is still on cooldown")
+			}
+			LevelRequestError::EditUnownedLevelRequest(
+				_level_id,
+				_discord_user_id,
+				_requested_discord_user_id
+			) => {
+				write!(f, "The user attempted to edit a request they do not own.")
 			}
 			LevelRequestError::LevelRequestsDisabled => {
 				write!(f, "Level requests are disabled")
@@ -78,6 +86,15 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			LevelRequestError::UserOnCooldown(last_request_time, request_cooldown) => {
 				LevelRequestApiResponseError::UserOnCooldown(last_request_time, request_cooldown)
 			}
+			LevelRequestError::EditUnownedLevelRequest(
+				level_id,
+				discord_user_id,
+				requested_discord_user_id
+			) => LevelRequestApiResponseError::EditUnownedLevelRequest(
+				level_id,
+				discord_user_id,
+				requested_discord_user_id
+			),
 			LevelRequestError::LevelRequestsDisabled => {
 				LevelRequestApiResponseError::LevelRequetsDisabled
 			}
