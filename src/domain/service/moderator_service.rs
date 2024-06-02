@@ -54,6 +54,16 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 			.await
 		{
 			Ok(Some(level_request)) => {
+				if self.request_manager.get_enable_gd_request()
+					&& (moderator_data.suggested_score != SuggestedScore::NoRate
+						&& moderator_data.suggested_score != SuggestedScore::Rated)
+				{
+					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
+						error!("Error sending level {:?}: {}", moderator_data, dashrs_error);
+						return Err(ModeratorError::GeometryDashDashrsError);
+					}
+				}
+
 				match self
 					.moderator_repository
 					.get_record(moderator_data.level_id)
@@ -102,15 +112,6 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 					Err(db_error) => {
 						error!("Error reading level send from database: {}", db_error);
 						return Err(ModeratorError::DatabaseError(db_error));
-					}
-				}
-
-				if self.request_manager.get_enable_gd_request()
-					&& moderator_data.suggested_score != SuggestedScore::NoRate
-				{
-					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
-						error!("Error sending level {:?}: {}", moderator_data, dashrs_error);
-						return Err(ModeratorError::GeometryDashDashrsError);
 					}
 				}
 				Ok(GDLevelRequest::from(level_request))

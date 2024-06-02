@@ -32,7 +32,7 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 		let level_id_str = &level_id.to_string();
 		let get_level_info_request = LevelsRequest::default().search(level_id_str);
 
-		debug!("Calling Geometry Dash servers for level {}", level_id);
+		info!("Calling Geometry Dash servers for level {}", level_id);
 		let raw_response_result = self
 			.client
 			.post(get_level_info_request.to_url())
@@ -88,7 +88,7 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 						.feature(moderator_request.suggested_rating.into())
 						.stars(moderator_request.suggested_score.into());
 
-				debug!(
+				info!(
 					"Calling Geometry Dash servers for sending level {:?}",
 					&moderator_request
 				);

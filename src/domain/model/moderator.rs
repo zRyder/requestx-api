@@ -24,6 +24,7 @@ pub enum SuggestedRating {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SuggestedScore {
 	NoRate,
+	Rated,
 	One,
 	Two,
 	Three,
@@ -60,6 +61,7 @@ impl From<Score> for SuggestedScore {
 	fn from(value: Score) -> Self {
 		match value {
 			Score::NoRate => Self::NoRate,
+			Score::Rated => Self::Rated,
 			Score::One => Self::One,
 			Score::Two => Self::Two,
 			Score::Three => Self::Three,
@@ -78,6 +80,7 @@ impl Into<Score> for SuggestedScore {
 	fn into(self) -> Score {
 		match self {
 			SuggestedScore::NoRate => Score::NoRate,
+			SuggestedScore::Rated => Score::Rated,
 			SuggestedScore::One => Score::One,
 			SuggestedScore::Two => Score::Two,
 			SuggestedScore::Three => Score::Three,
@@ -105,7 +108,7 @@ impl Into<SuggestedStars> for SuggestedScore {
 			SuggestedScore::Eight => SuggestedStars::Eight,
 			SuggestedScore::Nine => SuggestedStars::Nine,
 			SuggestedScore::Ten => SuggestedStars::Ten,
-			SuggestedScore::NoRate => unreachable!()
+			_ => unreachable!()
 		}
 	}
 }

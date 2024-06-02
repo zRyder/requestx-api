@@ -20,7 +20,7 @@ pub enum Relation {
 		from = "Column::LevelId",
 		to = "super::level_request::Column::LevelId",
 		on_update = "NoAction",
-		on_delete = "NoAction"
+		on_delete = "Cascade"
 	)]
 	LevelRequest,
 	#[sea_orm(

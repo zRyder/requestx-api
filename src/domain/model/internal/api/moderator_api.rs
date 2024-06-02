@@ -27,6 +27,7 @@ pub enum ModeratorApiResponseError {
 #[derive(Deserialize, Serialize, Clone, Copy)]
 pub enum SuggestedScore {
 	NoRate,
+	Rated,
 	One,
 	Two,
 	Three,
@@ -83,6 +84,7 @@ impl Into<moderator::SuggestedScore> for SuggestedScore {
 	fn into(self) -> moderator::SuggestedScore {
 		match self {
 			SuggestedScore::NoRate => moderator::SuggestedScore::NoRate,
+			SuggestedScore::Rated => moderator::SuggestedScore::Rated,
 			SuggestedScore::One => moderator::SuggestedScore::One,
 			SuggestedScore::Two => moderator::SuggestedScore::Two,
 			SuggestedScore::Three => moderator::SuggestedScore::Three,
