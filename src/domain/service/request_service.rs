@@ -26,7 +26,7 @@ pub trait RequestService {
 		youtube_video_link: Option<String>,
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
-		notify: Option <bool>
+		notify: Option<bool>
 	) -> Result<GDLevelRequest, LevelRequestError>;
 
 	async fn delete_level_request(

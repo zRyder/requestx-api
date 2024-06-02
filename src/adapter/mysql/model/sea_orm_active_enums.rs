@@ -61,6 +61,8 @@ pub enum RequestRating {
 pub enum Score {
 	#[sea_orm(string_value = "no_rate")]
 	NoRate,
+	#[sea_orm(string_value = "rated")]
+	Rated,
 	#[sea_orm(string_value = "one")]
 	One,
 	#[sea_orm(string_value = "two")]

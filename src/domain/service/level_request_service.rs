@@ -106,7 +106,8 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				}
 
 				let mut update_discord_user_last_request_time_storable = user.into_active_model();
-				update_discord_user_last_request_time_storable.timestamp = ActiveValue::Set(Some(now));
+				update_discord_user_last_request_time_storable.timestamp =
+					ActiveValue::Set(Some(now));
 				if let Err(db_err) = self
 					.user_repository
 					.update_record(update_discord_user_last_request_time_storable)
@@ -202,8 +203,11 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		youtube_video_link: Option<String>,
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
-		notify: Option<bool>) -> Result<GDLevelRequest, LevelRequestError> {
-		if youtube_video_link.is_some() && !Self::is_valid_youtube_link(&youtube_video_link.as_ref().unwrap()) {
+		notify: Option<bool>
+	) -> Result<GDLevelRequest, LevelRequestError> {
+		if youtube_video_link.is_some()
+			&& !Self::is_valid_youtube_link(&youtube_video_link.as_ref().unwrap())
+		{
 			warn!("Malformed YouTube link: {}", youtube_video_link.unwrap());
 			return Err(LevelRequestError::MalformedRequest);
 		}
@@ -216,23 +220,28 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				let mut update_level_request_storable: ActiveModel = existing_level_request.into();
 
 				if youtube_video_link.is_some() {
-					update_level_request_storable.you_tube_video_link = ActiveValue::Set(youtube_video_link.unwrap());
+					update_level_request_storable.you_tube_video_link =
+						ActiveValue::Set(youtube_video_link.unwrap());
 				}
 				if request_rating.is_some() {
-					update_level_request_storable.request_rating = ActiveValue::Set(request_rating.unwrap().into())
+					update_level_request_storable.request_rating =
+						ActiveValue::Set(request_rating.unwrap().into())
 				}
 				if has_requested_feedback.is_some() {
-					update_level_request_storable.has_requested_feedback = ActiveValue::Set(i8::from(has_requested_feedback.unwrap()))
+					update_level_request_storable.has_requested_feedback =
+						ActiveValue::Set(i8::from(has_requested_feedback.unwrap()))
 				}
 				if notify.is_some() {
-					update_level_request_storable.notify = ActiveValue::Set(i8::from(notify.unwrap()));
+					update_level_request_storable.notify =
+						ActiveValue::Set(i8::from(notify.unwrap()));
 				}
-				self.level_request_repository.update_record(update_level_request_storable)
+				self.level_request_repository
+					.update_record(update_level_request_storable)
 					.await
 					.map(|updated_level_request| {
 						return GDLevelRequest::from(updated_level_request);
 					})
-					.map_err(|level_update_error|{
+					.map_err(|level_update_error| {
 						error!(
 							"Unable to update level request for {} to database: {}",
 							level_id, level_update_error
@@ -243,22 +252,27 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		}
 	}
 
-	async fn delete_level_request(&self, level_id: u64) -> Result<GDLevelRequest, LevelRequestError> {
+	async fn delete_level_request(
+		&self,
+		level_id: u64
+	) -> Result<GDLevelRequest, LevelRequestError> {
 		match self.get_level_request(level_id, None).await {
 			Ok(existing_level_request) => {
-				if let Err(delete_level_request_error) = self.level_request_repository.delete_record(existing_level_request.clone().into()).await {
+				if let Err(delete_level_request_error) = self
+					.level_request_repository
+					.delete_record(existing_level_request.clone().into())
+					.await
+				{
 					error!(
-							"Unable to delete level request for {} from database: {}",
-							level_id, delete_level_request_error
-						);
+						"Unable to delete level request for {} from database: {}",
+						level_id, delete_level_request_error
+					);
 					return Err(LevelRequestError::DatabaseError(delete_level_request_error));
 				} else {
 					Ok(existing_level_request)
 				}
 			}
-			Err(get_existing_level_request_error) => {
-				Err(get_existing_level_request_error)
-			}
+			Err(get_existing_level_request_error) => Err(get_existing_level_request_error)
 		}
 	}
 
@@ -270,7 +284,8 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		match self.get_level_request(level_id, None).await {
 			Ok(level_request) => {
 				let mut update_level_request_storable: ActiveModel = level_request.into();
-				update_level_request_storable.discord_message_id = ActiveValue::Set(Some(discord_message_id));
+				update_level_request_storable.discord_message_id =
+					ActiveValue::Set(Some(discord_message_id));
 
 				if let Err(db_err) = self
 					.level_request_repository
@@ -302,7 +317,8 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		match self.get_level_request(level_id, None).await {
 			Ok(level_request) => {
 				let mut update_level_request_storable: ActiveModel = level_request.into();
-				update_level_request_storable.discord_thread_id = ActiveValue::Set(Some(discord_thread_id));
+				update_level_request_storable.discord_thread_id =
+					ActiveValue::Set(Some(discord_thread_id));
 
 				if let Err(db_err) = self
 					.level_request_repository
