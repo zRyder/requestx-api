@@ -254,6 +254,22 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 					update_level_request_storable.notify =
 						ActiveValue::Set(i8::from(notify.unwrap()));
 				}
+
+				if self.request_manager.get_enable_gd_request() {
+					let gd_level = self
+						.gd_client
+						.get_gd_level_info(level_id)
+						.await
+						.map_err(|err| {
+							error!("Error getting level info for level {}", level_id);
+							LevelRequestError::GeometryDashClientError(level_id, err)
+						})?;
+
+					update_level_request_storable.name = ActiveValue::Set(Some(gd_level.name));
+					update_level_request_storable.author = ActiveValue::Set(Some(gd_level.creator.name));
+					update_level_request_storable.level_length = ActiveValue::Set(Some(gd_level.level_length.into()));
+				}
+
 				self.level_request_repository
 					.update_record(update_level_request_storable)
 					.await
