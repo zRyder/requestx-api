@@ -2,7 +2,7 @@
 FROM rust:1.75 as builder
 
 # Set the working directory inside the container
-WORKDIR /usr/src/requestx-api
+WORKDIR /opt/requestx-api
 
 # Copy the entire local Rust project into the container
 COPY . .
