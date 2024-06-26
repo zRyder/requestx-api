@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 
 use chrono::Local;
@@ -47,7 +48,7 @@ pub struct LevelReviewApiRequest<'a> {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
 	pub discord_message_id: u64,
-	pub review_contents: &'a str
+	pub review_contents: Cow<'a, str>
 }
 
 #[derive(Serialize)]
