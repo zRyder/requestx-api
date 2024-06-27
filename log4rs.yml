@@ -6,7 +6,7 @@ appenders:
       kind: json
   requests:
     kind: rolling_file
-    path: "log/requestx_log.log"
+    path: "/var/log/requestx-api/requestx_log.log"
     policy:
       kind: compound
       trigger:
