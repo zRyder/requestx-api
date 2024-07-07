@@ -256,18 +256,20 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				}
 
 				if self.request_manager.get_enable_gd_request() {
-					let gd_level = self
-						.gd_client
-						.get_gd_level_info(level_id)
-						.await
-						.map_err(|err| {
-							error!("Error getting level info for level {}", level_id);
-							LevelRequestError::GeometryDashClientError(level_id, err)
-						})?;
+					let gd_level =
+						self.gd_client
+							.get_gd_level_info(level_id)
+							.await
+							.map_err(|err| {
+								error!("Error getting level info for level {}", level_id);
+								LevelRequestError::GeometryDashClientError(level_id, err)
+							})?;
 
 					update_level_request_storable.name = ActiveValue::Set(Some(gd_level.name));
-					update_level_request_storable.author = ActiveValue::Set(Some(gd_level.creator.name));
-					update_level_request_storable.level_length = ActiveValue::Set(Some(gd_level.level_length.into()));
+					update_level_request_storable.author =
+						ActiveValue::Set(Some(gd_level.creator.name));
+					update_level_request_storable.level_length =
+						ActiveValue::Set(Some(gd_level.level_length.into()));
 				}
 
 				self.level_request_repository
@@ -321,39 +323,6 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				let mut update_level_request_storable: ActiveModel = level_request.into();
 				update_level_request_storable.discord_message_id =
 					ActiveValue::Set(Some(discord_message_id));
-
-				if let Err(db_err) = self
-					.level_request_repository
-					.update_record(update_level_request_storable)
-					.await
-				{
-					error!(
-						"Error updating level request with level ID: {}: {}",
-						level_id, db_err
-					);
-					Err(LevelRequestError::DatabaseError(db_err))
-				} else {
-					Ok(())
-				}
-			}
-			Err(LevelRequestError::LevelRequestDoesNotExist) => {
-				warn!("Level request with ID: {} does not exist", level_id);
-				Err(LevelRequestError::LevelRequestDoesNotExist)
-			}
-			Err(level_request_error) => Err(level_request_error)
-		}
-	}
-
-	async fn update_level_request_thread_id(
-		&self,
-		level_id: u64,
-		discord_thread_id: u64
-	) -> Result<(), LevelRequestError> {
-		match self.get_level_request(level_id, None).await {
-			Ok(level_request) => {
-				let mut update_level_request_storable: ActiveModel = level_request.into();
-				update_level_request_storable.discord_thread_id =
-					ActiveValue::Set(Some(discord_thread_id));
 
 				if let Err(db_err) = self
 					.level_request_repository

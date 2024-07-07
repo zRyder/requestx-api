@@ -25,7 +25,6 @@ pub struct GetLevelRequestApiResponse {
 	pub level_id: u64,
 	pub discord_id: u64,
 	pub discord_message_id: Option<u64>,
-	pub discord_thread_id: Option<u64>,
 	pub level_name: Option<String>,
 	pub level_author: Option<String>,
 	pub level_length: Option<LevelLength>,
@@ -47,15 +46,6 @@ impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 				} else {
 					None
 				},
-				discord_thread_id: if let Some(discord_message) = value.discord_message_data {
-					if let Some(thread_id) = discord_message.thread_id {
-						Some(thread_id)
-					} else {
-						None
-					}
-				} else {
-					None
-				},
 				level_name: Some(gd_level.name),
 				level_author: Some(gd_level.creator.name),
 				level_length: Some(gd_level.level_length.into()),
@@ -71,15 +61,6 @@ impl From<GDLevelRequest> for GetLevelRequestApiResponse {
 				discord_id: value.discord_user_id,
 				discord_message_id: if let Some(message_data) = value.discord_message_data {
 					Some(message_data.message_id)
-				} else {
-					None
-				},
-				discord_thread_id: if let Some(discord_message) = value.discord_message_data {
-					if let Some(thread_id) = discord_message.thread_id {
-						Some(thread_id)
-					} else {
-						None
-					}
 				} else {
 					None
 				},

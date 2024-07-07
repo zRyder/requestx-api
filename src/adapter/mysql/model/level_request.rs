@@ -12,8 +12,6 @@ pub struct Model {
 	pub discord_id: u64,
 	#[sea_orm(unique)]
 	pub discord_message_id: Option<u64>,
-	#[sea_orm(unique)]
-	pub discord_thread_id: Option<u64>,
 	pub name: Option<String>,
 	pub author: Option<String>,
 	pub request_rating: RequestRating,

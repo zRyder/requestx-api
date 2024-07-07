@@ -10,7 +10,6 @@ pub fn mount_internal_controllers(rocket: Rocket<Build>) -> Rocket<Build> {
 		"/api/v1/internal",
 		routes![
 			internal_level_request_controller::update_level_request_message_id,
-			internal_level_request_controller::update_level_request_thread_id,
 			internal_level_review_controller::update_level_review_message_id,
 			internal_moderator_controller::send_level,
 			internal_request_manager_controller::update_request_cooldown
