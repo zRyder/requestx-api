@@ -6,7 +6,7 @@ mod domain;
 
 mod rocket;
 
-use rocket_framework::{fairing::AdHoc, Config};
+use rocket_framework::Config;
 
 use crate::{
 	adapter::controller::{
@@ -48,31 +48,22 @@ async fn launch() -> _ {
 			.merge(("port", &APP_CONFIG.client_config.port))
 	);
 
-	rocket = rocket
-		.manage(db_conn)
-		.attach(AdHoc::on_request("API Logger", |req, _| {
-			if req.uri() != "/api/v1/health" {
-				Box::pin(async move { info!("Request recieved: {}", req.uri()) })
-			} else {
-				Box::pin(async move {})
-			}
-		}))
-		.mount(
-			"/api/v1",
-			routes![
-				auth_controller::generate_jwt,
-				level_request_controller::get_level_request,
-				level_request_controller::request_level,
-				level_request_controller::update_level_request,
-				level_request_controller::delete_level_request,
-				level_review_controller::get_level_review,
-				level_review_controller::review_level,
-				reviewer_controller::get_reviewer,
-				reviewer_controller::create_reviewer,
-				reviewer_controller::remove_reviewer,
-				health::get_health
-			]
-		);
+	rocket = rocket.manage(db_conn).mount(
+		"/api/v1",
+		routes![
+			auth_controller::generate_jwt,
+			level_request_controller::get_level_request,
+			level_request_controller::request_level,
+			level_request_controller::update_level_request,
+			level_request_controller::delete_level_request,
+			level_review_controller::get_level_review,
+			level_review_controller::review_level,
+			reviewer_controller::get_reviewer,
+			reviewer_controller::create_reviewer,
+			reviewer_controller::remove_reviewer,
+			health::get_health
+		]
+	);
 
 	mount_internal_controllers(rocket)
 }

@@ -40,10 +40,4 @@ pub trait RequestService {
 		level_id: u64,
 		discord_message_id: u64
 	) -> Result<(), LevelRequestError>;
-
-	async fn update_level_request_thread_id(
-		&self,
-		level_id: u64,
-		discord_thread_id: u64
-	) -> Result<(), LevelRequestError>;
 }

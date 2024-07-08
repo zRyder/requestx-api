@@ -47,17 +47,6 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 						None
 					}
 				),
-				discord_thread_id: ActiveValue::Set(
-					if let Some(discord_message) = self.discord_message_data {
-						if let Some(thread_id) = discord_message.thread_id {
-							Some(thread_id)
-						} else {
-							None
-						}
-					} else {
-						None
-					}
-				),
 				name: ActiveValue::Set(Some(gd_level.name)),
 				level_length: ActiveValue::Set(Some(gd_level.level_length.into())),
 				author: ActiveValue::Set(Some(gd_level.creator.name)),
@@ -74,17 +63,6 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 				discord_message_id: ActiveValue::Set(
 					if let Some(discord_message) = self.discord_message_data {
 						Some(discord_message.message_id)
-					} else {
-						None
-					}
-				),
-				discord_thread_id: ActiveValue::Set(
-					if let Some(discord_message) = self.discord_message_data {
-						if let Some(thread_id) = discord_message.thread_id {
-							Some(thread_id)
-						} else {
-							None
-						}
 					} else {
 						None
 					}
@@ -123,14 +101,7 @@ impl From<Model> for GDLevelRequest {
 			level_id: value.level_id,
 			discord_user_id: value.discord_id,
 			discord_message_data: if let Some(message_id) = value.discord_message_id {
-				Some(DiscordMessage {
-					message_id,
-					thread_id: if let Some(thread_id) = value.discord_thread_id {
-						Some(thread_id)
-					} else {
-						None
-					}
-				})
+				Some(DiscordMessage { message_id })
 			} else {
 				None
 			},
