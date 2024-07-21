@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use sea_orm::ActiveValue;
 
-use crate::adapter::mysql::model::user;
+use crate::adapter::mysql::model::{user, user::Model};
 
 #[derive(Debug, Clone, Copy)]
 pub struct DiscordUser {
@@ -18,6 +18,15 @@ impl Into<user::ActiveModel> for DiscordUser {
 			} else {
 				None
 			})
+		}
+	}
+}
+
+impl From<Model> for DiscordUser {
+	fn from(value: Model) -> Self {
+		Self {
+			discord_user_id: value.discord_id,
+			last_request_time: value.timestamp
 		}
 	}
 }

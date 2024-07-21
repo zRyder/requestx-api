@@ -10,7 +10,7 @@ use reqwest::{
 use crate::{
 	adapter::geometry_dash::geometry_dash_client::GeometryDashClient,
 	domain::model::{
-		error::geometry_dash_dashrs_error::{
+		error::geometry_dash::geometry_dash_dashrs_error::{
 			GeometryDashDashrsError,
 			GeometryDashDashrsError::{DashrsError, HttpError, LevelNotFoundError}
 		},
