@@ -11,7 +11,7 @@ use rocket_framework::Config;
 use crate::{
 	adapter::controller::{
 		auth_controller, health, level_request_controller, level_review_controller,
-		reviewer_controller
+		reviewer_controller, user_controller
 	},
 	rocket::common::{
 		config::{
@@ -52,6 +52,7 @@ async fn launch() -> _ {
 		"/api/v1",
 		routes![
 			auth_controller::generate_jwt,
+			user_controller::get_user,
 			level_request_controller::get_level_request,
 			level_request_controller::request_level,
 			level_request_controller::update_level_request,

@@ -169,7 +169,7 @@ pub enum LevelRequestApiResponseError {
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
 	EditUnownedLevelRequest(u64, u64, u64),
-	LevelRequetsDisabled,
+	LevelRequestDisabled,
 	LevelRequestError
 }
 
@@ -201,6 +201,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 		response
 			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
 			.header(ContentType::JSON);
+
 		match self {
 			LevelRequestApiResponseError::MalformedRequest => {
 				response.status(Status::BadRequest);
@@ -217,7 +218,7 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				response.status(Status::Forbidden);
 			}
-			LevelRequestApiResponseError::LevelRequetsDisabled => {
+			LevelRequestApiResponseError::LevelRequestDisabled => {
 				response.status(Status::ServiceUnavailable);
 			}
 			LevelRequestApiResponseError::LevelRequestError => {
@@ -247,7 +248,7 @@ impl Display for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				write!(f, "User attempted to edit a request they do not own")
 			}
-			LevelRequestApiResponseError::LevelRequetsDisabled => {
+			LevelRequestApiResponseError::LevelRequestDisabled => {
 				write!(f, "Level requests are disabled")
 			}
 			LevelRequestApiResponseError::LevelRequestError => {

@@ -9,7 +9,7 @@ use sea_orm::DbErr;
 
 use crate::domain::model::{
 	api::level_request_api::LevelRequestApiResponseError,
-	error::geometry_dash_dashrs_error::GeometryDashDashrsError
+	error::geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError
 };
 
 #[derive(Debug, PartialEq)]
@@ -96,7 +96,7 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 				requested_discord_user_id
 			),
 			LevelRequestError::LevelRequestsDisabled => {
-				LevelRequestApiResponseError::LevelRequetsDisabled
+				LevelRequestApiResponseError::LevelRequestDisabled
 			}
 			LevelRequestError::GeometryDashClientError(_, _) => {
 				LevelRequestApiResponseError::LevelRequestError
