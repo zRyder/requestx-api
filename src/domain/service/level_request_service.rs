@@ -92,60 +92,6 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			return Err(LevelRequestError::LevelRequestExists);
 		}
 
-		match self.user_repository.get_record(discord_user_id).await {
-			Ok(Some(user)) => {
-				if self.is_user_on_cooldown(&user, &now) {
-					warn!(
-						"User {} attempted to request while on cooldown",
-						discord_user_id
-					);
-					return Err(LevelRequestError::UserOnCooldown(
-						user.timestamp.unwrap(),
-						self.request_manager.get_request_cooldown()
-					));
-				}
-
-				let mut update_discord_user_last_request_time_storable = user.into_active_model();
-				update_discord_user_last_request_time_storable.timestamp =
-					ActiveValue::Set(Some(now));
-				if let Err(db_err) = self
-					.user_repository
-					.update_record(update_discord_user_last_request_time_storable)
-					.await
-				{
-					error!(
-						"Error updating last updated time for user: {}",
-						discord_user_id
-					);
-					return Err(LevelRequestError::DatabaseError(db_err));
-				}
-			}
-			Ok(None) => {
-				let user_storable = DiscordUser {
-					discord_user_id,
-					last_request_time: Some(now)
-				}
-				.into();
-
-				if let Err(user_insert_error) =
-					self.user_repository.create_record(user_storable).await
-				{
-					error!(
-						"Unable to save Discord user {} to database: {}",
-						discord_user_id, user_insert_error
-					);
-					return Err(LevelRequestError::DatabaseError(user_insert_error));
-				}
-			}
-			Err(err) => {
-				error!(
-					"Error getting Discord user: {} record from database: {}",
-					discord_user_id, err
-				);
-				return Err(LevelRequestError::DatabaseError(err));
-			}
-		};
-
 		let gd_level_request: GDLevelRequest;
 		if self.request_manager.get_enable_gd_request() {
 			let gd_level = self
@@ -194,6 +140,61 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			);
 			return Err(LevelRequestError::DatabaseError(level_insert_error));
 		}
+
+		match self.user_repository.get_record(discord_user_id).await {
+			Ok(Some(user)) => {
+				if self.is_user_on_cooldown(&user, &now) {
+					warn!(
+						"User {} attempted to request while on cooldown",
+						discord_user_id
+					);
+					return Err(LevelRequestError::UserOnCooldown(
+						user.timestamp.unwrap(),
+						self.request_manager.get_request_cooldown()
+					));
+				}
+
+				let mut update_discord_user_last_request_time_storable = user.into_active_model();
+				update_discord_user_last_request_time_storable.timestamp =
+					ActiveValue::Set(Some(now));
+				if let Err(db_err) = self
+					.user_repository
+					.update_record(update_discord_user_last_request_time_storable)
+					.await
+				{
+					error!(
+						"Error updating last updated time for user: {}",
+						discord_user_id
+					);
+					return Err(LevelRequestError::DatabaseError(db_err));
+				}
+			}
+			Ok(None) => {
+				let user_storable = DiscordUser {
+					discord_user_id,
+					last_request_time: Some(now)
+				}
+					.into();
+
+				if let Err(user_insert_error) =
+					self.user_repository.create_record(user_storable).await
+				{
+					error!(
+						"Unable to save Discord user {} to database: {}",
+						discord_user_id, user_insert_error
+					);
+					return Err(LevelRequestError::DatabaseError(user_insert_error));
+				}
+			}
+			Err(err) => {
+				error!(
+					"Error getting Discord user: {} record from database: {}",
+					discord_user_id, err
+				);
+				return Err(LevelRequestError::DatabaseError(err));
+			}
+		};
+
 		Ok(gd_level_request)
 	}
 
