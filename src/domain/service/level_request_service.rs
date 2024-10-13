@@ -128,19 +128,6 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			};
 		}
 
-		let level_request_storable = gd_level_request.clone().into();
-		if let Err(level_insert_error) = self
-			.level_request_repository
-			.create_record(level_request_storable)
-			.await
-		{
-			error!(
-				"Unable to save level request for {} to database: {}",
-				level_id, level_insert_error
-			);
-			return Err(LevelRequestError::DatabaseError(level_insert_error));
-		}
-
 		match self.user_repository.get_record(discord_user_id).await {
 			Ok(Some(user)) => {
 				if self.is_user_on_cooldown(&user, &now) {
@@ -194,6 +181,19 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				return Err(LevelRequestError::DatabaseError(err));
 			}
 		};
+
+		let level_request_storable = gd_level_request.clone().into();
+		if let Err(level_insert_error) = self
+			.level_request_repository
+			.create_record(level_request_storable)
+			.await
+		{
+			error!(
+				"Unable to save level request for {} to database: {}",
+				level_id, level_insert_error
+			);
+			return Err(LevelRequestError::DatabaseError(level_insert_error));
+		}
 
 		Ok(gd_level_request)
 	}
