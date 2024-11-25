@@ -10,7 +10,10 @@ use crate::{
 	},
 	domain::{
 		model::{
-			error::moderator_error::ModeratorError,
+			error::{
+				geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
+				moderator_error::ModeratorError
+			},
 			gd_level::GDLevelRequest,
 			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
@@ -41,8 +44,8 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 		level_id: u64,
 		suggested_rating: SuggestedRating,
 		suggested_score: SuggestedScore
-	) -> Result<GDLevelRequest, ModeratorError> {
-		let moderator_data = Moderator {
+	) -> Result<(GDLevelRequest, Moderator), ModeratorError> {
+		let mut moderator_data = Moderator {
 			level_id,
 			suggested_score,
 			suggested_rating
@@ -59,8 +62,23 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 						&& moderator_data.suggested_score != SuggestedScore::Rated)
 				{
 					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
-						error!("Error sending level {:?}: {}", moderator_data, dashrs_error);
-						return Err(ModeratorError::GeometryDashDashrsError);
+						match dashrs_error {
+							GeometryDashDashrsError::LevelAlreadyRated(already_rated_level_id) => {
+								warn!(
+									"Level with ID: {} has already been rated",
+									already_rated_level_id
+								);
+								moderator_data.suggested_score = SuggestedScore::Rated;
+								moderator_data.suggested_rating = SuggestedRating::Rate
+							}
+							_ => {
+								error!(
+									"Error sending level {:?}: {}",
+									moderator_data, dashrs_error
+								);
+								return Err(ModeratorError::GeometryDashDashrsError);
+							}
+						}
 					}
 				}
 
@@ -114,7 +132,7 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 						return Err(ModeratorError::DatabaseError(db_error));
 					}
 				}
-				Ok(GDLevelRequest::from(level_request))
+				Ok((GDLevelRequest::from(level_request), moderator_data))
 			}
 			Ok(None) => {
 				warn!("Level request {} does not exist", moderator_data.level_id);

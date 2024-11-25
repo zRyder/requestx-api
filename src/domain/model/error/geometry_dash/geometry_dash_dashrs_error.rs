@@ -8,7 +8,8 @@ use std::{
 pub enum GeometryDashDashrsError {
 	HttpError(reqwest::Error),
 	DashrsError(String),
-	LevelNotFoundError(u64)
+	LevelNotFoundError(u64),
+	LevelAlreadyRated(u64)
 }
 
 impl Display for GeometryDashDashrsError {
@@ -31,6 +32,9 @@ impl Display for GeometryDashDashrsError {
 			}
 			GeometryDashDashrsError::LevelNotFoundError(level_id) => {
 				write!(f, "Unable to find level with level ID: {}", level_id)
+			}
+			GeometryDashDashrsError::LevelAlreadyRated(level_id) => {
+				write!(f, "Level with ID: {} has already been rated", level_id)
 			}
 		}
 	}

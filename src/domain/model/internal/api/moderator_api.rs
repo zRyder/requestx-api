@@ -99,7 +99,7 @@ impl Into<moderator::SuggestedScore> for SuggestedScore {
 	}
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum SuggestedRating {
 	Rate,
 	Feature,
