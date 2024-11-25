@@ -1,8 +1,11 @@
 use dash_rs::request::moderator::{SuggestedFeatureScore, SuggestedStars};
 use sea_orm::ActiveValue;
 
-use crate::adapter::mysql::model::{
-	moderator, moderator::Model, sea_orm_active_enums, sea_orm_active_enums::Score
+use crate::{
+	adapter::mysql::model::{
+		moderator, moderator::Model, sea_orm_active_enums, sea_orm_active_enums::Score
+	},
+	domain::model::internal::api::moderator_api
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -21,6 +24,18 @@ pub enum SuggestedRating {
 	Mythic
 }
 
+impl Into<moderator_api::SuggestedRating> for SuggestedRating {
+	fn into(self) -> moderator_api::SuggestedRating {
+		match self {
+			SuggestedRating::Rate => moderator_api::SuggestedRating::Rate,
+			SuggestedRating::Feature => moderator_api::SuggestedRating::Feature,
+			SuggestedRating::Epic => moderator_api::SuggestedRating::Epic,
+			SuggestedRating::Legendary => moderator_api::SuggestedRating::Legendary,
+			SuggestedRating::Mythic => moderator_api::SuggestedRating::Mythic
+		}
+	}
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SuggestedScore {
 	NoRate,
@@ -35,6 +50,25 @@ pub enum SuggestedScore {
 	Eight,
 	Nine,
 	Ten
+}
+
+impl Into<moderator_api::SuggestedScore> for SuggestedScore {
+	fn into(self) -> moderator_api::SuggestedScore {
+		match self {
+			SuggestedScore::NoRate => moderator_api::SuggestedScore::NoRate,
+			SuggestedScore::Rated => moderator_api::SuggestedScore::Rated,
+			SuggestedScore::One => moderator_api::SuggestedScore::One,
+			SuggestedScore::Two => moderator_api::SuggestedScore::Two,
+			SuggestedScore::Three => moderator_api::SuggestedScore::Three,
+			SuggestedScore::Four => moderator_api::SuggestedScore::Four,
+			SuggestedScore::Five => moderator_api::SuggestedScore::Five,
+			SuggestedScore::Six => moderator_api::SuggestedScore::Six,
+			SuggestedScore::Seven => moderator_api::SuggestedScore::Seven,
+			SuggestedScore::Eight => moderator_api::SuggestedScore::Eight,
+			SuggestedScore::Nine => moderator_api::SuggestedScore::Nine,
+			SuggestedScore::Ten => moderator_api::SuggestedScore::Ten
+		}
+	}
 }
 
 impl Into<moderator::ActiveModel> for Moderator {

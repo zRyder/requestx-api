@@ -20,20 +20,6 @@ pub struct GDLevelRequest {
 	pub timestamp: chrono::DateTime<Utc>
 }
 
-#[derive(Clone, Debug)]
-pub struct GDLevel {
-	pub name: String,
-	pub creator: LevelCreator,
-	pub level_length: LevelLength
-}
-
-#[derive(Clone, Debug)]
-pub struct LevelCreator {
-	pub name: String,
-	pub account_id: u64,
-	pub player_id: u64
-}
-
 impl Into<level_request::ActiveModel> for GDLevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		if let Some(gd_level) = self.gd_level {
@@ -80,6 +66,13 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 	}
 }
 
+#[derive(Clone, Debug)]
+pub struct GDLevel {
+	pub name: String,
+	pub creator: LevelCreator,
+	pub level_length: LevelLength
+}
+
 impl From<Model> for GDLevelRequest {
 	fn from(value: Model) -> Self {
 		Self {
@@ -88,11 +81,7 @@ impl From<Model> for GDLevelRequest {
 			{
 				Some(GDLevel {
 					name,
-					creator: LevelCreator {
-						name: author,
-						player_id: 0,
-						account_id: 0
-					},
+					creator: LevelCreator { name: author },
 					level_length: level_length.into()
 				})
 			} else {
@@ -123,18 +112,16 @@ impl From<&ListedLevel<'_>> for GDLevel {
 		GDLevel {
 			name: listed_level.name.to_string(),
 			creator: LevelCreator {
-				name: listed_level.creator.as_ref().unwrap().name.to_string(),
-				account_id: listed_level
-					.creator
-					.as_ref()
-					.unwrap()
-					.account_id
-					.unwrap_or_default(),
-				player_id: listed_level.creator.as_ref().unwrap().user_id
+				name: listed_level.creator.as_ref().unwrap().name.to_string()
 			},
 			level_length: LevelLength::from(listed_level.length)
 		}
 	}
+}
+
+#[derive(Clone, Debug)]
+pub struct LevelCreator {
+	pub name: String
 }
 
 #[derive(Debug, Clone, Copy)]

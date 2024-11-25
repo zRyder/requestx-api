@@ -1,10 +1,9 @@
 use std::borrow::Cow;
+
 use dash_rs::{
-	request::{account::LoginRequest, level::LevelsRequest, moderator::SuggestStarsRequest},
+	request::{account::AuthenticatedUser, level::LevelsRequest, moderator::SuggestStarsRequest},
 	response::parse_get_gj_levels_response
 };
-use dash_rs::ProcessError::Base64;
-use dash_rs::request::account::AuthenticatedUser;
 use reqwest::{
 	header::{HeaderMap, HeaderValue},
 	Client
@@ -15,10 +14,12 @@ use crate::{
 	domain::model::{
 		error::geometry_dash::geometry_dash_dashrs_error::{
 			GeometryDashDashrsError,
-			GeometryDashDashrsError::{DashrsError, HttpError, LevelNotFoundError}
+			GeometryDashDashrsError::{
+				DashrsError, HttpError, LevelAlreadyRated, LevelNotFoundError
+			}
 		},
 		gd_level::GDLevel,
-		moderator::Moderator
+		moderator::{Moderator, SuggestedScore}
 	},
 	rocket::common::{
 		config::geometry_dash_config::GEOMETRY_DASH_CONFIG,
@@ -84,15 +85,27 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 			57903,
 			Cow::from(&GEOMETRY_DASH_CONFIG.gd_password)
 		);
-		let send_level_request =
-			SuggestStarsRequest::new(auth_user, moderator_request.level_id)
-				.feature(moderator_request.suggested_rating.into())
-				.stars(moderator_request.suggested_score.into());
+		let send_level_request = SuggestStarsRequest::new(auth_user, moderator_request.level_id)
+			.feature(moderator_request.suggested_rating.into())
+			.stars(moderator_request.suggested_score.into());
 
 		info!(
 			"Calling Geometry Dash servers for sending level {:?}",
 			&moderator_request
 		);
+
+		match self.is_rated(moderator_request.level_id).await {
+			Ok(is_rated) => {
+				if is_rated && moderator_request.suggested_score != SuggestedScore::Rated {
+					return Err(LevelAlreadyRated(moderator_request.level_id));
+				}
+			}
+			Err(gd_error) => {
+				error!("Error calling Geometry Dash servers: {}", gd_error);
+				return Err(gd_error);
+			}
+		}
+
 		let raw_response_result = self
 			.client
 			.post(send_level_request.to_url())
@@ -131,6 +144,50 @@ impl GeometryDashDashrsClient {
 				.default_headers(default_headers)
 				.build()
 				.expect("Client::new")
+		}
+	}
+
+	async fn is_rated(&self, level_id: u64) -> Result<bool, GeometryDashDashrsError> {
+		let level_id_str = &level_id.to_string();
+		let get_level_info_request = LevelsRequest::default().search(level_id_str);
+
+		info!("Calling Geometry Dash servers for level {}", level_id);
+		let raw_response_result = self
+			.client
+			.post(get_level_info_request.to_url())
+			.body(get_level_info_request.to_string())
+			.send()
+			.await;
+
+		match raw_response_result {
+			Ok(raw_response) => {
+				let parsed_response = raw_response.text().await.unwrap();
+
+				let gd_level_info_result = parse_get_gj_levels_response(&parsed_response);
+				match gd_level_info_result {
+					Ok(gd_level_info) => {
+						debug!(
+							"Successfully called Geometry Dash servers for level {}",
+							level_id
+						);
+						match gd_level_info.first() {
+							Some(matched_level) => Ok(matched_level.stars != 0),
+							None => Err(LevelNotFoundError(level_id))
+						}
+					}
+					Err(dashrs_error) => {
+						error!(
+							"Error parsing response from Geometry Dash servers: {}",
+							dashrs_error
+						);
+						Err(DashrsError(dashrs_error.to_string()))
+					}
+				}
+			}
+			Err(request_err) => {
+				error!("Error calling Geometry Dash servers: {}", request_err);
+				Err(HttpError(request_err))
+			}
 		}
 	}
 }

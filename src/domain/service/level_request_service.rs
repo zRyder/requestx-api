@@ -161,7 +161,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 					discord_user_id,
 					last_request_time: Some(now)
 				}
-					.into();
+				.into();
 
 				if let Err(user_insert_error) =
 					self.user_repository.create_record(user_storable).await

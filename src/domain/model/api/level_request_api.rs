@@ -16,7 +16,12 @@ use serde::{ser::SerializeStruct, Serializer};
 use serde_derive::Deserialize;
 
 use crate::{
-	domain::model::{gd_level, gd_level::GDLevelRequest},
+	domain::model::{
+		gd_level,
+		gd_level::GDLevelRequest,
+		internal::api::moderator_api::{SuggestedRating, SuggestedScore},
+		moderator::Moderator
+	},
 	rocket::common::constants::TIMESTAMP_HEADER_NAME
 };
 
@@ -86,6 +91,83 @@ impl<'r> Responder<'r, 'r> for GetLevelRequestApiResponse {
 			.header(ContentType::JSON)
 			.ok()
 	}
+}
+
+#[derive(Serialize)]
+pub struct PostSendLevelRequestApiResponse {
+	pub level_request: GetLevelRequestApiResponse,
+	pub moderator_data: ModeratorDataApiResponse
+}
+
+impl From<(GDLevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
+	fn from(value: (GDLevelRequest, Moderator)) -> Self {
+		if let Some(gd_level) = value.0.gd_level {
+			Self {
+				level_request: GetLevelRequestApiResponse {
+					level_id: value.0.level_id,
+					discord_id: value.0.discord_user_id,
+					discord_message_id: if let Some(message_data) = value.0.discord_message_data {
+						Some(message_data.message_id)
+					} else {
+						None
+					},
+					level_name: Some(gd_level.name),
+					level_author: Some(gd_level.creator.name),
+					level_length: Some(gd_level.level_length.into()),
+					request_score: value.0.request_rating.into(),
+					youtube_video_link: value.0.youtube_video_link,
+					has_requested_feedback: value.0.has_requested_feedback,
+					notify: value.0.notify,
+					timestamp: value.0.timestamp
+				},
+				moderator_data: ModeratorDataApiResponse {
+					suggested_score: value.1.suggested_score.into(),
+					suggested_rating: value.1.suggested_rating.into()
+				}
+			}
+		} else {
+			Self {
+				level_request: GetLevelRequestApiResponse {
+					level_id: value.0.level_id,
+					discord_id: value.0.discord_user_id,
+					discord_message_id: if let Some(message_data) = value.0.discord_message_data {
+						Some(message_data.message_id)
+					} else {
+						None
+					},
+					level_name: None,
+					level_author: None,
+					level_length: None,
+					request_score: value.0.request_rating.into(),
+					youtube_video_link: value.0.youtube_video_link,
+					has_requested_feedback: value.0.has_requested_feedback,
+					notify: value.0.notify,
+					timestamp: value.0.timestamp
+				},
+				moderator_data: ModeratorDataApiResponse {
+					suggested_score: value.1.suggested_score.into(),
+					suggested_rating: value.1.suggested_rating.into()
+				}
+			}
+		}
+	}
+}
+
+impl<'r> Responder<'r, 'r> for PostSendLevelRequestApiResponse {
+	fn respond_to(self, request: &Request) -> response::Result<'r> {
+		let json = Json(self);
+		Response::build_from(json.respond_to(&request).unwrap())
+			.status(Status::Ok)
+			.raw_header("X-Timestamp", format!("{}", Local::now()))
+			.header(ContentType::JSON)
+			.ok()
+	}
+}
+
+#[derive(Serialize)]
+pub struct ModeratorDataApiResponse {
+	pub suggested_score: SuggestedScore,
+	pub suggested_rating: SuggestedRating
 }
 
 #[derive(Deserialize)]
