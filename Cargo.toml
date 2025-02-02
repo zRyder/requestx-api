@@ -15,11 +15,12 @@ async-trait = "0.1.74"
 sea-orm = { version = "0.12.5", features = [ "sqlx-mysql", "runtime-async-std-native-tls", "macros", "mock" ] }
 config = "0.14.0"
 serde = { version = "1.0.192", features = ["derive"] }
+toml = "0.8.19"
 serde_derive = "1.0.192"
 log4rs = { version = "1.2.0", features = ["rolling_file_appender", "console_appender", "compound_policy", "delete_roller"] }
 jsonwebtoken = "9.2.0"
-lazy_static = "1.4.0"
 handlebars = "5.0.0"
+tokio = {version = "1.43.0",  features = ["rt-multi-thread"] }
 
 [dependencies.rocket_db_pools]
 version = "0.2.0"

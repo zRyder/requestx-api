@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use sea_orm::{ActiveValue, IntoActiveModel};
 
 use crate::{
@@ -21,8 +21,9 @@ use crate::{
 			request_service::RequestService
 		}
 	},
-	rocket::common::{config::client_config::CLIENT_CONFIG, constants::YOUTUBE_LINK_REGEX}
+	rocket::common::{constants::YOUTUBE_LINK_REGEX}
 };
+use crate::rocket::common::config::common_config::APP_CONFIG;
 
 pub struct LevelRequestService<
 	'a,
@@ -78,7 +79,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		has_requested_feedback: bool,
 		notify: bool
 	) -> Result<GDLevelRequest, LevelRequestError> {
-		if !self.request_manager.get_enable_request() {
+		if !self.request_manager.get_enable_request().await {
 			return Err(LevelRequestError::LevelRequestsDisabled);
 		}
 		if !Self::is_valid_youtube_link(&youtube_video_link) {
@@ -93,7 +94,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		}
 
 		let gd_level_request: GDLevelRequest;
-		if self.request_manager.get_enable_gd_request() {
+		if self.request_manager.get_enable_gd_request().await {
 			let gd_level = self
 				.gd_client
 				.get_gd_level_info(level_id)
@@ -128,16 +129,17 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			};
 		}
 
+		let cooldown_duration = self.request_manager.get_request_cooldown().await;
 		match self.user_repository.get_record(discord_user_id).await {
 			Ok(Some(user)) => {
-				if self.is_user_on_cooldown(&user, &now) {
+				if self.is_user_on_cooldown(&user, &now, &cooldown_duration) {
 					warn!(
 						"User {} attempted to request while on cooldown",
 						discord_user_id
 					);
 					return Err(LevelRequestError::UserOnCooldown(
 						user.timestamp.unwrap(),
-						self.request_manager.get_request_cooldown()
+						cooldown_duration
 					));
 				}
 
@@ -227,7 +229,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				return Err(get_existing_level_request_error);
 			}
 			Ok(existing_level_request) => {
-				if !discord_user_id.eq(&CLIENT_CONFIG.discord_bot_admin_id)
+				if !discord_user_id.eq(&APP_CONFIG.get().unwrap().server_config.discord_bot_admin_id)
 					&& !discord_user_id.eq(&existing_level_request.discord_user_id)
 				{
 					return Err(LevelRequestError::EditUnownedLevelRequest(
@@ -256,7 +258,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 						ActiveValue::Set(i8::from(notify.unwrap()));
 				}
 
-				if self.request_manager.get_enable_gd_request() {
+				if self.request_manager.get_enable_gd_request().await {
 					let gd_level =
 						self.gd_client
 							.get_gd_level_info(level_id)
@@ -370,9 +372,9 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
 		regex.is_match(youtube_link)
 	}
 
-	fn is_user_on_cooldown(&self, discord_user: &Model, now: &DateTime<Utc>) -> bool {
+	fn is_user_on_cooldown(&self, discord_user: &Model, now: &DateTime<Utc>, cooldown_duration: &Duration) -> bool {
 		if let Some(discord_user_last_request_time) = discord_user.timestamp {
-			return (discord_user_last_request_time + self.request_manager.get_request_cooldown())
+			return (discord_user_last_request_time + *cooldown_duration)
 				.ge(now);
 		} else {
 			false

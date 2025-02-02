@@ -16,7 +16,6 @@ use crate::{
 	rocket::common::{
 		config::{
 			common_config::{init_app_config, APP_CONFIG},
-			mysql_database_config::MY_SQL_DATABASE_CONFIG
 		},
 		internal::internal::mount_internal_controllers
 	}
@@ -28,13 +27,13 @@ async fn launch() -> _ {
 	info!("Starting requestx-api");
 
 	info!("Initializing application configuration");
-	if let Err(err) = init_app_config() {
+	if let Err(err) = init_app_config().await {
 		error!("Failed to load app config: {}", err);
 		panic!("{}", err)
 	}
 
 	info!("Initializing database");
-	let db_conn = match MY_SQL_DATABASE_CONFIG.configure_mysql_database().await {
+	let db_conn = match APP_CONFIG.get().unwrap().mysql_database_config.configure_mysql_database().await {
 		Ok(conn) => conn,
 		Err(err) => {
 			error!("Failed to initialize database: {}", err);
@@ -44,8 +43,8 @@ async fn launch() -> _ {
 
 	let mut rocket = rocket_framework::custom(
 		Config::figment()
-			.merge(("address", &APP_CONFIG.client_config.host))
-			.merge(("port", &APP_CONFIG.client_config.port))
+			.merge(("address", &APP_CONFIG.get().unwrap().server_config.host))
+			.merge(("port", &APP_CONFIG.get().unwrap().server_config.port))
 	);
 
 	rocket = rocket.manage(db_conn).mount(

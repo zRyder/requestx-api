@@ -11,3 +11,14 @@ gd_password=""
 discord_app_id = "0"
 access_token = "fakeaccesstoken"
 secret_token = "testtokentesttokentesttoken"
+
+[server_config]
+host = "127.0.0.1"
+port = 8080
+discord_app_id = "0"
+discord_bot_admin_id = "0"
+request_config_path = "/client_config_test"
+
+[geometry_dash_config]
+gd_username="testuser"
+gd_password="testpass"
