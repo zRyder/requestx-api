@@ -14,9 +14,7 @@ use crate::{
 		reviewer_controller, user_controller
 	},
 	rocket::common::{
-		config::{
-			common_config::{init_app_config, APP_CONFIG},
-		},
+		config::common_config::{init_app_config, APP_CONFIG},
 		internal::internal::mount_internal_controllers
 	}
 };
@@ -33,7 +31,13 @@ async fn launch() -> _ {
 	}
 
 	info!("Initializing database");
-	let db_conn = match APP_CONFIG.get().unwrap().mysql_database_config.configure_mysql_database().await {
+	let db_conn = match APP_CONFIG
+		.get()
+		.unwrap()
+		.mysql_database_config
+		.configure_mysql_database()
+		.await
+	{
 		Ok(conn) => conn,
 		Err(err) => {
 			error!("Failed to initialize database: {}", err);

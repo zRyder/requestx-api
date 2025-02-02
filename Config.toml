@@ -3,7 +3,7 @@ host = "{{REQUESTX_HOST}}"
 port = "{{REQUESTX_PORT}}"
 discord_app_id = "{{REQUESTX_DISCORD_APP_ID}}"
 discord_bot_admin_id = "{{REQUESTX_DISCORD_BOT_ADMIN_ID}}"
-request_config_path = "/client_config"
+request_config_path = "{{REQUESTX_REQUEST_CONFIG_PATH}}"
 
 [mysql_database_config]
 user = "{{REQUESTX_DB_USERNAME}}"

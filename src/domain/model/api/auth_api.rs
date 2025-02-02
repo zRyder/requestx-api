@@ -16,11 +16,8 @@ use rocket_framework::{
 
 use crate::{
 	domain::model::{auth::claims::Claims, error::level_request_error::LevelRequestError},
-	rocket::common::{
-		constants::TIMESTAMP_HEADER_NAME
-	}
+	rocket::common::{config::common_config::APP_CONFIG, constants::TIMESTAMP_HEADER_NAME}
 };
-use crate::rocket::common::config::common_config::APP_CONFIG;
 
 #[derive(Deserialize)]
 pub struct AuthApiRequest {
@@ -60,7 +57,10 @@ impl<'r> FromRequest<'r> for AuthApiRequest {
 				.ne(&APP_CONFIG.get().unwrap().server_config.discord_app_id)
 			{
 				Outcome::Forward(Status::Unauthorized)
-			} else if access_token.unwrap().ne(&APP_CONFIG.get().unwrap().auth_config.access_token) {
+			} else if access_token
+				.unwrap()
+				.ne(&APP_CONFIG.get().unwrap().auth_config.access_token)
+			{
 				Outcome::Forward(Status::Forbidden)
 			} else {
 				Outcome::Success(AuthApiRequest {
@@ -97,7 +97,9 @@ impl<'r> FromRequest<'r> for Auth {
 
 			match decode::<Claims>(
 				&jwt.unwrap().replace("Bearer ", ""),
-				&DecodingKey::from_secret(&APP_CONFIG.get().unwrap().auth_config.secret_token.as_ref()),
+				&DecodingKey::from_secret(
+					&APP_CONFIG.get().unwrap().auth_config.secret_token.as_ref()
+				),
 				&validation
 			) {
 				Ok(_token_claims) => Outcome::Success(Auth {}),
