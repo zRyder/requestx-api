@@ -22,16 +22,17 @@ pub async fn update_request_cooldown<'a>(
 	let request_manager_service = RequestManagerService {};
 
 	if let Some(duration_in_minutes) = update_request_config_body.duration_in_minutes {
-		request_manager_service.set_request_cooldown(duration_in_minutes);
+		request_manager_service.set_request_cooldown(duration_in_minutes).await;
 	}
 
 	if let Some(enable_requests) = update_request_config_body.enable_requests {
-		request_manager_service.set_enable_request(enable_requests)
+		request_manager_service.set_enable_request(enable_requests).await;
 	}
 
 	if let Some(enable_gd_requests) = update_request_config_body.enable_gd_requests {
-		request_manager_service.set_enable_gd_request(enable_gd_requests)
+		request_manager_service.set_enable_gd_request(enable_gd_requests).await;
 	}
+	request_manager_service.update_client_config_file().await;
 
 	Ok(InternalUpdateRequestConfigApiResponse {})
 }

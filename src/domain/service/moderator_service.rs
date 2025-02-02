@@ -57,7 +57,7 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 			.await
 		{
 			Ok(Some(level_request)) => {
-				if self.request_manager.get_enable_gd_request()
+				if self.request_manager.get_enable_gd_request().await
 					&& (moderator_data.suggested_score != SuggestedScore::NoRate
 						&& moderator_data.suggested_score != SuggestedScore::Rated)
 				{

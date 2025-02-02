@@ -22,10 +22,10 @@ use crate::{
 		moderator::{Moderator, SuggestedScore}
 	},
 	rocket::common::{
-		config::geometry_dash_config::GEOMETRY_DASH_CONFIG,
 		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
 	}
 };
+use crate::rocket::common::config::common_config::APP_CONFIG;
 
 pub struct GeometryDashDashrsClient {
 	client: Client
@@ -81,9 +81,9 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 		moderator_request: Moderator
 	) -> Result<(), GeometryDashDashrsError> {
 		let auth_user = AuthenticatedUser::new(
-			&GEOMETRY_DASH_CONFIG.gd_username,
+			&APP_CONFIG.get().unwrap().geometry_dash_config.gd_username,
 			57903,
-			Cow::from(&GEOMETRY_DASH_CONFIG.gd_password)
+			Cow::from(&APP_CONFIG.get().unwrap().geometry_dash_config.gd_password)
 		);
 		let send_level_request = SuggestStarsRequest::new(auth_user, moderator_request.level_id)
 			.feature(moderator_request.suggested_rating.into())

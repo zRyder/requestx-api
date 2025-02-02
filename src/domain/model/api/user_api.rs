@@ -11,6 +11,7 @@ use rocket_framework::{
 	Request, Response
 };
 use serde::{ser::SerializeStruct, Serialize, Serializer};
+use tokio::runtime::Runtime;
 
 use crate::{
 	domain::{
@@ -45,7 +46,7 @@ impl From<DiscordUser> for GetDiscordUserApiResponse {
 		Self {
 			discord_user_id: value.discord_user_id,
 			last_request_time: value.last_request_time,
-			request_cooldown: RequestManagerService {}.get_request_cooldown()
+			request_cooldown: Runtime::new().unwrap().block_on(RequestManagerService{}.get_request_cooldown())
 		}
 	}
 }
