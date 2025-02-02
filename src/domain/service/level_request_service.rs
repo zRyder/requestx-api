@@ -21,9 +21,8 @@ use crate::{
 			request_service::RequestService
 		}
 	},
-	rocket::common::{constants::YOUTUBE_LINK_REGEX}
+	rocket::common::{config::common_config::APP_CONFIG, constants::YOUTUBE_LINK_REGEX}
 };
-use crate::rocket::common::config::common_config::APP_CONFIG;
 
 pub struct LevelRequestService<
 	'a,
@@ -229,7 +228,11 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				return Err(get_existing_level_request_error);
 			}
 			Ok(existing_level_request) => {
-				if !discord_user_id.eq(&APP_CONFIG.get().unwrap().server_config.discord_bot_admin_id)
+				if !discord_user_id.eq(&APP_CONFIG
+					.get()
+					.unwrap()
+					.server_config
+					.discord_bot_admin_id)
 					&& !discord_user_id.eq(&existing_level_request.discord_user_id)
 				{
 					return Err(LevelRequestError::EditUnownedLevelRequest(
@@ -372,10 +375,14 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
 		regex.is_match(youtube_link)
 	}
 
-	fn is_user_on_cooldown(&self, discord_user: &Model, now: &DateTime<Utc>, cooldown_duration: &Duration) -> bool {
+	fn is_user_on_cooldown(
+		&self,
+		discord_user: &Model,
+		now: &DateTime<Utc>,
+		cooldown_duration: &Duration
+	) -> bool {
 		if let Some(discord_user_last_request_time) = discord_user.timestamp {
-			return (discord_user_last_request_time + *cooldown_duration)
-				.ge(now);
+			return (discord_user_last_request_time + *cooldown_duration).ge(now);
 		} else {
 			false
 		}
@@ -405,8 +412,8 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
 // 				request_rating::RequestRating
 // 			},
 // 			service::{
-// 				level_request_service::LevelRequestService, request_service::RequestService
-// 			}
+// 				level_request_service::LevelRequestService,
+// request_service::RequestService 			}
 // 		}
 // 	};
 //

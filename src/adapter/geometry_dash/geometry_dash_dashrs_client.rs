@@ -22,10 +22,10 @@ use crate::{
 		moderator::{Moderator, SuggestedScore}
 	},
 	rocket::common::{
+		config::common_config::APP_CONFIG,
 		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
 	}
 };
-use crate::rocket::common::config::common_config::APP_CONFIG;
 
 pub struct GeometryDashDashrsClient {
 	client: Client

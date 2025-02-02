@@ -46,7 +46,9 @@ impl From<DiscordUser> for GetDiscordUserApiResponse {
 		Self {
 			discord_user_id: value.discord_user_id,
 			last_request_time: value.last_request_time,
-			request_cooldown: Runtime::new().unwrap().block_on(RequestManagerService{}.get_request_cooldown())
+			request_cooldown: Runtime::new()
+				.unwrap()
+				.block_on(RequestManagerService {}.get_request_cooldown())
 		}
 	}
 }

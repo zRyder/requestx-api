@@ -1,9 +1,8 @@
 use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::{
-	domain::model::auth::claims::Claims
+	domain::model::auth::claims::Claims, rocket::common::config::common_config::APP_CONFIG
 };
-use crate::rocket::common::config::common_config::APP_CONFIG;
 
 pub struct AuthService {
 	claims: Claims

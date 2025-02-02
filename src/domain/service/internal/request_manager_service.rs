@@ -1,9 +1,7 @@
 use chrono::Duration;
-use tokio::fs::OpenOptions;
-use tokio::io::AsyncWriteExt;
-use crate::rocket::common::config::common_config::APP_CONFIG;
+use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 
-use crate::rocket::common::config::request_config::{REQUEST_CONFIG};
+use crate::rocket::common::config::{common_config::APP_CONFIG, request_config::REQUEST_CONFIG};
 
 pub struct RequestManagerService {}
 
@@ -53,15 +51,22 @@ impl RequestManagerService {
 		{
 			Ok(mut client_config_file) => {
 				if let Ok(client_config_buffer) = toml::to_string(&*guard) {
-					if let Err(client_config_file_write_error) = client_config_file.write(
-						&client_config_buffer.as_bytes()
-					).await {
-						error!("unable to write to client config file: {}", client_config_file_write_error);
+					if let Err(client_config_file_write_error) = client_config_file
+						.write(&client_config_buffer.as_bytes())
+						.await
+					{
+						error!(
+							"unable to write to client config file: {}",
+							client_config_file_write_error
+						);
 					}
 				}
 			}
 			Err(client_config_file_error) => {
-				error!("unable to open client config file: {}", client_config_file_error);
+				error!(
+					"unable to open client config file: {}",
+					client_config_file_error
+				);
 			}
 		}
 	}

@@ -9,8 +9,8 @@ use crate::{
 		},
 		service::{request_service::RequestService, review_service::ReviewService}
 	},
+	rocket::common::config::common_config::APP_CONFIG
 };
-use crate::rocket::common::config::common_config::APP_CONFIG;
 
 pub struct LevelReviewService<'a, R: ReviewRepository, L: RequestService> {
 	review_repository: &'a R,
@@ -53,7 +53,12 @@ impl<'a, R: ReviewRepository, L: RequestService> ReviewService for LevelReviewSe
 		discord_message_id: u64,
 		review_contents: String
 	) -> Result<LevelReview, LevelReviewError> {
-		let level_request_result = if reviewer_discord_id.eq(&APP_CONFIG.get().unwrap().server_config.discord_bot_admin_id) {
+		let level_request_result = if reviewer_discord_id.eq(&APP_CONFIG
+			.get()
+			.unwrap()
+			.server_config
+			.discord_bot_admin_id)
+		{
 			self.level_request_service
 				.get_level_request(level_id, None)
 				.await
