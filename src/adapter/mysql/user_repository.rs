@@ -3,6 +3,7 @@ use sea_orm::{DbErr, DeleteResult, InsertResult};
 use crate::adapter::mysql::model::{user, user::ActiveModel};
 
 #[cfg_attr(test, mockall::automock)]
+#[allow(dead_code)]
 pub trait UserRepository {
 	async fn create_record(&self, record: ActiveModel) -> Result<InsertResult<ActiveModel>, DbErr>;
 

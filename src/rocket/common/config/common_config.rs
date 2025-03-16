@@ -1,12 +1,4 @@
-use std::{
-	collections::HashMap,
-	env,
-	env::home_dir,
-	fs,
-	path::{Path, PathBuf},
-	str::FromStr,
-	sync::OnceLock
-};
+use std::{collections::HashMap, env, fs, sync::OnceLock};
 
 use config::{Config, ConfigError, File, FileFormat};
 use serde_derive::Deserialize;

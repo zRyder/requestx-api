@@ -4,11 +4,29 @@ use crate::domain::{
 	model::{
 		api::auth_api::Auth,
 		internal::api::internal_request_manager_api::{
-			InternalUpdateRequestConfigApiRequest, InternalUpdateRequestConfigApiResponse
+			InternalGetRequestConfigApiResponse, InternalUpdateRequestConfigApiRequest,
+			InternalUpdateRequestConfigApiResponse
 		}
 	},
 	service::internal::request_manager_service::RequestManagerService
 };
+
+#[get("/request_config")]
+pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiResponse> {
+	let request_manager_service = RequestManagerService {};
+
+	let response = InternalGetRequestConfigApiResponse {
+		enable_requests: request_manager_service.get_enable_request().await,
+		enable_gd_requests: request_manager_service.get_enable_gd_request().await,
+		duration_in_minutes: request_manager_service
+			.get_request_cooldown()
+			.await
+			.num_minutes()
+			.unsigned_abs()
+	};
+
+	Ok(response)
+}
 
 #[patch(
 	"/request_config",

@@ -160,7 +160,9 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			Ok(None) => {
 				let user_storable = DiscordUser {
 					discord_user_id,
-					last_request_time: Some(now)
+					gd_player_id: None,
+					last_request_time: Some(now),
+					gd_account_hash: None
 				}
 				.into();
 

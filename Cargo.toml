@@ -12,7 +12,7 @@ regex = "1.4.5"
 dash-rs = {git = "https://github.com/zRyder/dash-rs.git", branch = "develop-stable"}
 reqwest = { version = "0.12.4", features = ["json"] }
 async-trait = "0.1.74"
-sea-orm = { version = "0.12.5", features = [ "sqlx-mysql", "runtime-async-std-native-tls", "macros", "mock" ] }
+sea-orm = { version = "1.1.4", features = [ "sqlx-mysql", "runtime-async-std-native-tls", "macros", "mock" ] }
 config = "0.14.0"
 serde = { version = "1.0.192", features = ["derive"] }
 toml = "0.8.19"

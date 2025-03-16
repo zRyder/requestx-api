@@ -3,9 +3,7 @@ extern crate rocket as rocket_framework;
 
 mod adapter;
 mod domain;
-
 mod rocket;
-
 use rocket_framework::Config;
 
 use crate::{

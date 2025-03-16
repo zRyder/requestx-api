@@ -1,6 +1,5 @@
 pub mod level_request_repository;
-pub(crate) mod model;
-
+pub mod model;
 pub mod moderator_repository;
 pub mod my_sql_moderator_repository;
 pub mod mysql_level_request_repository;

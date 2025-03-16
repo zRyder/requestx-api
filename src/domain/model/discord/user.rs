@@ -3,10 +3,12 @@ use sea_orm::ActiveValue;
 
 use crate::adapter::mysql::model::{user, user::Model};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct DiscordUser {
 	pub discord_user_id: u64,
-	pub last_request_time: Option<DateTime<Utc>>
+	pub gd_player_id: Option<u64>,
+	pub last_request_time: Option<DateTime<Utc>>,
+	pub gd_account_hash: Option<String>
 }
 
 impl Into<user::ActiveModel> for DiscordUser {
@@ -17,7 +19,9 @@ impl Into<user::ActiveModel> for DiscordUser {
 				Some(last_request_time)
 			} else {
 				None
-			})
+			}),
+			gd_account_hash: ActiveValue::Set(self.gd_account_hash),
+			gd_player_id: ActiveValue::Set(self.gd_player_id)
 		}
 	}
 }
@@ -26,7 +30,9 @@ impl From<Model> for DiscordUser {
 	fn from(value: Model) -> Self {
 		Self {
 			discord_user_id: value.discord_id,
-			last_request_time: value.timestamp
+			gd_player_id: value.gd_player_id,
+			last_request_time: value.timestamp,
+			gd_account_hash: value.gd_account_hash
 		}
 	}
 }
