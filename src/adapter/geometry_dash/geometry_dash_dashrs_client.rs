@@ -1,8 +1,14 @@
 use std::borrow::Cow;
 
 use dash_rs::{
-	request::{account::AuthenticatedUser, level::LevelsRequest, moderator::SuggestStarsRequest},
-	response::parse_get_gj_levels_response
+	request::{
+		account::AuthenticatedUser, comment::ProfileCommentsRequest, level::LevelsRequest,
+		moderator::SuggestStarsRequest, user::UserSearchRequest
+	},
+	response::{
+		parse_get_gj_acccount_comments_response, parse_get_gj_levels_response,
+		parse_get_gj_users_response, ResponseError
+	}
 };
 use reqwest::{
 	header::{HeaderMap, HeaderValue},
@@ -15,10 +21,11 @@ use crate::{
 		error::geometry_dash::geometry_dash_dashrs_error::{
 			GeometryDashDashrsError,
 			GeometryDashDashrsError::{
-				DashrsError, HttpError, LevelAlreadyRated, LevelNotFoundError
+				DashrsError, HttpError, LevelAlreadyRated, LevelNotFoundError,
+				NoProfileCommentsFound, UserNotFoundError
 			}
 		},
-		gd_level::GDLevel,
+		level_request::GDLevel,
 		moderator::{Moderator, SuggestedScore}
 	},
 	rocket::common::{
@@ -61,6 +68,52 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 						}
 					}
 					Err(dashrs_error) => {
+						error!(
+							"Error parsing response from Geometry Dash servers: {}",
+							dashrs_error
+						);
+						Err(DashrsError(dashrs_error.to_string()))
+					}
+				}
+			}
+			Err(request_err) => {
+				error!("Error calling Geometry Dash servers: {}", request_err);
+				Err(HttpError(request_err))
+			}
+		}
+	}
+
+	async fn query_gd_player_id(&self, gd_username: &str) -> Result<u64, GeometryDashDashrsError> {
+		let search_gd_player_request = UserSearchRequest::new(gd_username);
+
+		info!(
+			"Calling Geometry Dash servers for user search {}",
+			gd_username
+		);
+		let raw_response_result = self
+			.client
+			.post(search_gd_player_request.to_url())
+			.body(search_gd_player_request.to_string())
+			.send()
+			.await;
+
+		match raw_response_result {
+			Ok(raw_response) => {
+				let parsed_response = raw_response.text().await.unwrap();
+				let user_search_result = parse_get_gj_users_response(&parsed_response);
+				match user_search_result {
+					Ok(searched_user) => {
+						debug!(
+							"Successfully called Geometry Dash servers for user {}",
+							gd_username
+						);
+						Ok(searched_user.user_id)
+					}
+					Err(dashrs_error) => {
+						if matches!(dashrs_error, ResponseError::NotFound) {
+							error!("Could not find user with username: {}", gd_username);
+							return Err(UserNotFoundError(gd_username.to_string()));
+						}
 						error!(
 							"Error parsing response from Geometry Dash servers: {}",
 							dashrs_error
@@ -122,6 +175,62 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 					Ok(())
 				} else {
 					Err(DashrsError("-1".to_string()))
+				}
+			}
+			Err(request_err) => {
+				error!("Error calling Geometry Dash servers: {}", request_err);
+				Err(HttpError(request_err))
+			}
+		}
+	}
+
+	async fn get_gd_public_account_token(
+		&self,
+		player_id: u64
+	) -> Result<String, GeometryDashDashrsError> {
+		let get_gd_account_comments_request = ProfileCommentsRequest::new(player_id);
+
+		info!(
+			"Calling Geometry Dash servers for user account comments {}",
+			player_id
+		);
+		let raw_response_result = self
+			.client
+			.post(get_gd_account_comments_request.to_url())
+			.body(get_gd_account_comments_request.to_string())
+			.send()
+			.await;
+
+		match raw_response_result {
+			Ok(raw_response) => {
+				let parsed_response = raw_response.text().await.unwrap();
+				let user_account_comments_result =
+					parse_get_gj_acccount_comments_response(&parsed_response);
+
+				match user_account_comments_result {
+					Ok(account_comments_list) => {
+						if let Some(account_comment) = account_comments_list.first() {
+							let encoded_account_comment =
+								account_comment.content.as_ref().unwrap().to_owned();
+							match &encoded_account_comment.into_processed() {
+								Ok(decoded_comment) => Ok(decoded_comment.0.parse().unwrap()),
+								Err(thunk_processing_error) => {
+									error!("Error decoding comment: {}", thunk_processing_error);
+									Err(DashrsError(thunk_processing_error.to_string()))
+								}
+							}
+						} else {
+							warn!("No account comments found for user: {}", player_id);
+							Err(NoProfileCommentsFound)
+						}
+					}
+					Err(dashrs_error) => {
+						error!(
+							"Error parsing response from Geometry Dash servers: {}",
+							dashrs_error
+						);
+						Err(DashrsError(dashrs_error.to_string()))
+					}
 				}
 			}
 			Err(request_err) => {

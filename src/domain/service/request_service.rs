@@ -1,6 +1,6 @@
 use crate::domain::model::{
 	error::level_request_error::LevelRequestError,
-	gd_level::{GDLevelRequest, RequestRating}
+	level_request::{LevelRequest, RequestRating}
 };
 
 pub trait RequestService {
@@ -8,7 +8,7 @@ pub trait RequestService {
 		&self,
 		level_id: u64,
 		has_requested_feedback: Option<bool>
-	) -> Result<GDLevelRequest, LevelRequestError>;
+	) -> Result<LevelRequest, LevelRequestError>;
 
 	async fn make_level_request(
 		&self,
@@ -18,7 +18,7 @@ pub trait RequestService {
 		request_rating: RequestRating,
 		has_requested_feedback: bool,
 		notify: bool
-	) -> Result<GDLevelRequest, LevelRequestError>;
+	) -> Result<LevelRequest, LevelRequestError>;
 
 	async fn update_level_request(
 		&self,
@@ -28,12 +28,9 @@ pub trait RequestService {
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
 		notify: Option<bool>
-	) -> Result<GDLevelRequest, LevelRequestError>;
+	) -> Result<LevelRequest, LevelRequestError>;
 
-	async fn delete_level_request(
-		&self,
-		level_id: u64
-	) -> Result<GDLevelRequest, LevelRequestError>;
+	async fn delete_level_request(&self, level_id: u64) -> Result<LevelRequest, LevelRequestError>;
 
 	async fn update_level_request_message_id(
 		&self,

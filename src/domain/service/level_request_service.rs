@@ -14,7 +14,7 @@ use crate::{
 		model::{
 			discord::user::DiscordUser,
 			error::level_request_error::LevelRequestError,
-			gd_level::{GDLevelRequest, RequestRating}
+			level_request::{LevelRequest, RequestRating}
 		},
 		service::{
 			internal::request_manager_service::RequestManagerService,
@@ -43,7 +43,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		&self,
 		level_id: u64,
 		has_requested_feedback: Option<bool>
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	) -> Result<LevelRequest, LevelRequestError> {
 		let get_level_request_result =
 			if let Some(has_requested_feedback_toggle) = has_requested_feedback {
 				self.level_request_repository
@@ -54,7 +54,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			};
 
 		match get_level_request_result {
-			Ok(Some(level_request)) => Ok(GDLevelRequest::from(level_request)),
+			Ok(Some(level_request)) => Ok(LevelRequest::from(level_request)),
 			Ok(None) => {
 				warn!("Level request with ID {} does not exist", level_id);
 				Err(LevelRequestError::LevelRequestDoesNotExist)
@@ -77,7 +77,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		request_rating: RequestRating,
 		has_requested_feedback: bool,
 		notify: bool
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	) -> Result<LevelRequest, LevelRequestError> {
 		if !self.request_manager.get_enable_request().await {
 			return Err(LevelRequestError::LevelRequestsDisabled);
 		}
@@ -92,7 +92,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			return Err(LevelRequestError::LevelRequestExists);
 		}
 
-		let gd_level_request: GDLevelRequest;
+		let gd_level_request: LevelRequest;
 		if self.request_manager.get_enable_gd_request().await {
 			let gd_level = self
 				.gd_client
@@ -103,7 +103,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 					LevelRequestError::GeometryDashClientError(level_id, err)
 				})?;
 
-			gd_level_request = GDLevelRequest {
+			gd_level_request = LevelRequest {
 				gd_level: Some(gd_level),
 				level_id,
 				discord_user_id,
@@ -115,7 +115,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 				timestamp: now
 			};
 		} else {
-			gd_level_request = GDLevelRequest {
+			gd_level_request = LevelRequest {
 				gd_level: None,
 				level_id,
 				discord_user_id,
@@ -162,7 +162,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 					discord_user_id,
 					gd_player_id: None,
 					last_request_time: Some(now),
-					gd_account_hash: None
+					is_gd_account_linked: false
 				}
 				.into();
 
@@ -209,7 +209,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
 		notify: Option<bool>
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	) -> Result<LevelRequest, LevelRequestError> {
 		if youtube_video_link.is_none()
 			&& request_rating.is_none()
 			&& has_requested_feedback.is_none()
@@ -284,7 +284,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 					.update_record(update_level_request_storable)
 					.await
 					.map(|updated_level_request| {
-						return GDLevelRequest::from(updated_level_request);
+						return LevelRequest::from(updated_level_request);
 					})
 					.map_err(|level_update_error| {
 						error!(
@@ -297,10 +297,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		}
 	}
 
-	async fn delete_level_request(
-		&self,
-		level_id: u64
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	async fn delete_level_request(&self, level_id: u64) -> Result<LevelRequest, LevelRequestError> {
 		match self.get_level_request(level_id, None).await {
 			Ok(existing_level_request) => {
 				if let Err(delete_level_request_error) = self

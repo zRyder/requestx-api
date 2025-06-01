@@ -9,7 +9,9 @@ pub enum GeometryDashDashrsError {
 	HttpError(reqwest::Error),
 	DashrsError(String),
 	LevelNotFoundError(u64),
-	LevelAlreadyRated(u64)
+	UserNotFoundError(String),
+	LevelAlreadyRated(u64),
+	NoProfileCommentsFound
 }
 
 impl Display for GeometryDashDashrsError {
@@ -33,8 +35,14 @@ impl Display for GeometryDashDashrsError {
 			GeometryDashDashrsError::LevelNotFoundError(level_id) => {
 				write!(f, "Unable to find level with level ID: {}", level_id)
 			}
+			GeometryDashDashrsError::UserNotFoundError(gd_username) => {
+				write!(f, "Unable to find user with username: {}", gd_username)
+			}
 			GeometryDashDashrsError::LevelAlreadyRated(level_id) => {
 				write!(f, "Level with ID: {} has already been rated", level_id)
+			}
+			GeometryDashDashrsError::NoProfileCommentsFound => {
+				write!(f, "User has no profile comments")
 			}
 		}
 	}
@@ -48,6 +56,7 @@ impl PartialEq for GeometryDashDashrsError {
 			(Self::HttpError(_), Self::HttpError(_)) => true,
 			(Self::DashrsError(s1), Self::DashrsError(s2)) => s1 == s2,
 			(Self::LevelNotFoundError(n1), Self::LevelNotFoundError(n2)) => n1 == n2,
+			(Self::UserNotFoundError(n1), Self::UserNotFoundError(n2)) => n1 == n2,
 			_ => false
 		}
 	}

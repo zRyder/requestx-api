@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod gd_account_link;
 pub mod level_request;
 pub mod moderator;
 pub mod review;

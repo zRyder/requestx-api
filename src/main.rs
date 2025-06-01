@@ -54,6 +54,7 @@ async fn launch() -> _ {
 		routes![
 			auth_controller::generate_jwt,
 			user_controller::get_user,
+			user_controller::link_gd_account,
 			level_request_controller::get_level_request,
 			level_request_controller::request_level,
 			level_request_controller::update_level_request,

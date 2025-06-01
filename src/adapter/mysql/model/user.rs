@@ -8,8 +8,10 @@ pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
 	pub discord_id: u64,
 	pub timestamp: Option<DateTimeUtc>,
+	#[sea_orm(unique)]
 	pub gd_player_id: Option<u64>,
-	pub gd_account_hash: Option<String>
+	#[sea_orm(unique)]
+	pub is_gd_account_linked: i8
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

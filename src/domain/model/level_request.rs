@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-pub struct GDLevelRequest {
+pub struct LevelRequest {
 	pub gd_level: Option<GDLevel>,
 	pub level_id: u64,
 	pub discord_user_id: u64,
@@ -20,7 +20,7 @@ pub struct GDLevelRequest {
 	pub timestamp: chrono::DateTime<Utc>
 }
 
-impl Into<level_request::ActiveModel> for GDLevelRequest {
+impl Into<level_request::ActiveModel> for LevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		if let Some(gd_level) = self.gd_level {
 			level_request::ActiveModel {
@@ -75,7 +75,7 @@ pub struct GDLevel {
 	pub level_length: LevelLength
 }
 
-impl From<Model> for GDLevelRequest {
+impl From<Model> for LevelRequest {
 	fn from(value: Model) -> Self {
 		Self {
 			gd_level: if let (Some(name), Some(author), Some(player_id), Some(level_length)) = (
