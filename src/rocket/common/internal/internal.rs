@@ -12,8 +12,7 @@ pub fn mount_internal_controllers(rocket: Rocket<Build>) -> Rocket<Build> {
 			internal_level_request_controller::update_level_request_message_id,
 			internal_level_review_controller::update_level_review_message_id,
 			internal_moderator_controller::send_level,
-			internal_request_manager_controller::update_request_cooldown,
-			internal_request_manager_controller::get_request_config
+			internal_request_manager_controller::update_request_cooldown
 		]
 	)
 }
