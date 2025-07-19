@@ -3,7 +3,6 @@ use sea_orm::{DbErr, DeleteResult, InsertResult};
 use crate::adapter::mysql::model::moderator;
 
 #[cfg_attr(test, mockall::automock)]
-#[allow(dead_code)]
 pub trait ModeratorRepository {
 	async fn create_record(
 		&self,

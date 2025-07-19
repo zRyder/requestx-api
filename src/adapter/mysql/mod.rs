@@ -1,6 +1,6 @@
-pub mod gd_account_link_repository;
 pub mod level_request_repository;
-pub mod model;
+pub(crate) mod model;
+
 pub mod moderator_repository;
 pub mod my_sql_moderator_repository;
 pub mod mysql_level_request_repository;
