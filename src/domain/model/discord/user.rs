@@ -13,8 +13,8 @@ use crate::{
 pub struct DiscordUser {
 	pub discord_user_id: u64,
 	pub gd_player_id: Option<u64>,
-	pub last_request_time: Option<DateTime<Utc>>,
-	pub is_gd_account_linked: bool
+	pub gd_account_id: Option<u64>,
+	pub last_request_time: Option<DateTime<Utc>>
 }
 
 impl Into<user::ActiveModel> for DiscordUser {
@@ -27,7 +27,7 @@ impl Into<user::ActiveModel> for DiscordUser {
 				None
 			}),
 			gd_player_id: ActiveValue::Set(self.gd_player_id),
-			is_gd_account_linked: ActiveValue::Set(i8::from(self.is_gd_account_linked))
+			gd_account_id: ActiveValue::Set(self.gd_account_id)
 		}
 	}
 }
@@ -37,12 +37,8 @@ impl From<user::Model> for DiscordUser {
 		Self {
 			discord_user_id: value.discord_id,
 			gd_player_id: value.gd_player_id,
-			last_request_time: value.timestamp,
-			is_gd_account_linked: if value.is_gd_account_linked != 0 {
-				true
-			} else {
-				false
-			}
+			gd_account_id: value.gd_account_id,
+			last_request_time: value.timestamp
 		}
 	}
 }
@@ -52,8 +48,8 @@ impl DiscordUser {
 		Self {
 			discord_user_id,
 			gd_player_id: None,
-			last_request_time: None,
-			is_gd_account_linked: false
+			gd_account_id: None,
+			last_request_time: None
 		}
 	}
 }
@@ -141,7 +137,7 @@ impl GDAccountLink {
 	pub fn verify_account_link(
 		&self,
 		gd_account_challenge: &str
-	) -> Result<bool, Box<dyn std::error::Error>> {
+	) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
 		if self.expiry.lt(&Utc::now()) {
 			warn!("GD account link has expired");
 			return Err(Box::new(DiscordError::GDAccountLinkExpired));

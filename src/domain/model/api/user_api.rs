@@ -71,6 +71,7 @@ pub enum DiscordUserApiResponseError {
 	UserDoesNotExist,
 	GDAccountDoesNotExist(String),
 	GDAccountLinkExpired,
+	InvalidGDAccountLinkToken,
 	DiscordAccountAlreadyLinked,
 	DiscordUserError
 }
@@ -96,6 +97,9 @@ impl<'r> Responder<'r, 'r> for DiscordUserApiResponseError {
 			DiscordUserApiResponseError::DiscordAccountAlreadyLinked => {
 				response.status(Status::Conflict);
 			}
+			DiscordUserApiResponseError::InvalidGDAccountLinkToken => {
+				response.status(Status::Unauthorized);
+			}
 			DiscordUserApiResponseError::DiscordUserError => {
 				response.status(Status::InternalServerError);
 			}
@@ -120,6 +124,9 @@ impl Display for DiscordUserApiResponseError {
 			}
 			DiscordUserApiResponseError::GDAccountLinkExpired => {
 				write!(f, "GD account link has expired")
+			}
+			DiscordUserApiResponseError::InvalidGDAccountLinkToken => {
+				write!(f, "GD account link token was invalid")
 			}
 			DiscordUserApiResponseError::DiscordAccountAlreadyLinked => {
 				write!(f, "Discord Account link is already linked to a GD account")

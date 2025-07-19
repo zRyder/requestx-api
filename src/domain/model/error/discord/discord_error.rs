@@ -13,6 +13,7 @@ pub enum DiscordError {
 	GDAccountDoesNotExist(String),
 	GDAccountLinkExpired,
 	DiscordAccountAlreadyLinked,
+	InvalidGDAccountLinkToken,
 	DatabaseError(DbErr),
 	DiscordError
 }
@@ -31,6 +32,9 @@ impl Display for DiscordError {
 			}
 			DiscordError::DiscordAccountAlreadyLinked => {
 				write!(f, "Discord account is already linked to a GD account")
+			}
+			DiscordError::InvalidGDAccountLinkToken => {
+				write!(f, "Invalid GD account link token provided")
 			}
 			DiscordError::DatabaseError(db_err) => {
 				write!(f, "Database error {}", db_err)
@@ -54,6 +58,9 @@ impl Into<DiscordUserApiResponseError> for DiscordError {
 			DiscordError::GDAccountLinkExpired => DiscordUserApiResponseError::GDAccountLinkExpired,
 			DiscordError::DiscordAccountAlreadyLinked => {
 				DiscordUserApiResponseError::DiscordAccountAlreadyLinked
+			}
+			DiscordError::InvalidGDAccountLinkToken => {
+				DiscordUserApiResponseError::InvalidGDAccountLinkToken
 			}
 			DiscordError::DatabaseError(_) => DiscordUserApiResponseError::DiscordUserError,
 			DiscordError::DiscordError => DiscordUserApiResponseError::DiscordUserError

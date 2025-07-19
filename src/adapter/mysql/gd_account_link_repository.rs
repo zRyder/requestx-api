@@ -1,6 +1,6 @@
 use sea_orm::{
-	sea_query::OnConflict, DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait,
-	InsertResult
+	sea_query::OnConflict, ColumnTrait, DatabaseConnection, DbConn, DbErr, EntityTrait,
+	InsertResult, QueryFilter
 };
 
 use crate::adapter::mysql::model::{
@@ -27,6 +27,7 @@ impl<'a> GDAccountLinkRepository<'a> {
 						gd_account_link::Column::GdAccountChallenge,
 						gd_account_link::Column::GdAccountHash,
 						gd_account_link::Column::GdAccountPublicKey,
+						gd_account_link::Column::IsGdAccountLinked,
 						gd_account_link::Column::Expiry
 					])
 					.to_owned()
@@ -37,16 +38,21 @@ impl<'a> GDAccountLinkRepository<'a> {
 
 	pub async fn get_record(
 		&self,
-		discord_id: u64,
-		gd_player_id: u64,
-		is_gd_account_linked: bool
+		discord_id: u64
 	) -> Result<Option<gd_account_link::Model>, DbErr> {
-		GdAccountLink::find_by_id((discord_id, gd_player_id, is_gd_account_linked.into()))
+		GdAccountLink::find_by_id(discord_id)
 			.one(self.db_conn)
 			.await
 	}
 
-	pub async fn delete_record(&self, record: ActiveModel) -> Result<DeleteResult, DbErr> {
-		GdAccountLink::delete(record).exec(self.db_conn).await
+	pub async fn get_verified_record_with_gd_player_id(
+		&self,
+		gd_player_id: u64
+	) -> Result<Option<gd_account_link::Model>, DbErr> {
+		GdAccountLink::find()
+			.filter(gd_account_link::Column::GdPlayerId.eq(gd_player_id))
+			.filter(gd_account_link::Column::IsGdAccountLinked.eq(true))
+			.one(self.db_conn)
+			.await
 	}
 }

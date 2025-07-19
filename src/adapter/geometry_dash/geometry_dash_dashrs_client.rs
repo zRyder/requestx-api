@@ -83,7 +83,10 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 		}
 	}
 
-	async fn query_gd_player_id(&self, gd_username: &str) -> Result<u64, GeometryDashDashrsError> {
+	async fn query_gd_player_and_account_id(
+		&self,
+		gd_username: &str
+	) -> Result<(u64, u64), GeometryDashDashrsError> {
 		let search_gd_player_request = UserSearchRequest::new(gd_username);
 
 		info!(
@@ -107,7 +110,7 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 							"Successfully called Geometry Dash servers for user {}",
 							gd_username
 						);
-						Ok(searched_user.user_id)
+						Ok((searched_user.user_id, searched_user.account_id))
 					}
 					Err(dashrs_error) => {
 						if matches!(dashrs_error, ResponseError::NotFound) {
@@ -186,13 +189,13 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 
 	async fn get_gd_public_account_token(
 		&self,
-		player_id: u64
+		account_id: u64
 	) -> Result<String, GeometryDashDashrsError> {
-		let get_gd_account_comments_request = ProfileCommentsRequest::new(player_id);
+		let get_gd_account_comments_request = ProfileCommentsRequest::new(account_id);
 
 		info!(
 			"Calling Geometry Dash servers for user account comments {}",
-			player_id
+			account_id
 		);
 		let raw_response_result = self
 			.client
@@ -220,7 +223,7 @@ impl GeometryDashClient for GeometryDashDashrsClient {
 								}
 							}
 						} else {
-							warn!("No account comments found for user: {}", player_id);
+							warn!("No account comments found for user: {}", account_id);
 							Err(NoProfileCommentsFound)
 						}
 					}
