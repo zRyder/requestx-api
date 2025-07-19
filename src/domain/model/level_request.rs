@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-pub struct GDLevelRequest {
+pub struct LevelRequest {
 	pub gd_level: Option<GDLevel>,
 	pub level_id: u64,
 	pub discord_user_id: u64,
@@ -20,7 +20,7 @@ pub struct GDLevelRequest {
 	pub timestamp: chrono::DateTime<Utc>
 }
 
-impl Into<level_request::ActiveModel> for GDLevelRequest {
+impl Into<level_request::ActiveModel> for LevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		if let Some(gd_level) = self.gd_level {
 			level_request::ActiveModel {
@@ -33,6 +33,7 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 						None
 					}
 				),
+				player_id: ActiveValue::Set(Some(gd_level.creator.player_id)),
 				name: ActiveValue::Set(Some(gd_level.name)),
 				level_length: ActiveValue::Set(Some(gd_level.level_length.into())),
 				author: ActiveValue::Set(Some(gd_level.creator.name)),
@@ -53,6 +54,7 @@ impl Into<level_request::ActiveModel> for GDLevelRequest {
 						None
 					}
 				),
+				player_id: ActiveValue::Set(None),
 				name: ActiveValue::Set(None),
 				level_length: ActiveValue::Set(None),
 				author: ActiveValue::Set(None),
@@ -73,15 +75,21 @@ pub struct GDLevel {
 	pub level_length: LevelLength
 }
 
-impl From<Model> for GDLevelRequest {
+impl From<Model> for LevelRequest {
 	fn from(value: Model) -> Self {
 		Self {
-			gd_level: if let (Some(name), Some(author), Some(level_length)) =
-				(value.name, value.author, value.level_length)
-			{
+			gd_level: if let (Some(name), Some(author), Some(player_id), Some(level_length)) = (
+				value.name,
+				value.author,
+				value.player_id,
+				value.level_length
+			) {
 				Some(GDLevel {
 					name,
-					creator: LevelCreator { name: author },
+					creator: LevelCreator {
+						name: author,
+						player_id
+					},
 					level_length: level_length.into()
 				})
 			} else {
@@ -112,7 +120,8 @@ impl From<&ListedLevel<'_>> for GDLevel {
 		GDLevel {
 			name: listed_level.name.to_string(),
 			creator: LevelCreator {
-				name: listed_level.creator.as_ref().unwrap().name.to_string()
+				name: listed_level.creator.as_ref().unwrap().name.to_string(),
+				player_id: listed_level.creator.as_ref().unwrap().user_id
 			},
 			level_length: LevelLength::from(listed_level.length)
 		}
@@ -121,7 +130,8 @@ impl From<&ListedLevel<'_>> for GDLevel {
 
 #[derive(Clone, Debug)]
 pub struct LevelCreator {
-	pub name: String
+	pub name: String,
+	pub player_id: u64
 }
 
 #[derive(Debug, Clone, Copy)]

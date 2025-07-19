@@ -17,9 +17,9 @@ use serde_derive::Deserialize;
 
 use crate::{
 	domain::model::{
-		gd_level,
-		gd_level::GDLevelRequest,
 		internal::api::moderator_api::{SuggestedRating, SuggestedScore},
+		level_request,
+		level_request::LevelRequest,
 		moderator::Moderator
 	},
 	rocket::common::constants::TIMESTAMP_HEADER_NAME
@@ -40,8 +40,8 @@ pub struct GetLevelRequestApiResponse {
 	pub timestamp: DateTime<Utc>
 }
 
-impl From<GDLevelRequest> for GetLevelRequestApiResponse {
-	fn from(value: GDLevelRequest) -> Self {
+impl From<LevelRequest> for GetLevelRequestApiResponse {
+	fn from(value: LevelRequest) -> Self {
 		if let Some(gd_level) = value.gd_level {
 			Self {
 				level_id: value.level_id,
@@ -99,8 +99,8 @@ pub struct PostSendLevelRequestApiResponse {
 	pub moderator_data: ModeratorDataApiResponse
 }
 
-impl From<(GDLevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
-	fn from(value: (GDLevelRequest, Moderator)) -> Self {
+impl From<(LevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
+	fn from(value: (LevelRequest, Moderator)) -> Self {
 		if let Some(gd_level) = value.0.gd_level {
 			Self {
 				level_request: GetLevelRequestApiResponse {
@@ -203,8 +203,8 @@ pub struct PatchLevelRequestApiRequest<'a> {
 	pub notify: Option<bool>
 }
 
-impl From<GDLevelRequest> for PostLevelRequestApiResponse {
-	fn from(value: GDLevelRequest) -> Self {
+impl From<LevelRequest> for PostLevelRequestApiResponse {
+	fn from(value: LevelRequest) -> Self {
 		if let Some(gd_level) = value.gd_level {
 			Self {
 				level_id: value.level_id,
@@ -356,19 +356,19 @@ pub enum RequestRating {
 	Ten
 }
 
-impl Into<gd_level::RequestRating> for RequestRating {
-	fn into(self) -> gd_level::RequestRating {
+impl Into<level_request::RequestRating> for RequestRating {
+	fn into(self) -> level_request::RequestRating {
 		match self {
-			RequestRating::One => gd_level::RequestRating::One,
-			RequestRating::Two => gd_level::RequestRating::Two,
-			RequestRating::Three => gd_level::RequestRating::Three,
-			RequestRating::Four => gd_level::RequestRating::Four,
-			RequestRating::Five => gd_level::RequestRating::Five,
-			RequestRating::Six => gd_level::RequestRating::Six,
-			RequestRating::Seven => gd_level::RequestRating::Seven,
-			RequestRating::Eight => gd_level::RequestRating::Eight,
-			RequestRating::Nine => gd_level::RequestRating::Nine,
-			RequestRating::Ten => gd_level::RequestRating::Ten
+			RequestRating::One => level_request::RequestRating::One,
+			RequestRating::Two => level_request::RequestRating::Two,
+			RequestRating::Three => level_request::RequestRating::Three,
+			RequestRating::Four => level_request::RequestRating::Four,
+			RequestRating::Five => level_request::RequestRating::Five,
+			RequestRating::Six => level_request::RequestRating::Six,
+			RequestRating::Seven => level_request::RequestRating::Seven,
+			RequestRating::Eight => level_request::RequestRating::Eight,
+			RequestRating::Nine => level_request::RequestRating::Nine,
+			RequestRating::Ten => level_request::RequestRating::Ten
 		}
 	}
 }
@@ -383,15 +383,15 @@ pub enum LevelLength {
 	Platformer
 }
 
-impl Into<gd_level::LevelLength> for LevelLength {
-	fn into(self) -> gd_level::LevelLength {
+impl Into<level_request::LevelLength> for LevelLength {
+	fn into(self) -> level_request::LevelLength {
 		match self {
-			LevelLength::Tiny => gd_level::LevelLength::Tiny,
-			LevelLength::Short => gd_level::LevelLength::Short,
-			LevelLength::Medium => gd_level::LevelLength::Medium,
-			LevelLength::Long => gd_level::LevelLength::Long,
-			LevelLength::ExtraLong => gd_level::LevelLength::ExtraLong,
-			LevelLength::Platformer => gd_level::LevelLength::Platformer
+			LevelLength::Tiny => level_request::LevelLength::Tiny,
+			LevelLength::Short => level_request::LevelLength::Short,
+			LevelLength::Medium => level_request::LevelLength::Medium,
+			LevelLength::Long => level_request::LevelLength::Long,
+			LevelLength::ExtraLong => level_request::LevelLength::ExtraLong,
+			LevelLength::Platformer => level_request::LevelLength::Platformer
 		}
 	}
 }

@@ -1,6 +1,6 @@
 use crate::domain::model::{
 	error::moderator_error::ModeratorError,
-	gd_level::GDLevelRequest,
+	level_request::LevelRequest,
 	moderator::{Moderator, SuggestedRating, SuggestedScore}
 };
 
@@ -10,5 +10,5 @@ pub trait ModerateService {
 		level_id: u64,
 		suggested_rating: SuggestedRating,
 		suggested_score: SuggestedScore
-	) -> Result<(GDLevelRequest, Moderator), ModeratorError>;
+	) -> Result<(LevelRequest, Moderator), ModeratorError>;
 }
