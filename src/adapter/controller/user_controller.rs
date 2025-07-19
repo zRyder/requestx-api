@@ -64,3 +64,22 @@ pub async fn link_gd_account<'a>(
 		Err(init_gd_account_error) => Err(init_gd_account_error.into())
 	}
 }
+
+#[get("/user/link/<discord_user_id>")]
+pub async fn verify_gd_account_link<'a>(
+	db_conn: &State<DatabaseConnection>,
+	discord_user_id: u64,
+	_auth: Auth
+) -> Result<(), DiscordUserApiResponseError> {
+	let user_repository = MySqlUserRepository::new(db_conn);
+	let gd_account_link_repository = GDAccountLinkRepository::new(db_conn);
+	let gd_client = GeometryDashDashrsClient::new();
+
+	let user_service =
+		DiscordUserService::new(&user_repository, &gd_account_link_repository, &gd_client);
+
+	match user_service.verify_gd_account_link(discord_user_id).await {
+		Ok(_) => Ok(()),
+		Err(verify_gd_account_error) => Err(verify_gd_account_error.into())
+	}
+}

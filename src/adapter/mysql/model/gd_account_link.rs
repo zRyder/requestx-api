@@ -5,11 +5,9 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "gd_account_link")]
 pub struct Model {
-	#[sea_orm(primary_key, auto_increment = false, unique)]
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub discord_id: u64,
-	#[sea_orm(primary_key, auto_increment = false, unique)]
 	pub gd_player_id: u64,
-	#[sea_orm(primary_key, auto_increment = false, unique)]
 	pub is_gd_account_linked: i8,
 	#[sea_orm(unique)]
 	pub gd_account_challenge: String,
@@ -26,26 +24,14 @@ pub enum Relation {
 		belongs_to = "super::user::Entity",
 		from = "Column::DiscordId",
 		to = "super::user::Column::DiscordId",
-		on_update = "NoAction",
+		on_update = "Cascade",
 		on_delete = "Cascade"
 	)]
-	User3,
-	#[sea_orm(
-		belongs_to = "super::user::Entity",
-		from = "Column::GdPlayerId",
-		to = "super::user::Column::GdPlayerId",
-		on_update = "NoAction",
-		on_delete = "Cascade"
-	)]
-	User2,
-	#[sea_orm(
-		belongs_to = "super::user::Entity",
-		from = "Column::IsGdAccountLinked",
-		to = "super::user::Column::IsGdAccountLinked",
-		on_update = "NoAction",
-		on_delete = "Cascade"
-	)]
-	User1
+	User
+}
+
+impl Related<super::user::Entity> for Entity {
+	fn to() -> RelationDef { Relation::User.def() }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

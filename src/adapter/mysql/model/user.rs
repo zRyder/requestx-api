@@ -11,13 +11,19 @@ pub struct Model {
 	#[sea_orm(unique)]
 	pub gd_player_id: Option<u64>,
 	#[sea_orm(unique)]
-	pub is_gd_account_linked: i8
+	pub gd_account_id: Option<u64>
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+	#[sea_orm(has_one = "super::gd_account_link::Entity")]
+	GdAccountLink,
 	#[sea_orm(has_many = "super::level_request::Entity")]
 	LevelRequest
+}
+
+impl Related<super::gd_account_link::Entity> for Entity {
+	fn to() -> RelationDef { Relation::GdAccountLink.def() }
 }
 
 impl Related<super::level_request::Entity> for Entity {

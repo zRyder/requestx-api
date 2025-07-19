@@ -11,4 +11,6 @@ pub trait UserService {
 		discord_user_id: u64,
 		gd_username: String
 	) -> Result<DiscordGDAccountLink, DiscordError>;
+
+	async fn verify_gd_account_link(&self, discord_user_id: u64) -> Result<(), DiscordError>;
 }
