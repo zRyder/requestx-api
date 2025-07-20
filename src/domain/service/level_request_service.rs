@@ -69,7 +69,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		}
 	}
 
-	async fn make_level_request(
+	async fn request_level(
 		&self,
 		level_id: u64,
 		youtube_video_link: String,

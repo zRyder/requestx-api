@@ -10,7 +10,7 @@ pub trait RequestService {
 		has_requested_feedback: Option<bool>
 	) -> Result<LevelRequest, LevelRequestError>;
 
-	async fn make_level_request(
+	async fn request_level(
 		&self,
 		level_id: u64,
 		youtube_video_link: String,
