@@ -49,22 +49,32 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 		discord_user_id: u64,
 		gd_username: String
 	) -> Result<DiscordGDAccountLink, DiscordError> {
-		let discord_user = self
-			.user_repository
-			.get_record(discord_user_id)
-			.await
-			.map_err(|query_discord_user_error| {
+		let discord_user = match self.user_repository.get_record(discord_user_id).await {
+			Ok(Some(user_record)) => DiscordUser::from(user_record),
+			Ok(None) => {
+				warn!("Discord user with ID {} does not exist", discord_user_id);
+				let new_discord_user = DiscordUser::new(discord_user_id);
+				if let Err(create_user_record_error) = self
+					.user_repository
+					.create_record(new_discord_user.clone().into())
+					.await
+				{
+					error!(
+						"Error creating Discord user record: {}",
+						create_user_record_error
+					);
+					return Err(DiscordError::DatabaseError(create_user_record_error));
+				};
+				new_discord_user
+			}
+			Err(query_discord_user_error) => {
 				error!(
 					"Error getting user record from database: {}",
 					query_discord_user_error
 				);
-				DiscordError::DatabaseError(query_discord_user_error)
-			})?
-			.map(|discord_user_model| DiscordUser::from(discord_user_model))
-			.unwrap_or_else(|| {
-				warn!("Discord user with ID {} does not exist", discord_user_id);
-				DiscordUser::new(discord_user_id)
-			});
+				return Err(DiscordError::DatabaseError(query_discord_user_error));
+			}
+		};
 
 		if discord_user.gd_player_id.is_some() {
 			warn!(
@@ -94,36 +104,36 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 					DiscordError::DiscordError
 				}
 			})?
-			.1;
+			.0;
 
-		if let Some(_) = self
-			.gd_account_link_repository
-			.get_record(discord_user.discord_user_id)
-			.await
-			.map_err(|query_gd_account_link_error| {
-				error!(
-					"Error gquerying GD account link from database: {}",
-					query_gd_account_link_error
-				);
-				DiscordError::DatabaseError(query_gd_account_link_error)
-			})? {
-			error!("GD Account has already been linked to another Discord user");
-			return Err(DiscordError::DiscordAccountAlreadyLinked);
-		};
+		// if let Some(_existing_gd_account_link) = self
+		// 	.gd_account_link_repository
+		// 	.get_record(discord_user.discord_user_id)
+		// 	.await
+		// 	.map_err(|query_gd_account_link_error| {
+		// 		error!(
+		// 			"Error querying GD account link from database: {}",
+		// 			query_gd_account_link_error
+		// 		);
+		// 		DiscordError::DatabaseError(query_gd_account_link_error)
+		// 	})? {
+		// 	error!("GD Account has already been linked to another Discord user");
+		// 	return Err(DiscordError::DiscordAccountAlreadyLinked);
+		// };
 
 		let mut gd_account_link = GDAccountLink::new(discord_user.discord_user_id, gd_player_id);
 		gd_account_link.generate_new_account_link();
 		let gd_account_challenge = gd_account_link.gd_account_challenge.clone();
 
-		let updated_user = self
-			.user_repository
-			.update_record(discord_user.into())
-			.await
-			.map_err(|update_user_record_error| {
-				error!("Error updating user record: {}", update_user_record_error);
-				DiscordError::DatabaseError(update_user_record_error)
-			})
-			.map(|updated_user_record| DiscordUser::from(updated_user_record))?;
+		// let updated_user = self
+		// 	.user_repository
+		// 	.update_record(discord_user.into())
+		// 	.await
+		// 	.map_err(|update_user_record_error| {
+		// 		error!("Error updating user record: {}", update_user_record_error);
+		// 		DiscordError::DatabaseError(update_user_record_error)
+		// 	})
+		// 	.map(|updated_user_record| DiscordUser::from(updated_user_record))?;
 
 		self.gd_account_link_repository
 			.create_or_update_record(gd_account_link.into())
@@ -137,7 +147,7 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 			})?;
 
 		Ok(DiscordGDAccountLink::new(
-			updated_user.discord_user_id,
+			discord_user.discord_user_id,
 			gd_player_id,
 			gd_username,
 			gd_account_challenge
@@ -156,9 +166,11 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 				);
 				DiscordError::DatabaseError(query_discord_user_error)
 			})?
-			.ok_or_else(|| {
+			.map(DiscordUser::from)
+			.map(Ok)
+			.unwrap_or_else(|| {
 				error!("Discord user with ID {} does not exist", discord_user_id);
-				DiscordError::UserDoesNotExist
+				Err(DiscordError::UserDoesNotExist)
 			})?;
 
 		if discord_user.gd_player_id.is_some() {
@@ -168,7 +180,7 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 
 		let fetched_gd_account_link = self
 			.gd_account_link_repository
-			.get_record(discord_user.discord_id)
+			.get_record(discord_user.discord_user_id)
 			.await
 			.map_err(|query_gd_account_link_error| {
 				error!(
@@ -250,24 +262,29 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 		updated_link.is_gd_account_linked = true;
 		discord_user.gd_player_id = Some(updated_link.gd_player_id);
 
-		self.gd_account_link_repository
+		if let Err(update_gd_account_link_record_error) = self
+			.gd_account_link_repository
 			.create_or_update_record(updated_link.into())
 			.await
-			.map_err(|update_gd_account_link_record_error| {
-				error!(
-					"Failed to update GD account link record: {}",
-					update_gd_account_link_record_error
-				);
-				DiscordError::DatabaseError(update_gd_account_link_record_error)
-			})?;
+		{
+			error!(
+				"Failed to update GD account link record: {}",
+				update_gd_account_link_record_error
+			);
+			return Err(DiscordError::DatabaseError(
+				update_gd_account_link_record_error
+			));
+		};
 
-		self.user_repository
+		println!("{:?}", discord_user);
+		if let Err(update_user_record_error) = self
+			.user_repository
 			.update_record(discord_user.into())
 			.await
-			.map_err(|update_user_record_error| {
-				error!("Failed to update user record: {}", update_user_record_error);
-				DiscordError::DatabaseError(update_user_record_error)
-			})?;
+		{
+			error!("Failed to update user record: {}", update_user_record_error);
+			return Err(DiscordError::DatabaseError(update_user_record_error));
+		};
 
 		Ok(())
 	}
