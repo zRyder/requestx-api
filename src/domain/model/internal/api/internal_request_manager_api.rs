@@ -13,7 +13,8 @@ use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
 pub struct InternalGetRequestConfigApiResponse {
 	pub duration_in_minutes: u64,
 	pub enable_requests: bool,
-	pub enable_gd_requests: bool
+	pub enable_gd_requests: bool,
+	pub allow_non_user_created_levels: bool
 }
 
 impl<'r> Responder<'r, 'r> for InternalGetRequestConfigApiResponse {
@@ -32,7 +33,8 @@ pub struct InternalUpdateRequestConfigApiRequest {
 	#[serde(rename = "duration")]
 	pub duration_in_minutes: Option<u64>,
 	pub enable_requests: Option<bool>,
-	pub enable_gd_requests: Option<bool>
+	pub enable_gd_requests: Option<bool>,
+	pub allow_non_user_created_levels: Option<bool>
 }
 
 #[derive(Serialize)]

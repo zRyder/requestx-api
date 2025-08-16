@@ -22,7 +22,10 @@ pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiRespo
 			.get_request_cooldown()
 			.await
 			.num_minutes()
-			.unsigned_abs()
+			.unsigned_abs(),
+		allow_non_user_created_levels: request_manager_service
+			.get_allow_non_user_created_levels()
+			.await
 	};
 
 	Ok(response)
@@ -54,6 +57,14 @@ pub async fn update_request_cooldown<'a>(
 	if let Some(enable_gd_requests) = update_request_config_body.enable_gd_requests {
 		request_manager_service
 			.set_enable_gd_request(enable_gd_requests)
+			.await;
+	}
+
+	if let Some(allow_non_user_created_levels) =
+		update_request_config_body.allow_non_user_created_levels
+	{
+		request_manager_service
+			.set_allow_non_user_created_levels(allow_non_user_created_levels)
 			.await;
 	}
 	request_manager_service.update_client_config_file().await;

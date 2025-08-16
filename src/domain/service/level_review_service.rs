@@ -1,24 +1,29 @@
-use sea_orm::ActiveValue::Set;
-
 use crate::{
-	adapter::mysql::{model::review::ActiveModel, review_repository::ReviewRepository},
+	adapter::mysql::review_repository::ReviewRepository,
 	domain::{
-		model::{
-			error::{level_request_error::LevelRequestError, level_review_error::LevelReviewError},
-			review::LevelReview
-		},
-		service::{request_service::RequestService, review_service::ReviewService}
+		model::{error::level_review_error::LevelReviewError, review::LevelReview},
+		service::level_request_service::LevelRequestService
 	},
 	rocket::common::config::common_config::APP_CONFIG
 };
 
-pub struct LevelReviewService<'a, R: ReviewRepository, L: RequestService> {
-	review_repository: &'a R,
-	level_request_service: &'a L
+pub struct LevelReviewService<'a> {
+	review_repository: &'a ReviewRepository<'a>,
+	level_request_service: &'a LevelRequestService<'a>
 }
 
-impl<'a, R: ReviewRepository, L: RequestService> ReviewService for LevelReviewService<'a, R, L> {
-	async fn get_level_review(
+impl<'a> LevelReviewService<'a> {
+	pub fn new(
+		review_repository: &'a ReviewRepository,
+		level_request_service: &'a LevelRequestService
+	) -> Self {
+		LevelReviewService {
+			review_repository,
+			level_request_service
+		}
+	}
+
+	pub async fn get_level_review(
 		&self,
 		level_id: u64,
 		discord_id: u64
@@ -46,7 +51,7 @@ impl<'a, R: ReviewRepository, L: RequestService> ReviewService for LevelReviewSe
 		}
 	}
 
-	async fn review_level(
+	pub async fn review_level(
 		&self,
 		level_id: u64,
 		reviewer_discord_id: u64,
@@ -68,125 +73,118 @@ impl<'a, R: ReviewRepository, L: RequestService> ReviewService for LevelReviewSe
 				.await
 		};
 
-		match level_request_result {
-			Ok(level_request) => {
-				let mut level_review = LevelReview {
-					reviewer_discord_id,
-					discord_message_id,
-					level_id,
-					review_contents,
-					is_update: false
-				};
-				let mut level_review_storable: ActiveModel = level_review.clone().into();
+		let level_request_to_review =
+			level_request_result
+				.map(Ok)
+				.unwrap_or_else(|get_level_request_error| {
+					error!(
+						"Level request does not exist or feedback was not requested {}",
+						get_level_request_error
+					);
+					Err(LevelReviewError::LevelRequestDoesNotExist)
+				})?;
 
-				match self
+		let mut level_review = LevelReview {
+			reviewer_discord_id,
+			discord_message_id,
+			level_id,
+			review_contents,
+			is_update: false
+		};
+
+		let existing_level_review = self
+			.review_repository
+			.get_record(level_id, reviewer_discord_id)
+			.await
+			.map_err(|query_level_review_error| {
+				error!(
+					"Error querying level review from database: {}",
+					query_level_review_error
+				);
+				LevelReviewError::DatabaseError(query_level_review_error)
+			})?
+			.map(LevelReview::from);
+
+		match existing_level_review {
+			Some(existing_level_review) => {
+				info!(
+					"Updating existing level review for level: {:?}",
+					level_request_to_review
+				);
+				level_review.discord_message_id = existing_level_review.discord_message_id;
+
+				if let Err(update_error) = self
 					.review_repository
-					.get_record(level_id, reviewer_discord_id)
+					.update_record(level_review.clone().into())
 					.await
 				{
-					Ok(Some(existing_level_review)) => {
-						info!(
-							"Updating existing level review for level: {:?}",
-							level_request
-						);
-						level_review.discord_message_id = existing_level_review.message_id;
-						level_review_storable.review_content =
-							Set(level_review.clone().review_contents);
-						level_review_storable.message_id =
-							Set(level_review.clone().discord_message_id);
-
-						if let Err(update_error) = self
-							.review_repository
-							.update_record(level_review_storable)
-							.await
-						{
-							error!(
-								"Error updating level review from database: {}",
-								update_error
-							);
-							Err(LevelReviewError::DatabaseError(update_error))
-						} else {
-							level_review.is_update = true;
-							Ok(level_review)
-						}
-					}
-					Ok(None) => {
-						if let Err(insertion_error) = self
-							.review_repository
-							.create_record(level_review_storable)
-							.await
-						{
-							error!(
-								"Error inserting level review from database: {}",
-								insertion_error
-							);
-							Err(LevelReviewError::DatabaseError(insertion_error))
-						} else {
-							Ok(level_review)
-						}
-					}
-					Err(error) => {
-						error!("Error reading level review from database: {}", error);
-						Err(LevelReviewError::DatabaseError(error))
-					}
+					error!(
+						"Error updating level review from database: {}",
+						update_error
+					);
+					return Err(LevelReviewError::DatabaseError(update_error));
+				} else {
+					level_review.is_update = true;
 				}
 			}
-			Err(LevelRequestError::LevelRequestDoesNotExist) => {
-				warn!(
-					"Reviewer {} attempted to write review for level ID \
-						{} which does not exist or feedback was not requested",
-					reviewer_discord_id, level_id
-				);
-				Err(LevelReviewError::LevelRequestDoesNotExist)
-			}
-			Err(LevelRequestError::DatabaseError(db_err)) => {
-				Err(LevelReviewError::DatabaseError(db_err))
-			}
-			Err(_) => {
-				unreachable!()
+			None => {
+				if let Err(create_level_review_error) = self
+					.review_repository
+					.create_record(level_review.clone().into())
+					.await
+				{
+					error!(
+						"Error inserting level review from database: {}",
+						create_level_review_error
+					);
+					return Err(LevelReviewError::DatabaseError(create_level_review_error));
+				}
 			}
 		}
+
+		Ok(level_review)
 	}
 
-	async fn update_level_request_thread_id(
+	pub async fn update_level_request_thread_id(
 		&self,
 		level_id: u64,
 		discord_id: u64,
 		discord_message_id: u64
 	) -> Result<(), LevelReviewError> {
-		match self.get_level_review(level_id, discord_id).await {
-			Ok(level_review) => {
-				let mut update_level_review_storable: ActiveModel = level_review.into();
-				update_level_review_storable.message_id = Set(discord_message_id);
-
-				if let Err(db_err) = self
-					.review_repository
-					.update_record(update_level_review_storable)
-					.await
-				{
-					error!(
-						"Error updating level review by {} with level ID: {}: {}",
-						discord_id, level_id, db_err
-					);
-					Err(LevelReviewError::DatabaseError(db_err))
-				} else {
-					Ok(())
-				}
-			}
-			Err(LevelReviewError::LevelRequestDoesNotExist) => {
-				warn!("Level request with ID: {} does not exist", level_id);
+		let mut existing_level_review = self
+			.review_repository
+			.get_record(level_id, discord_id)
+			.await
+			.map_err(|query_level_review_error| {
+				error!(
+					"Error querying level review from database: {}",
+					query_level_review_error
+				);
+				LevelReviewError::DatabaseError(query_level_review_error)
+			})?
+			.map(LevelReview::from)
+			.map(Ok)
+			.unwrap_or_else(|| {
+				error!(
+					"Level review for level request ID {} by {} does not exist",
+					level_id, discord_id
+				);
 				Err(LevelReviewError::LevelRequestDoesNotExist)
-			}
-			Err(error) => Err(error)
-		}
-	}
-}
+			})?;
 
-impl<'a, R: ReviewRepository, L: RequestService> LevelReviewService<'a, R, L> {
-	pub fn new(review_repository: &'a R, level_request_service: &'a L) -> Self {
-		LevelReviewService {
-			review_repository,
-			level_request_service
+		existing_level_review.discord_message_id = discord_message_id;
+		if let Err(update_level_review_error) = self
+			.review_repository
+			.update_record(existing_level_review.into())
+			.await
+		{
+			error!(
+				"Error updating level review by {} with level ID: {}: {}",
+				discord_id, level_id, update_level_review_error
+			);
+			return Err(LevelReviewError::DatabaseError(update_level_review_error));
 		}
+
+		Ok(())
 	}
 }

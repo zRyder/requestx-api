@@ -3,10 +3,9 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
 	adapter::{
-		geometry_dash::geometry_dash_dashrs_client::GeometryDashDashrsClient,
+		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			gd_account_link_repository::GDAccountLinkRepository,
-			mysql_user_repository::MySqlUserRepository
+			gd_account_link_repository::GDAccountLinkRepository, user_repository::UserRepository
 		}
 	},
 	domain::{
@@ -17,7 +16,7 @@ use crate::{
 				PostLinkGDAccountResponse
 			}
 		},
-		service::{discord_user_service::DiscordUserService, user_service::UserService}
+		service::discord_user_service::DiscordUserService
 	}
 };
 
@@ -27,9 +26,9 @@ pub async fn get_user(
 	discord_user_id: u64,
 	_auth: Auth
 ) -> Result<GetDiscordUserApiResponse, DiscordUserApiResponseError> {
-	let user_repository = MySqlUserRepository::new(db_conn);
+	let user_repository = UserRepository::new(db_conn);
 	let gd_account_link_repository = GDAccountLinkRepository::new(db_conn);
-	let gd_client = GeometryDashDashrsClient::new();
+	let gd_client = GeometryDashClient::new();
 
 	let user_service =
 		DiscordUserService::new(&user_repository, &gd_account_link_repository, &gd_client);
@@ -46,9 +45,9 @@ pub async fn link_gd_account<'a>(
 	link_gd_account_request_body: Json<PostLinkGDAccountRequest<'a>>,
 	_auth: Auth
 ) -> Result<PostLinkGDAccountResponse, DiscordUserApiResponseError> {
-	let user_repository = MySqlUserRepository::new(db_conn);
+	let user_repository = UserRepository::new(db_conn);
 	let gd_account_link_repository = GDAccountLinkRepository::new(db_conn);
-	let gd_client = GeometryDashDashrsClient::new();
+	let gd_client = GeometryDashClient::new();
 
 	let user_service =
 		DiscordUserService::new(&user_repository, &gd_account_link_repository, &gd_client);
@@ -71,9 +70,9 @@ pub async fn verify_gd_account_link<'a>(
 	discord_user_id: u64,
 	_auth: Auth
 ) -> Result<(), DiscordUserApiResponseError> {
-	let user_repository = MySqlUserRepository::new(db_conn);
+	let user_repository = UserRepository::new(db_conn);
 	let gd_account_link_repository = GDAccountLinkRepository::new(db_conn);
-	let gd_client = GeometryDashDashrsClient::new();
+	let gd_client = GeometryDashClient::new();
 
 	let user_service =
 		DiscordUserService::new(&user_repository, &gd_account_link_repository, &gd_client);

@@ -1,22 +1,34 @@
-use sea_orm::{DbErr, DeleteResult, InsertResult};
+use sea_orm::{DatabaseConnection, DbConn, DbErr, EntityTrait, InsertResult};
 
-use crate::adapter::mysql::model::review;
+use crate::adapter::mysql::model::{prelude::Review, review};
 
-#[cfg_attr(test, mockall::automock)]
-#[allow(dead_code)]
-pub trait ReviewRepository {
-	async fn create_record(
+pub struct ReviewRepository<'a> {
+	db_conn: &'a DatabaseConnection
+}
+
+// TODO: Figure out testing with lifetime param
+// #[cfg_attr(test, mockall::automock)]
+impl<'a> ReviewRepository<'a> {
+	pub fn new(db_conn: &'a DbConn) -> Self { ReviewRepository { db_conn } }
+
+	pub async fn create_record(
 		&self,
 		record: review::ActiveModel
-	) -> Result<InsertResult<review::ActiveModel>, DbErr>;
+	) -> Result<InsertResult<review::ActiveModel>, DbErr> {
+		Review::insert(record).exec(self.db_conn).await
+	}
 
-	async fn get_record(
+	pub async fn get_record(
 		&self,
 		level_id: u64,
 		discord_id: u64
-	) -> Result<Option<review::Model>, DbErr>;
+	) -> Result<Option<review::Model>, DbErr> {
+		Review::find_by_id((level_id, discord_id))
+			.one(self.db_conn)
+			.await
+	}
 
-	async fn update_record(&self, record: review::ActiveModel) -> Result<review::Model, DbErr>;
-
-	async fn delete_record(&self, record: review::ActiveModel) -> Result<DeleteResult, DbErr>;
+	pub async fn update_record(&self, record: review::ActiveModel) -> Result<review::Model, DbErr> {
+		Review::update(record).exec(self.db_conn).await
+	}
 }
