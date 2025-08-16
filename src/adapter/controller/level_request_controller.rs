@@ -58,7 +58,7 @@ pub async fn request_level<'a>(
 		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 	let request_rating = level_request_body.request_rating.into();
 	match level_request_service
-		.make_level_request(
+		.request_level(
 			level_request_body.level_id,
 			level_request_body.youtube_video_link.to_string(),
 			level_request_body.discord_id,
