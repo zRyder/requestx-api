@@ -2,18 +2,21 @@ use sea_orm::ActiveValue;
 
 use crate::{
 	adapter::mysql::{model::reviewer::ActiveModel, reviewer_repository::ReviewerRepository},
-	domain::{
-		model::{error::reviewer_error::ReviewerError, reviewer::Reviewer},
-		service::reviewer_service::ReviewerService
-	}
+	domain::model::{error::reviewer_error::ReviewerError, reviewer::Reviewer}
 };
 
-pub struct LevelReviewerService<'a, R: ReviewerRepository> {
-	reviewer_repository: &'a R
+pub struct LevelReviewerService<'a> {
+	reviewer_repository: &'a ReviewerRepository<'a>
 }
 
-impl<'a, R: ReviewerRepository> ReviewerService for LevelReviewerService<'a, R> {
-	async fn get_reviewer(
+impl<'a> LevelReviewerService<'a> {
+	pub fn new(reviewer_repository: &'a ReviewerRepository) -> Self {
+		LevelReviewerService {
+			reviewer_repository
+		}
+	}
+
+	pub async fn get_reviewer(
 		&self,
 		reviewer_discord_id: u64,
 		include_active: Option<bool>
@@ -38,7 +41,7 @@ impl<'a, R: ReviewerRepository> ReviewerService for LevelReviewerService<'a, R> 
 		}
 	}
 
-	async fn create_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
+	pub async fn create_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
 		match self.get_reviewer(reviewer_discord_id, None).await {
 			Ok(level_reviewer) => {
 				warn!(
@@ -83,7 +86,7 @@ impl<'a, R: ReviewerRepository> ReviewerService for LevelReviewerService<'a, R> 
 		Ok(())
 	}
 
-	async fn remove_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
+	pub async fn remove_reviewer(&self, reviewer_discord_id: u64) -> Result<(), ReviewerError> {
 		match self.get_reviewer(reviewer_discord_id, Some(true)).await {
 			Ok(existing_level_reviewer) => {
 				let mut remove_reviewer_request: ActiveModel = existing_level_reviewer.into();
@@ -105,13 +108,5 @@ impl<'a, R: ReviewerRepository> ReviewerService for LevelReviewerService<'a, R> 
 		}
 
 		Ok(())
-	}
-}
-
-impl<'a, R: ReviewerRepository> LevelReviewerService<'a, R> {
-	pub fn new(reviewer_repository: &'a R) -> Self {
-		LevelReviewerService {
-			reviewer_repository
-		}
 	}
 }

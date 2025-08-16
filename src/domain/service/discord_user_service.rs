@@ -5,26 +5,35 @@ use crate::{
 			gd_account_link_repository::GDAccountLinkRepository, user_repository::UserRepository
 		}
 	},
-	domain::{
-		model::{
-			discord::user::{DiscordGDAccountLink, DiscordUser, GDAccountLink},
-			error::{
-				discord::discord_error::DiscordError,
-				geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError
-			}
-		},
-		service::user_service::UserService
+	domain::model::{
+		discord::user::{DiscordGDAccountLink, DiscordUser, GDAccountLink},
+		error::{
+			discord::discord_error::DiscordError,
+			geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError
+		}
 	}
 };
 
-pub struct DiscordUserService<'a, U: UserRepository, G: GeometryDashClient> {
-	user_repository: &'a U,
+pub struct DiscordUserService<'a> {
+	user_repository: &'a UserRepository<'a>,
 	gd_account_link_repository: &'a GDAccountLinkRepository<'a>,
-	geometry_dash_client: &'a G
+	geometry_dash_client: &'a GeometryDashClient
 }
 
-impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserService<'a, U, G> {
-	async fn get_user(&self, discord_user_id: u64) -> Result<DiscordUser, DiscordError> {
+impl<'a> DiscordUserService<'a> {
+	pub fn new(
+		user_repository: &'a UserRepository<'a>,
+		gd_account_link_repository: &'a GDAccountLinkRepository,
+		geometry_dash_client: &'a GeometryDashClient
+	) -> Self {
+		DiscordUserService {
+			user_repository,
+			gd_account_link_repository,
+			geometry_dash_client
+		}
+	}
+
+	pub async fn get_user(&self, discord_user_id: u64) -> Result<DiscordUser, DiscordError> {
 		self.user_repository
 			.get_record(discord_user_id)
 			.await
@@ -44,7 +53,7 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 			)
 	}
 
-	async fn init_gd_account_link(
+	pub async fn init_gd_account_link(
 		&self,
 		discord_user_id: u64,
 		gd_username: String
@@ -106,34 +115,9 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 			})?
 			.0;
 
-		// if let Some(_existing_gd_account_link) = self
-		// 	.gd_account_link_repository
-		// 	.get_record(discord_user.discord_user_id)
-		// 	.await
-		// 	.map_err(|query_gd_account_link_error| {
-		// 		error!(
-		// 			"Error querying GD account link from database: {}",
-		// 			query_gd_account_link_error
-		// 		);
-		// 		DiscordError::DatabaseError(query_gd_account_link_error)
-		// 	})? {
-		// 	error!("GD Account has already been linked to another Discord user");
-		// 	return Err(DiscordError::DiscordAccountAlreadyLinked);
-		// };
-
 		let mut gd_account_link = GDAccountLink::new(discord_user.discord_user_id, gd_player_id);
 		gd_account_link.generate_new_account_link();
 		let gd_account_challenge = gd_account_link.gd_account_challenge.clone();
-
-		// let updated_user = self
-		// 	.user_repository
-		// 	.update_record(discord_user.into())
-		// 	.await
-		// 	.map_err(|update_user_record_error| {
-		// 		error!("Error updating user record: {}", update_user_record_error);
-		// 		DiscordError::DatabaseError(update_user_record_error)
-		// 	})
-		// 	.map(|updated_user_record| DiscordUser::from(updated_user_record))?;
 
 		self.gd_account_link_repository
 			.create_or_update_record(gd_account_link.into())
@@ -154,7 +138,7 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 		))
 	}
 
-	async fn verify_gd_account_link(&self, discord_user_id: u64) -> Result<(), DiscordError> {
+	pub async fn verify_gd_account_link(&self, discord_user_id: u64) -> Result<(), DiscordError> {
 		let mut discord_user = self
 			.user_repository
 			.get_record(discord_user_id)
@@ -287,19 +271,5 @@ impl<'a, U: UserRepository, G: GeometryDashClient> UserService for DiscordUserSe
 		};
 
 		Ok(())
-	}
-}
-
-impl<'a, U: UserRepository, G: GeometryDashClient> DiscordUserService<'a, U, G> {
-	pub fn new(
-		user_repository: &'a U,
-		gd_account_link_repository: &'a GDAccountLinkRepository,
-		geometry_dash_client: &'a G
-	) -> Self {
-		DiscordUserService {
-			user_repository,
-			gd_account_link_repository,
-			geometry_dash_client
-		}
 	}
 }

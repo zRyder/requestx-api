@@ -2,7 +2,7 @@ use rocket_framework::{serde::json::Json, State};
 use sea_orm::DatabaseConnection;
 
 use crate::{
-	adapter::mysql::mysql_reviewer_repository::MySqlReviewerRepository,
+	adapter::mysql::reviewer_repository::ReviewerRepository,
 	domain::{
 		model::api::{
 			auth_api::Auth,
@@ -10,9 +10,7 @@ use crate::{
 				CreateReviewerApiRequest, GetReviewerApiResponse, ReviewerApiResponseError
 			}
 		},
-		service::{
-			level_reviewer_service::LevelReviewerService, reviewer_service::ReviewerService
-		}
+		service::level_reviewer_service::LevelReviewerService
 	}
 };
 
@@ -23,7 +21,7 @@ pub async fn get_reviewer(
 	is_active: bool,
 	_auth: Auth
 ) -> Result<GetReviewerApiResponse, ReviewerApiResponseError> {
-	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
+	let reviewer_repository = ReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service
@@ -41,7 +39,7 @@ pub async fn create_reviewer(
 	create_reviewer_api_request: Json<CreateReviewerApiRequest>,
 	_auth: Auth
 ) -> Result<(), ReviewerApiResponseError> {
-	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
+	let reviewer_repository = ReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service
@@ -59,7 +57,7 @@ pub async fn remove_reviewer(
 	reviewer_discord_id: u64,
 	_auth: Auth
 ) -> Result<(), ReviewerApiResponseError> {
-	let reviewer_repository = MySqlReviewerRepository::new(&db_conn);
+	let reviewer_repository = ReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service.remove_reviewer(reviewer_discord_id).await {

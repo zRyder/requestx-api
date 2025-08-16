@@ -15,30 +15,33 @@ use crate::{
 			error::level_request_error::LevelRequestError,
 			level_request::{GDLevel, LevelCreator, LevelRequest, RequestRating}
 		},
-		service::{
-			internal::request_manager_service::RequestManagerService,
-			request_service::RequestService
-		}
+		service::internal::request_manager_service::RequestManagerService
 	},
 	rocket::common::{config::common_config::APP_CONFIG, constants::YOUTUBE_LINK_REGEX}
 };
 
-pub struct LevelRequestService<
-	'a,
-	L: LevelRequestRepository,
-	U: UserRepository,
-	G: GeometryDashClient
-> {
-	level_request_repository: &'a L,
-	user_repository: &'a U,
-	gd_client: &'a G,
+pub struct LevelRequestService<'a> {
+	level_request_repository: &'a LevelRequestRepository<'a>,
+	user_repository: &'a UserRepository<'a>,
+	gd_client: &'a GeometryDashClient,
 	request_manager: &'a RequestManagerService
 }
 
-impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> RequestService
-	for LevelRequestService<'a, R, U, G>
-{
-	async fn get_level_request(
+impl<'a> LevelRequestService<'a> {
+	pub fn new(
+		level_request_repository: &'a LevelRequestRepository,
+		user_repository: &'a UserRepository,
+		gd_client: &'a GeometryDashClient
+	) -> Self {
+		LevelRequestService {
+			level_request_repository,
+			user_repository,
+			gd_client,
+			request_manager: &RequestManagerService {}
+		}
+	}
+
+	pub async fn get_level_request(
 		&self,
 		level_id: u64,
 		has_requested_feedback: Option<bool>
@@ -69,7 +72,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			)
 	}
 
-	async fn request_level(
+	pub async fn request_level(
 		&self,
 		level_id: u64,
 		youtube_video_link: String,
@@ -206,7 +209,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		Ok(gd_level_request)
 	}
 
-	async fn update_level_request(
+	pub async fn update_level_request(
 		&self,
 		level_id: u64,
 		discord_user_id: u64,
@@ -287,7 +290,10 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 			})
 	}
 
-	async fn delete_level_request(&self, level_id: u64) -> Result<LevelRequest, LevelRequestError> {
+	pub async fn delete_level_request(
+		&self,
+		level_id: u64
+	) -> Result<LevelRequest, LevelRequestError> {
 		let existing_level_request = self
 			.level_request_repository
 			.get_record(level_id)
@@ -321,7 +327,7 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		Ok(existing_level_request)
 	}
 
-	async fn update_level_request_message_id(
+	pub async fn update_level_request_message_id(
 		&self,
 		level_id: u64,
 		discord_message_id: u64
@@ -362,19 +368,6 @@ impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient> Re
 		}
 
 		Ok(())
-	}
-}
-
-impl<'a, R: LevelRequestRepository, U: UserRepository, G: GeometryDashClient>
-	LevelRequestService<'a, R, U, G>
-{
-	pub fn new(level_request_repository: &'a R, user_repository: &'a U, gd_client: &'a G) -> Self {
-		LevelRequestService {
-			level_request_repository,
-			user_repository,
-			gd_client,
-			request_manager: &RequestManagerService {}
-		}
 	}
 
 	async fn update_level_request_params(

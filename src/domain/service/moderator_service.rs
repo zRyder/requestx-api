@@ -17,29 +17,32 @@ use crate::{
 			level_request::LevelRequest,
 			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
-		service::{
-			internal::request_manager_service::RequestManagerService,
-			moderate_service::ModerateService
-		}
+		service::internal::request_manager_service::RequestManagerService
 	}
 };
 
-pub struct ModeratorService<
-	'a,
-	R: ModeratorRepository,
-	L: LevelRequestRepository,
-	G: GeometryDashClient
-> {
-	moderator_repository: &'a R,
-	level_request_repository: &'a L,
-	gd_client: &'a G,
+pub struct ModeratorService<'a> {
+	moderator_repository: &'a ModeratorRepository<'a>,
+	level_request_repository: &'a LevelRequestRepository<'a>,
+	gd_client: &'a GeometryDashClient,
 	request_manager: &'a RequestManagerService
 }
 
-impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> ModerateService
-	for ModeratorService<'a, R, L, G>
-{
-	async fn send_level(
+impl<'a> ModeratorService<'a> {
+	pub fn new(
+		moderator_repository: &'a ModeratorRepository,
+		level_request_repository: &'a LevelRequestRepository,
+		gd_client: &'a GeometryDashClient
+	) -> Self {
+		ModeratorService {
+			moderator_repository,
+			level_request_repository,
+			gd_client,
+			request_manager: &RequestManagerService {}
+		}
+	}
+
+	pub async fn send_level(
 		&self,
 		level_id: u64,
 		suggested_rating: SuggestedRating,
@@ -142,23 +145,6 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 				error!("Error reading level send from database: {}", db_error);
 				Err(ModeratorError::DatabaseError(db_error))
 			}
-		}
-	}
-}
-
-impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient>
-	ModeratorService<'a, R, L, G>
-{
-	pub fn new(
-		moderator_repository: &'a R,
-		level_request_repository: &'a L,
-		gd_client: &'a G
-	) -> Self {
-		ModeratorService {
-			moderator_repository,
-			level_request_repository,
-			gd_client,
-			request_manager: &RequestManagerService {}
 		}
 	}
 }
