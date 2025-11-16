@@ -5,7 +5,7 @@ use crate::adapter::mysql::model::{review, review::Model};
 #[derive(Debug, Clone)]
 pub struct LevelReview {
 	pub reviewer_discord_id: u64,
-	pub discord_message_id: u64,
+	pub discord_message_id: Option<u64>,
 	pub level_id: u64,
 	pub review_contents: String,
 	pub is_update: bool

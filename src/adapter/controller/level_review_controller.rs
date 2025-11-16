@@ -69,7 +69,6 @@ pub async fn review_level<'a>(
 		.review_level(
 			level_review_body.level_id,
 			level_review_body.reviewer_discord_id,
-			level_review_body.discord_message_id,
 			level_review_body.review_contents.to_string()
 		)
 		.await

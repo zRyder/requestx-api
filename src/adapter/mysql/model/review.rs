@@ -9,7 +9,7 @@ pub struct Model {
 	pub level_id: u64,
 	#[sea_orm(primary_key, auto_increment = false)]
 	pub discord_id: u64,
-	pub message_id: u64,
+	pub message_id: Option<u64>,
 	pub review_content: String
 }
 

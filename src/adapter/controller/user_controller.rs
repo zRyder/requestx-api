@@ -16,7 +16,10 @@ use crate::{
 				PostLinkGDAccountResponse
 			}
 		},
-		service::discord_user_service::DiscordUserService
+		service::{
+			discord_user_service::DiscordUserService,
+			internal::request_manager_service::RequestManagerService
+		}
 	}
 };
 
@@ -34,7 +37,13 @@ pub async fn get_user(
 		DiscordUserService::new(&user_repository, &gd_account_link_repository, &gd_client);
 
 	match user_service.get_user(discord_user_id).await {
-		Ok(discord_user) => Ok(GetDiscordUserApiResponse::from(discord_user)),
+		Ok(discord_user) => {
+			let request_cooldown = RequestManagerService {}.get_request_cooldown().await;
+			let mut discord_user_response = GetDiscordUserApiResponse::from(discord_user);
+			discord_user_response.request_cooldown = request_cooldown;
+
+			Ok(discord_user_response)
+		}
 		Err(get_discord_user_error) => Err(get_discord_user_error.into())
 	}
 }
