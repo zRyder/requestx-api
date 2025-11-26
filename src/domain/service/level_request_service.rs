@@ -1,11 +1,10 @@
 use chrono::{DateTime, Duration, Utc};
-use sea_orm::ActiveValue;
 
 use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			level_request_repository::LevelRequestRepository, model::user,
+			level_request_repository::LevelRequestRepository,
 			user_repository::UserRepository
 		}
 	},
@@ -81,119 +80,69 @@ impl<'a> LevelRequestService<'a> {
 		has_requested_feedback: bool,
 		notify: bool
 	) -> Result<LevelRequest, LevelRequestError> {
-		if !self.request_manager.get_enable_request().await {
-			return Err(LevelRequestError::LevelRequestsDisabled);
+		if let Some(validate_level_request_error) = self
+			.validate_level_request(level_id, &youtube_video_link)
+			.await
+		{
+			return Err(validate_level_request_error);
 		}
-		if !Self::is_valid_youtube_link(&youtube_video_link) {
-			warn!("Malformed YouTube link: {}", youtube_video_link);
-			return Err(LevelRequestError::MalformedRequest);
-		}
+
 		let now = Utc::now();
-
-		if let Ok(_existing_level_request) = self.get_level_request(level_id, None).await {
-			warn!("Level requests with ID: {} already exists", level_id);
-			return Err(LevelRequestError::LevelRequestExists);
-		}
-
-		let gd_level_request: LevelRequest;
 		let is_gd_requests_enabled = self.request_manager.get_enable_gd_request().await;
 
-		if is_gd_requests_enabled {
+		let level_request = if is_gd_requests_enabled {
 			let gd_level = self.gd_client.get_gd_level_info(level_id).await.map_err(
 				|get_gd_level_info_error| {
 					error!("Error getting level info for level {}", level_id);
 					LevelRequestError::GeometryDashClientError(level_id, get_gd_level_info_error)
 				}
 			)?;
-
-			gd_level_request = LevelRequest {
-				gd_level: Some(gd_level),
+			LevelRequest::with_gd_level(
+				gd_level,
 				level_id,
 				discord_user_id,
-				discord_message_data: None,
 				request_rating,
 				youtube_video_link,
 				has_requested_feedback,
 				notify,
-				timestamp: now
-			};
+				now
+			)
 		} else {
-			gd_level_request = LevelRequest {
-				gd_level: None,
+			LevelRequest::new(
 				level_id,
 				discord_user_id,
-				discord_message_data: None,
 				request_rating,
 				youtube_video_link,
 				has_requested_feedback,
 				notify,
-				timestamp: now
-			};
-		}
-
-		let cooldown_duration = self.request_manager.get_request_cooldown().await;
-		match self.user_repository.get_record(discord_user_id).await {
-			Ok(Some(user)) => {
-				let mut existing_discord_user = DiscordUser::from(user.clone());
-				if !self.is_user_created_level_request(&existing_discord_user, &gd_level_request) {
-					if self.is_user_on_cooldown(&existing_discord_user, &now, &cooldown_duration) {
-						warn!(
-							"User {} attempted to request while on cooldown",
-							discord_user_id
-						);
-						return Err(LevelRequestError::UserOnCooldown(
-							user.timestamp.unwrap(),
-							cooldown_duration
-						));
-					}
-
-					existing_discord_user.last_request_time = Some(now);
-					let mut update_discord_user_last_request_time_storable: user::ActiveModel =
-						existing_discord_user.into();
-					update_discord_user_last_request_time_storable.timestamp =
-						ActiveValue::Set(Some(now));
-					if let Err(db_err) = self
-						.user_repository
-						.update_record(update_discord_user_last_request_time_storable)
-						.await
-					{
-						error!(
-							"Error updating last updated time for user: {}",
-							discord_user_id
-						);
-						return Err(LevelRequestError::DatabaseError(db_err));
-					}
-				}
-			}
-			Ok(None) => {
-				let discord_user = DiscordUser {
-					discord_user_id,
-					gd_player_id: None,
-					gd_account_id: None,
-					last_request_time: Some(now)
-				};
-				let user_storable = discord_user.clone().into();
-
-				if let Err(user_insert_error) =
-					self.user_repository.create_record(user_storable).await
-				{
-					error!(
-						"Unable to save Discord user {} to database: {}",
-						discord_user_id, user_insert_error
-					);
-					return Err(LevelRequestError::DatabaseError(user_insert_error));
-				}
-			}
-			Err(err) => {
-				error!(
-					"Error getting Discord user: {} record from database: {}",
-					discord_user_id, err
-				);
-				return Err(LevelRequestError::DatabaseError(err));
-			}
+				now
+			)
 		};
 
-		let level_request_storable = gd_level_request.clone().into();
+		let discord_user = self.get_user(discord_user_id, now).await?;
+		if let Some(level_request_error) = self
+			.check_user_can_request_level(&discord_user, &level_request, &now)
+			.await
+		{
+			return Err(level_request_error);
+		};
+
+		let discord_user_storable = discord_user.into();
+		if let Err(create_or_update_discord_user_error) = self
+			.user_repository
+			.create_or_update_record(discord_user_storable)
+			.await
+		{
+			error!(
+				"Error creating or updating user record: {}",
+				discord_user_id
+			);
+			return Err(LevelRequestError::DatabaseError(
+				create_or_update_discord_user_error
+			));
+		}
+
+		let level_request_storable = level_request.clone().into();
 		if let Err(level_insert_error) = self
 			.level_request_repository
 			.create_record(level_request_storable)
@@ -206,7 +155,59 @@ impl<'a> LevelRequestService<'a> {
 			return Err(LevelRequestError::DatabaseError(level_insert_error));
 		}
 
-		Ok(gd_level_request)
+		Ok(level_request)
+	}
+
+	async fn check_user_can_request_level(
+		&self,
+		discord_user: &DiscordUser,
+		level_request: &LevelRequest,
+		now: &DateTime<Utc>
+	) -> Option<LevelRequestError> {
+		let cooldown_duration = self.request_manager.get_request_cooldown().await;
+		let allow_non_user_created_levels = self
+			.request_manager
+			.get_allow_non_user_created_levels()
+			.await;
+
+		if Self::is_user_on_cooldown(&discord_user, now, &cooldown_duration) {
+			warn!(
+				"User {} attempted to request while on cooldown",
+				discord_user.discord_user_id
+			);
+			return Some(LevelRequestError::UserOnCooldown(*now, cooldown_duration));
+		};
+
+		if !allow_non_user_created_levels
+			&& !Self::is_user_created_level_request(discord_user, level_request)
+		{
+			warn!(
+				"User {} attempted to request a level they did not create",
+				discord_user.discord_user_id
+			);
+			return Some(LevelRequestError::RequestNonCreatedLevel);
+		};
+
+		None
+	}
+
+	async fn validate_level_request(
+		&self,
+		level_id: u64,
+		youtube_video_link: &String
+	) -> Option<LevelRequestError> {
+		if !self.request_manager.get_enable_request().await {
+			return Some(LevelRequestError::LevelRequestsDisabled);
+		}
+		if !Self::is_valid_youtube_link(&youtube_video_link) {
+			warn!("Malformed YouTube link: {}", youtube_video_link);
+			return Some(LevelRequestError::MalformedRequest);
+		}
+		if let Ok(_existing_level_request) = self.get_level_request(level_id, None).await {
+			warn!("Level requests with ID: {} already exists", level_id);
+			return Some(LevelRequestError::LevelRequestExists);
+		}
+		None
 	}
 
 	pub async fn update_level_request(
@@ -417,6 +418,26 @@ impl<'a> LevelRequestService<'a> {
 		Ok(())
 	}
 
+	async fn get_user<'b>(
+		&self,
+		discord_user_id: u64,
+		now: DateTime<Utc>
+	) -> Result<DiscordUser, LevelRequestError> {
+		Ok(self
+			.user_repository
+			.get_record(discord_user_id)
+			.await
+			.map_err(|get_user_record_error| {
+				error!(
+					"Error getting Discord user: {} record from database: {}",
+					discord_user_id, get_user_record_error
+				);
+				LevelRequestError::DatabaseError(get_user_record_error)
+			})?
+			.map(DiscordUser::from)
+			.unwrap_or_else(|| DiscordUser::with_last_request_time(discord_user_id, now)))
+	}
+
 	fn is_valid_youtube_link(youtube_link: &str) -> bool {
 		let regex = regex::RegexBuilder::new(YOUTUBE_LINK_REGEX)
 			.case_insensitive(true)
@@ -428,7 +449,6 @@ impl<'a> LevelRequestService<'a> {
 	}
 
 	fn is_user_on_cooldown(
-		&self,
 		discord_user: &DiscordUser,
 		now: &DateTime<Utc>,
 		cooldown_duration: &Duration
@@ -441,7 +461,6 @@ impl<'a> LevelRequestService<'a> {
 	}
 
 	fn is_user_created_level_request(
-		&self,
 		discord_user: &DiscordUser,
 		level_request: &LevelRequest
 	) -> bool {

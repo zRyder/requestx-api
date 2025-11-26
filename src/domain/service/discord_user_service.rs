@@ -65,7 +65,7 @@ impl<'a> DiscordUserService<'a> {
 				let new_discord_user = DiscordUser::new(discord_user_id);
 				if let Err(create_user_record_error) = self
 					.user_repository
-					.create_record(new_discord_user.clone().into())
+					.create_or_update_record(new_discord_user.clone().into())
 					.await
 				{
 					error!(

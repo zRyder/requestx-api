@@ -1,4 +1,6 @@
-use sea_orm::{DatabaseConnection, DbConn, DbErr, EntityTrait, InsertResult};
+use sea_orm::{
+	sea_query::OnConflict, DatabaseConnection, DbConn, DbErr, EntityTrait, InsertResult
+};
 
 use crate::adapter::mysql::model::{prelude::*, user, user::ActiveModel};
 
@@ -11,11 +13,18 @@ pub struct UserRepository<'a> {
 impl<'a> UserRepository<'a> {
 	pub fn new(db_conn: &'a DbConn) -> Self { UserRepository { db_conn } }
 
-	pub async fn create_record(
+	pub async fn create_or_update_record(
 		&self,
 		record: ActiveModel
 	) -> Result<InsertResult<ActiveModel>, DbErr> {
-		User::insert(record).exec(self.db_conn).await
+		User::insert(record)
+			.on_conflict(
+				OnConflict::new()
+					.update_columns([user::Column::Timestamp])
+					.to_owned()
+			)
+			.exec(self.db_conn)
+			.await
 	}
 
 	pub async fn get_record(&self, discord_id: u64) -> Result<Option<user::Model>, DbErr> {

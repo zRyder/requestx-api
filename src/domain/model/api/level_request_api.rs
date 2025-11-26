@@ -250,6 +250,7 @@ pub enum LevelRequestApiResponseError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
+	RequestNonCreatedLevel,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestDisabled,
 	LevelRequestError
@@ -297,6 +298,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
 				response.status(Status::TooManyRequests);
 			}
+			LevelRequestApiResponseError::RequestNonCreatedLevel => {
+				response.status(Status::BadRequest);
+			}
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				response.status(Status::Forbidden);
 			}
@@ -329,6 +333,9 @@ impl Display for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				write!(f, "User attempted to edit a request they do not own")
+			}
+			LevelRequestApiResponseError::RequestNonCreatedLevel => {
+				write!(f, "User attempted to request a level they did not create")
 			}
 			LevelRequestApiResponseError::LevelRequestDisabled => {
 				write!(f, "Level requests are disabled")

@@ -20,6 +20,54 @@ pub struct LevelRequest {
 	pub timestamp: chrono::DateTime<Utc>
 }
 
+impl LevelRequest {
+	pub fn new(
+		level_id: u64,
+		discord_user_id: u64,
+		request_rating: RequestRating,
+		youtube_video_link: String,
+		has_requested_feedback: bool,
+		notify: bool,
+		timestamp: chrono::DateTime<Utc>
+	) -> Self {
+		Self {
+			gd_level: None,
+			level_id,
+			discord_user_id,
+			discord_message_data: None,
+			request_rating,
+			youtube_video_link,
+			has_requested_feedback,
+			notify,
+			timestamp
+		}
+	}
+
+	pub fn with_gd_level(
+		gd_level: GDLevel,
+		level_id: u64,
+		discord_user_id: u64,
+		request_rating: RequestRating,
+		youtube_video_link: String,
+		has_requested_feedback: bool,
+		notify: bool,
+		timestamp: chrono::DateTime<Utc>
+	) -> Self {
+		let mut gd_level_request = Self::new(
+			level_id,
+			discord_user_id,
+			request_rating,
+			youtube_video_link,
+			has_requested_feedback,
+			notify,
+			timestamp
+		);
+		gd_level_request.gd_level = Some(gd_level);
+
+		gd_level_request
+	}
+}
+
 impl Into<level_request::ActiveModel> for LevelRequest {
 	fn into(self) -> level_request::ActiveModel {
 		if let Some(gd_level) = self.gd_level {
