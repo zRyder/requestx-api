@@ -74,7 +74,7 @@ pub async fn link_gd_account<'a>(
 }
 
 #[get("/user/link/<discord_user_id>")]
-pub async fn verify_gd_account_link<'a>(
+pub async fn verify_gd_account_link(
 	db_conn: &State<DatabaseConnection>,
 	discord_user_id: u64,
 	_auth: Auth
