@@ -435,7 +435,7 @@ impl<'a> LevelRequestService<'a> {
 				LevelRequestError::DatabaseError(get_user_record_error)
 			})?
 			.map(DiscordUser::from)
-			.unwrap_or_else(|| DiscordUser::with_last_request_time(discord_user_id, now)))
+			.unwrap_or_else(|| DiscordUser::new(discord_user_id)))
 	}
 
 	fn is_valid_youtube_link(youtube_link: &str) -> bool {

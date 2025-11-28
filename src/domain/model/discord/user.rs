@@ -52,15 +52,6 @@ impl DiscordUser {
 			last_request_time: None
 		}
 	}
-
-	pub fn with_last_request_time(discord_user_id: u64, last_request_time: DateTime<Utc>) -> Self {
-		Self {
-			discord_user_id,
-			gd_player_id: None,
-			gd_account_id: None,
-			last_request_time: Some(last_request_time)
-		}
-	}
 }
 
 #[derive(Debug, Clone)]
