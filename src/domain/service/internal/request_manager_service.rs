@@ -39,6 +39,20 @@ impl RequestManagerService {
 		guard.enable_gd_requests
 	}
 
+	pub async fn set_allow_non_user_created_levels(&self, allow_non_user_created_levels: bool) {
+		let guard = &mut REQUEST_CONFIG.get().unwrap().write().await;
+		guard.allow_non_user_created_levels = allow_non_user_created_levels;
+		info!(
+			"Allow non user created level requests toggled to {}",
+			allow_non_user_created_levels
+		)
+	}
+
+	pub async fn get_allow_non_user_created_levels(&self) -> bool {
+		let guard = &mut REQUEST_CONFIG.get().unwrap().read().await;
+		guard.allow_non_user_created_levels
+	}
+
 	pub async fn update_client_config_file(&self) {
 		let guard = REQUEST_CONFIG.get().unwrap().read().await;
 		match OpenOptions::new()

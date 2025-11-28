@@ -3,10 +3,10 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
 	adapter::{
-		geometry_dash::geometry_dash_dashrs_client::GeometryDashDashrsClient,
+		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			my_sql_moderator_repository::MySqlModeratorRepository,
-			mysql_level_request_repository::MySqlLevelRequestRepository
+			level_request_repository::LevelRequestRepository,
+			moderator_repository::ModeratorRepository
 		}
 	},
 	domain::{
@@ -14,7 +14,7 @@ use crate::{
 			api::{auth_api::Auth, level_request_api::PostSendLevelRequestApiResponse},
 			internal::api::moderator_api::{ModeratorApiResponseError, PostModeratorApiRequest}
 		},
-		service::{moderate_service::ModerateService, moderator_service::ModeratorService}
+		service::moderator_service::ModeratorService
 	}
 };
 
@@ -24,9 +24,9 @@ pub async fn send_level<'a>(
 	send_level_body: Json<PostModeratorApiRequest>,
 	_auth: Auth
 ) -> Result<PostSendLevelRequestApiResponse, ModeratorApiResponseError> {
-	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
-	let moderator_repository = MySqlModeratorRepository::new(db_conn);
-	let gd_client = GeometryDashDashrsClient::new();
+	let level_request_repository = LevelRequestRepository::new(db_conn);
+	let moderator_repository = ModeratorRepository::new(db_conn);
+	let gd_client = GeometryDashClient::new();
 	let moderator_service =
 		ModeratorService::new(&moderator_repository, &level_request_repository, &gd_client);
 

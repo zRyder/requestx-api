@@ -1,26 +1,47 @@
-use sea_orm::{DbErr, DeleteResult, InsertResult};
+use sea_orm::{
+	ColumnTrait, DatabaseConnection, DbConn, DbErr, EntityTrait, InsertResult, QueryFilter
+};
 
-use crate::adapter::mysql::model::reviewer;
+use crate::adapter::mysql::model::{
+	prelude::Reviewer,
+	reviewer,
+	reviewer::{ActiveModel, Model}
+};
 
-#[cfg_attr(test, mockall::automock)]
-pub trait ReviewerRepository {
-	async fn create_record(
+pub struct ReviewerRepository<'a> {
+	db_conn: &'a DatabaseConnection
+}
+
+// TODO: Figure out testing with lifetime param
+// #[cfg_attr(test, mockall::automock)]
+impl<'a> ReviewerRepository<'a> {
+	pub fn new(db_conn: &'a DbConn) -> Self { ReviewerRepository { db_conn } }
+
+	pub async fn create_record(
 		&self,
-		record: reviewer::ActiveModel
-	) -> Result<InsertResult<reviewer::ActiveModel>, DbErr>;
+		record: ActiveModel
+	) -> Result<InsertResult<ActiveModel>, DbErr> {
+		Reviewer::insert(record).exec(self.db_conn).await
+	}
 
-	async fn get_record(
+	pub async fn get_record(
 		&self,
 		reviewer_discord_id: u64,
 		is_active: Option<bool>
-	) -> Result<Option<reviewer::Model>, DbErr>;
+	) -> Result<Option<Model>, DbErr> {
+		if let Some(active_toggle) = is_active {
+			Reviewer::find_by_id(reviewer_discord_id)
+				.filter(reviewer::Column::Active.eq(active_toggle))
+				.one(self.db_conn)
+				.await
+		} else {
+			Reviewer::find_by_id(reviewer_discord_id)
+				.one(self.db_conn)
+				.await
+		}
+	}
 
-	async fn get_record_ignore_active(
-		&self,
-		reviewer_discord_id: u64
-	) -> Result<Option<reviewer::Model>, DbErr>;
-
-	async fn update_record(&self, record: reviewer::ActiveModel) -> Result<reviewer::Model, DbErr>;
-
-	async fn delete_record(&self, record: reviewer::ActiveModel) -> Result<DeleteResult, DbErr>;
+	pub async fn update_record(&self, record: ActiveModel) -> Result<Model, DbErr> {
+		Reviewer::update(record).exec(self.db_conn).await
+	}
 }

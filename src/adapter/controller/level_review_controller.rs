@@ -3,11 +3,10 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
 	adapter::{
-		geometry_dash::geometry_dash_dashrs_client::GeometryDashDashrsClient,
+		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			mysql_level_request_repository::MySqlLevelRequestRepository,
-			mysql_review_repository::MySqlReviewRepository,
-			mysql_user_repository::MySqlUserRepository
+			level_request_repository::LevelRequestRepository, review_repository::ReviewRepository,
+			user_repository::UserRepository
 		}
 	},
 	domain::{
@@ -19,8 +18,7 @@ use crate::{
 			}
 		},
 		service::{
-			level_request_service::LevelRequestService, level_review_service::LevelReviewService,
-			review_service::ReviewService
+			level_request_service::LevelRequestService, level_review_service::LevelReviewService
 		}
 	}
 };
@@ -32,10 +30,10 @@ pub async fn get_level_review(
 	discord_id: u64,
 	_auth: Auth
 ) -> Result<GetLevelReviewApiRespnse, LevelReviewApiResponseError> {
-	let level_review_repository = MySqlReviewRepository::new(db_conn);
-	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
-	let user_repository = MySqlUserRepository::new(db_conn);
-	let gd_client = GeometryDashDashrsClient::new();
+	let level_review_repository = ReviewRepository::new(db_conn);
+	let level_request_repository = LevelRequestRepository::new(db_conn);
+	let user_repository = UserRepository::new(db_conn);
+	let gd_client = GeometryDashClient::new();
 	let level_request_service =
 		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
@@ -57,10 +55,10 @@ pub async fn review_level<'a>(
 	level_review_body: Json<LevelReviewApiRequest<'a>>,
 	_auth: Auth
 ) -> Result<LevelReviewApiResponse, LevelReviewApiResponseError> {
-	let level_review_repository = MySqlReviewRepository::new(db_conn);
-	let level_request_repository = MySqlLevelRequestRepository::new(db_conn);
-	let user_repository = MySqlUserRepository::new(db_conn);
-	let gd_client = GeometryDashDashrsClient::new();
+	let level_review_repository = ReviewRepository::new(db_conn);
+	let level_request_repository = LevelRequestRepository::new(db_conn);
+	let user_repository = UserRepository::new(db_conn);
+	let gd_client = GeometryDashClient::new();
 	let level_request_service =
 		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
 
@@ -71,7 +69,6 @@ pub async fn review_level<'a>(
 		.review_level(
 			level_review_body.level_id,
 			level_review_body.reviewer_discord_id,
-			level_review_body.discord_message_id,
 			level_review_body.review_contents.to_string()
 		)
 		.await

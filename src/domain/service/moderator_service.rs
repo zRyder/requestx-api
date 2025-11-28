@@ -14,37 +14,40 @@ use crate::{
 				geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
 				moderator_error::ModeratorError
 			},
-			gd_level::GDLevelRequest,
+			level_request::LevelRequest,
 			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
-		service::{
-			internal::request_manager_service::RequestManagerService,
-			moderate_service::ModerateService
-		}
+		service::internal::request_manager_service::RequestManagerService
 	}
 };
 
-pub struct ModeratorService<
-	'a,
-	R: ModeratorRepository,
-	L: LevelRequestRepository,
-	G: GeometryDashClient
-> {
-	moderator_repository: &'a R,
-	level_request_repository: &'a L,
-	gd_client: &'a G,
+pub struct ModeratorService<'a> {
+	moderator_repository: &'a ModeratorRepository<'a>,
+	level_request_repository: &'a LevelRequestRepository<'a>,
+	gd_client: &'a GeometryDashClient,
 	request_manager: &'a RequestManagerService
 }
 
-impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient> ModerateService
-	for ModeratorService<'a, R, L, G>
-{
-	async fn send_level(
+impl<'a> ModeratorService<'a> {
+	pub fn new(
+		moderator_repository: &'a ModeratorRepository,
+		level_request_repository: &'a LevelRequestRepository,
+		gd_client: &'a GeometryDashClient
+	) -> Self {
+		ModeratorService {
+			moderator_repository,
+			level_request_repository,
+			gd_client,
+			request_manager: &RequestManagerService {}
+		}
+	}
+
+	pub async fn send_level(
 		&self,
 		level_id: u64,
 		suggested_rating: SuggestedRating,
 		suggested_score: SuggestedScore
-	) -> Result<(GDLevelRequest, Moderator), ModeratorError> {
+	) -> Result<(LevelRequest, Moderator), ModeratorError> {
 		let mut moderator_data = Moderator {
 			level_id,
 			suggested_score,
@@ -59,7 +62,7 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 			Ok(Some(level_request)) => {
 				if self.request_manager.get_enable_gd_request().await
 					&& (moderator_data.suggested_score != SuggestedScore::NoRate
-						&& moderator_data.suggested_score != SuggestedScore::Rated)
+					&& moderator_data.suggested_score != SuggestedScore::Rated)
 				{
 					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
 						match dashrs_error {
@@ -132,7 +135,7 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 						return Err(ModeratorError::DatabaseError(db_error));
 					}
 				}
-				Ok((GDLevelRequest::from(level_request), moderator_data))
+				Ok((LevelRequest::from(level_request), moderator_data))
 			}
 			Ok(None) => {
 				warn!("Level request {} does not exist", moderator_data.level_id);
@@ -142,23 +145,6 @@ impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClien
 				error!("Error reading level send from database: {}", db_error);
 				Err(ModeratorError::DatabaseError(db_error))
 			}
-		}
-	}
-}
-
-impl<'a, R: ModeratorRepository, L: LevelRequestRepository, G: GeometryDashClient>
-	ModeratorService<'a, R, L, G>
-{
-	pub fn new(
-		moderator_repository: &'a R,
-		level_request_repository: &'a L,
-		gd_client: &'a G
-	) -> Self {
-		ModeratorService {
-			moderator_repository,
-			level_request_repository,
-			gd_client,
-			request_manager: &RequestManagerService {}
 		}
 	}
 }

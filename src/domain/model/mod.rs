@@ -2,7 +2,7 @@ pub mod api;
 pub mod auth;
 pub mod discord;
 pub mod error;
-pub mod gd_level;
+pub mod level_request;
 pub mod internal;
 pub mod moderator;
 pub mod review;

@@ -6,18 +6,16 @@ use std::{
 use chrono::{DateTime, Duration, Local, Utc};
 use rocket_framework::{
 	http::{ContentType, Status},
+	response,
 	response::Responder,
 	serde::json::Json,
 	Request, Response
 };
 use serde::{ser::SerializeStruct, Serialize, Serializer};
-use tokio::runtime::Runtime;
+use serde_derive::Deserialize;
 
 use crate::{
-	domain::{
-		model::discord::user::DiscordUser,
-		service::internal::request_manager_service::RequestManagerService
-	},
+	domain::model::discord::user::{DiscordGDAccountLink, DiscordUser},
 	rocket::common::constants::TIMESTAMP_HEADER_NAME
 };
 
@@ -46,9 +44,7 @@ impl From<DiscordUser> for GetDiscordUserApiResponse {
 		Self {
 			discord_user_id: value.discord_user_id,
 			last_request_time: value.last_request_time,
-			request_cooldown: Runtime::new()
-				.unwrap()
-				.block_on(RequestManagerService {}.get_request_cooldown())
+			request_cooldown: Duration::zero()
 		}
 	}
 }
@@ -67,11 +63,15 @@ impl<'r> Responder<'r, 'r> for GetDiscordUserApiResponse {
 #[derive(Debug, PartialEq, Serialize)]
 pub enum DiscordUserApiResponseError {
 	UserDoesNotExist,
+	GDAccountDoesNotExist(String),
+	GDAccountLinkExpired,
+	InvalidGDAccountLinkToken,
+	DiscordAccountAlreadyLinked,
 	DiscordUserError
 }
 
 impl<'r> Responder<'r, 'r> for DiscordUserApiResponseError {
-	fn respond_to(self, request: &'r Request<'_>) -> rocket_framework::response::Result<'r> {
+	fn respond_to(self, request: &'r Request<'_>) -> response::Result<'r> {
 		let json = Json(&self);
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
@@ -81,6 +81,18 @@ impl<'r> Responder<'r, 'r> for DiscordUserApiResponseError {
 		match self {
 			DiscordUserApiResponseError::UserDoesNotExist => {
 				response.status(Status::NotFound);
+			}
+			DiscordUserApiResponseError::GDAccountDoesNotExist(_) => {
+				response.status(Status::NotFound);
+			}
+			DiscordUserApiResponseError::GDAccountLinkExpired => {
+				response.status(Status::Gone);
+			}
+			DiscordUserApiResponseError::DiscordAccountAlreadyLinked => {
+				response.status(Status::Conflict);
+			}
+			DiscordUserApiResponseError::InvalidGDAccountLinkToken => {
+				response.status(Status::Unauthorized);
 			}
 			DiscordUserApiResponseError::DiscordUserError => {
 				response.status(Status::InternalServerError);
@@ -97,6 +109,22 @@ impl Display for DiscordUserApiResponseError {
 			DiscordUserApiResponseError::UserDoesNotExist => {
 				write!(f, "User does not exist")
 			}
+			DiscordUserApiResponseError::GDAccountDoesNotExist(gd_username) => {
+				write!(
+					f,
+					"Geometry Dash user does not exist with username {}",
+					gd_username
+				)
+			}
+			DiscordUserApiResponseError::GDAccountLinkExpired => {
+				write!(f, "GD account link has expired")
+			}
+			DiscordUserApiResponseError::InvalidGDAccountLinkToken => {
+				write!(f, "GD account link token was invalid")
+			}
+			DiscordUserApiResponseError::DiscordAccountAlreadyLinked => {
+				write!(f, "Discord Account link is already linked to a GD account")
+			}
 			DiscordUserApiResponseError::DiscordUserError => {
 				write!(f, "Internal server error")
 			}
@@ -105,3 +133,39 @@ impl Display for DiscordUserApiResponseError {
 }
 
 impl Error for DiscordUserApiResponseError {}
+
+#[derive(Deserialize)]
+pub struct PostLinkGDAccountRequest<'a> {
+	pub discord_id: u64,
+	pub gd_username: &'a str
+}
+
+#[derive(Serialize)]
+pub struct PostLinkGDAccountResponse {
+	pub discord_id: u64,
+	pub gd_username: String,
+	pub gd_player_id: u64,
+	pub gd_account_requestx_token: String
+}
+
+impl<'r> Responder<'r, 'r> for PostLinkGDAccountResponse {
+	fn respond_to(self, request: &Request) -> response::Result<'r> {
+		let json = Json(self);
+		Response::build_from(json.respond_to(&request)?)
+			.status(Status::Created)
+			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
+			.header(ContentType::JSON)
+			.ok()
+	}
+}
+
+impl From<DiscordGDAccountLink> for PostLinkGDAccountResponse {
+	fn from(value: DiscordGDAccountLink) -> Self {
+		Self {
+			discord_id: value.discord_user_id,
+			gd_player_id: value.gd_player_id,
+			gd_username: value.gd_username,
+			gd_account_requestx_token: value.gd_account_challenge
+		}
+	}
+}

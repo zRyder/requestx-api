@@ -19,6 +19,7 @@ pub enum LevelRequestError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
+	RequestNonCreatedLevel,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestsDisabled,
 	GeometryDashClientError(u64, GeometryDashDashrsError)
@@ -48,6 +49,9 @@ impl Display for LevelRequestError {
 			}
 			LevelRequestError::UserOnCooldown(_last_request_time, _request_cooldown) => {
 				write!(f, "The user is still on cooldown")
+			}
+			LevelRequestError::RequestNonCreatedLevel => {
+				write!(f, "User attempted to request a level they did not create while server was not accepting non user created requests")
 			}
 			LevelRequestError::EditUnownedLevelRequest(
 				_level_id,
@@ -85,6 +89,9 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			}
 			LevelRequestError::UserOnCooldown(last_request_time, request_cooldown) => {
 				LevelRequestApiResponseError::UserOnCooldown(last_request_time, request_cooldown)
+			}
+			LevelRequestError::RequestNonCreatedLevel => {
+				LevelRequestApiResponseError::RequestNonCreatedLevel
 			}
 			LevelRequestError::EditUnownedLevelRequest(
 				level_id,

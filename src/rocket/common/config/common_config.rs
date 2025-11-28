@@ -1,10 +1,7 @@
 use std::{
 	collections::HashMap,
 	env,
-	env::home_dir,
 	fs,
-	path::{Path, PathBuf},
-	str::FromStr,
 	sync::OnceLock
 };
 
@@ -62,7 +59,7 @@ fn read_app_config() -> Result<AppConfig, ConfigError> {
 		.render_template(&template_string, &env_vars)
 		.expect("Unable to render template");
 	settings = settings.add_source(File::from_str(rendered.as_str(), FileFormat::Toml));
-	settings.build().unwrap().try_deserialize::<AppConfig>()
+	settings.build()?.try_deserialize::<AppConfig>()
 }
 
 async fn init_request_config(app_config: &mut AppConfig) {
