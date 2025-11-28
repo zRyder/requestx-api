@@ -119,20 +119,19 @@ impl<'a> LevelRequestService<'a> {
 			)
 		};
 
-		let discord_user = self.get_user(discord_user_id, now).await?;
+		let mut discord_user = self.get_user(discord_user_id).await?;
 		if let Some(level_request_error) = self
 			.check_user_can_request_level(&discord_user, &level_request, &now)
-			.await
-		{
+			.await {
 			return Err(level_request_error);
 		};
+		discord_user.last_request_time = Some(now);
 
 		let discord_user_storable = discord_user.into();
 		if let Err(create_or_update_discord_user_error) = self
 			.user_repository
 			.create_or_update_record(discord_user_storable)
-			.await
-		{
+			.await {
 			error!(
 				"Error creating or updating user record: {}",
 				discord_user_id
@@ -421,7 +420,6 @@ impl<'a> LevelRequestService<'a> {
 	async fn get_user<'b>(
 		&self,
 		discord_user_id: u64,
-		now: DateTime<Utc>
 	) -> Result<DiscordUser, LevelRequestError> {
 		Ok(self
 			.user_repository
