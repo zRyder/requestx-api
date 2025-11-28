@@ -1,6 +1,6 @@
 [package]
 name = "requestx-api"
-version = "1.2.3"
+version = "1.3.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,7 +10,6 @@ rocket = { version = "0.5.1", features = ["json", "serde_json"] }
 chrono = "0.4.42"
 regex = "1.12.2"
 dash-rs = {git = "https://github.com/zRyder/dash-rs.git", branch = "develop-stable"}
-<<<<<<< HEAD
 reqwest = { version = "0.12.24", features = ["json"] }
 async-trait = "0.1.89"
 sea-orm = { version = "2.0.0-rc.19", features = [ "sqlx-mysql", "runtime-async-std-native-tls", "macros", "mock" ] }
@@ -24,24 +23,6 @@ handlebars = "6.3.2"
 tokio = {version = "1.48.0",  features = ["rt-multi-thread"] }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 bs58 = "0.5.1"
-=======
-reqwest = { version = "0.12.4", features = ["json"] }
-async-trait = "0.1.74"
-sea-orm = { version = "0.12.5", features = [ "sqlx-mysql", "runtime-async-std-native-tls", "macros", "mock" ] }
-config = "0.14.0"
-serde = { version = "1.0.192", features = ["derive"] }
-toml = "0.8.19"
-serde_derive = "1.0.192"
-log4rs = { version = "1.2.0", features = ["rolling_file_appender", "console_appender", "compound_policy", "delete_roller"] }
-jsonwebtoken = "9.2.0"
-handlebars = "5.0.0"
-tokio = {version = "1.43.0",  features = ["rt-multi-thread"] }
-home = "0.5.11"
-
-[dependencies.rocket_db_pools]
-version = "0.2.0"
-features = ["sqlx_mysql"]
->>>>>>> develop
 
 [dev-dependencies]
 tokio-test = "0.4.3"

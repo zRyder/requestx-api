@@ -1,10 +1,7 @@
 use std::{
 	collections::HashMap,
 	env,
-	env::home_dir,
 	fs,
-	path::{Path, PathBuf},
-	str::FromStr,
 	sync::OnceLock
 };
 

@@ -6,6 +6,7 @@ use std::{
 use chrono::{DateTime, Duration, Local, Utc};
 use rocket_framework::{
 	http::{ContentType, Status},
+	response,
 	response::Responder,
 	serde::json::Json,
 	Request, Response
@@ -62,11 +63,15 @@ impl<'r> Responder<'r, 'r> for GetDiscordUserApiResponse {
 #[derive(Debug, PartialEq, Serialize)]
 pub enum DiscordUserApiResponseError {
 	UserDoesNotExist,
+	GDAccountDoesNotExist(String),
+	GDAccountLinkExpired,
+	InvalidGDAccountLinkToken,
+	DiscordAccountAlreadyLinked,
 	DiscordUserError
 }
 
 impl<'r> Responder<'r, 'r> for DiscordUserApiResponseError {
-	fn respond_to(self, request: &'r Request<'_>) -> rocket_framework::response::Result<'r> {
+	fn respond_to(self, request: &'r Request<'_>) -> response::Result<'r> {
 		let json = Json(&self);
 		let mut response = Response::build_from(json.respond_to(&request).unwrap());
 		response
@@ -76,6 +81,18 @@ impl<'r> Responder<'r, 'r> for DiscordUserApiResponseError {
 		match self {
 			DiscordUserApiResponseError::UserDoesNotExist => {
 				response.status(Status::NotFound);
+			}
+			DiscordUserApiResponseError::GDAccountDoesNotExist(_) => {
+				response.status(Status::NotFound);
+			}
+			DiscordUserApiResponseError::GDAccountLinkExpired => {
+				response.status(Status::Gone);
+			}
+			DiscordUserApiResponseError::DiscordAccountAlreadyLinked => {
+				response.status(Status::Conflict);
+			}
+			DiscordUserApiResponseError::InvalidGDAccountLinkToken => {
+				response.status(Status::Unauthorized);
 			}
 			DiscordUserApiResponseError::DiscordUserError => {
 				response.status(Status::InternalServerError);
@@ -91,6 +108,22 @@ impl Display for DiscordUserApiResponseError {
 		match self {
 			DiscordUserApiResponseError::UserDoesNotExist => {
 				write!(f, "User does not exist")
+			}
+			DiscordUserApiResponseError::GDAccountDoesNotExist(gd_username) => {
+				write!(
+					f,
+					"Geometry Dash user does not exist with username {}",
+					gd_username
+				)
+			}
+			DiscordUserApiResponseError::GDAccountLinkExpired => {
+				write!(f, "GD account link has expired")
+			}
+			DiscordUserApiResponseError::InvalidGDAccountLinkToken => {
+				write!(f, "GD account link token was invalid")
+			}
+			DiscordUserApiResponseError::DiscordAccountAlreadyLinked => {
+				write!(f, "Discord Account link is already linked to a GD account")
 			}
 			DiscordUserApiResponseError::DiscordUserError => {
 				write!(f, "Internal server error")

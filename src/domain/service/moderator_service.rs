@@ -14,7 +14,7 @@ use crate::{
 				geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
 				moderator_error::ModeratorError
 			},
-			gd_level::GDLevelRequest,
+			level_request::LevelRequest,
 			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
 		service::internal::request_manager_service::RequestManagerService
@@ -47,7 +47,7 @@ impl<'a> ModeratorService<'a> {
 		level_id: u64,
 		suggested_rating: SuggestedRating,
 		suggested_score: SuggestedScore
-	) -> Result<(GDLevelRequest, Moderator), ModeratorError> {
+	) -> Result<(LevelRequest, Moderator), ModeratorError> {
 		let mut moderator_data = Moderator {
 			level_id,
 			suggested_score,
@@ -62,7 +62,7 @@ impl<'a> ModeratorService<'a> {
 			Ok(Some(level_request)) => {
 				if self.request_manager.get_enable_gd_request().await
 					&& (moderator_data.suggested_score != SuggestedScore::NoRate
-						&& moderator_data.suggested_score != SuggestedScore::Rated)
+					&& moderator_data.suggested_score != SuggestedScore::Rated)
 				{
 					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
 						match dashrs_error {
@@ -135,7 +135,7 @@ impl<'a> ModeratorService<'a> {
 						return Err(ModeratorError::DatabaseError(db_error));
 					}
 				}
-				Ok((GDLevelRequest::from(level_request), moderator_data))
+				Ok((LevelRequest::from(level_request), moderator_data))
 			}
 			Ok(None) => {
 				warn!("Level request {} does not exist", moderator_data.level_id);

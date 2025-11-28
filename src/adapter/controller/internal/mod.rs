@@ -2,3 +2,4 @@ pub mod internal_level_request_controller;
 pub mod internal_level_review_controller;
 pub mod internal_moderator_controller;
 pub mod internal_request_manager_controller;
+pub mod internal_gd_controller;

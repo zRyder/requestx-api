@@ -1,11 +1,19 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
+use ed25519_dalek::{
+	ed25519::signature::rand_core::OsRng, Signature, Signer, SigningKey, Verifier, VerifyingKey
+};
 use sea_orm::ActiveValue;
 
-use crate::adapter::mysql::model::{user, user::Model};
+use crate::{
+	adapter::mysql::model::{gd_account_link, user},
+	domain::model::error::discord::discord_error::DiscordError
+};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct DiscordUser {
 	pub discord_user_id: u64,
+	pub gd_player_id: Option<u64>,
+	pub gd_account_id: Option<u64>,
 	pub last_request_time: Option<DateTime<Utc>>
 }
 
@@ -17,20 +25,23 @@ impl Into<user::ActiveModel> for DiscordUser {
 				Some(last_request_time)
 			} else {
 				None
-			})
+			}),
+			gd_player_id: ActiveValue::Set(self.gd_player_id),
+			gd_account_id: ActiveValue::Set(self.gd_account_id)
 		}
 	}
 }
 
-impl From<Model> for DiscordUser {
-	fn from(value: Model) -> Self {
+impl From<user::Model> for DiscordUser {
+	fn from(value: user::Model) -> Self {
 		Self {
 			discord_user_id: value.discord_id,
+			gd_player_id: value.gd_player_id,
+			gd_account_id: value.gd_account_id,
 			last_request_time: value.timestamp
 		}
 	}
 }
-<<<<<<< HEAD
 
 impl DiscordUser {
 	pub fn new(discord_user_id: u64) -> Self {
@@ -239,5 +250,3 @@ mod gd_account_link_tests {
 		assert!(!result.unwrap());
 	}
 }
-=======
->>>>>>> develop

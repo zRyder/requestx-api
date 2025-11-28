@@ -44,7 +44,7 @@ impl<'a> LevelRequestService<'a> {
 		&self,
 		level_id: u64,
 		has_requested_feedback: Option<bool>
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	) -> Result<LevelRequest, LevelRequestError> {
 		let get_level_request_result =
 			if let Some(has_requested_feedback_toggle) = has_requested_feedback {
 				self.level_request_repository
@@ -82,13 +82,14 @@ impl<'a> LevelRequestService<'a> {
 	) -> Result<LevelRequest, LevelRequestError> {
 		if let Some(validate_level_request_error) = self
 			.validate_level_request(level_id, &youtube_video_link)
-			.await {
+			.await
+		{
 			return Err(validate_level_request_error);
 		}
 
 		let now = Utc::now();
 		let is_gd_requests_enabled = self.request_manager.get_enable_gd_request().await;
-		
+
 		let level_request = if is_gd_requests_enabled {
 			let gd_level = self.gd_client.get_gd_level_info(level_id).await.map_err(
 				|get_gd_level_info_error| {
@@ -217,7 +218,7 @@ impl<'a> LevelRequestService<'a> {
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
 		notify: Option<bool>
-	) -> Result<GDLevelRequest, LevelRequestError> {
+	) -> Result<LevelRequest, LevelRequestError> {
 		if youtube_video_link.is_none()
 			&& request_rating.is_none()
 			&& has_requested_feedback.is_none()
@@ -249,7 +250,7 @@ impl<'a> LevelRequestService<'a> {
 				warn!("Level request with id {} does not exist", level_id);
 				Err(LevelRequestError::LevelRequestDoesNotExist)
 			})?;
-		
+
 		if !discord_user_id.eq(&APP_CONFIG.get().unwrap().server_config.discord_bot_admin_id)
 			&& !discord_user_id.eq(&existing_level_request.discord_user_id)
 		{
@@ -275,7 +276,7 @@ impl<'a> LevelRequestService<'a> {
 			is_gd_requests_enabled,
 			&mut existing_level_request
 		)
-		.await?;
+			.await?;
 
 		self.level_request_repository
 			.update_record(existing_level_request.into())
@@ -289,7 +290,7 @@ impl<'a> LevelRequestService<'a> {
 				LevelRequestError::DatabaseError(update_level_request_error)
 			})
 	}
-	
+
 	pub async fn delete_level_request(
 		&self,
 		level_id: u64

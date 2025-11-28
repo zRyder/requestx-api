@@ -9,6 +9,7 @@ use crate::domain::{
 	},
 	service::internal::request_manager_service::RequestManagerService
 };
+use crate::domain::model::internal::api::internal_request_manager_api::InternalGetRequestConfigApiResponse;
 
 #[get("/request_config")]
 pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiResponse> {
