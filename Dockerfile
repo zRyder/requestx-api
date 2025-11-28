@@ -1,5 +1,5 @@
 # Use a Rust image as the base image
-FROM rust:1.84.1 as builder
+FROM rust:1.91.1 as builder
 
 # Set the working directory inside the container
 WORKDIR /opt/requestx-api
