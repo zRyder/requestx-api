@@ -19,7 +19,7 @@ use crate::{domain::model::review::LevelReview, rocket::common::constants::TIMES
 pub struct GetLevelReviewApiRespnse {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
-	pub discord_message_id: u64,
+	pub discord_message_id: Option<u64>,
 	pub review_contents: String
 }
 
@@ -49,7 +49,6 @@ impl<'r> Responder<'r, 'r> for GetLevelReviewApiRespnse {
 pub struct LevelReviewApiRequest<'a> {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
-	pub discord_message_id: u64,
 	pub review_contents: Cow<'a, str>
 }
 
@@ -57,7 +56,7 @@ pub struct LevelReviewApiRequest<'a> {
 pub struct LevelReviewApiResponse {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
-	pub discord_message_id: u64,
+	pub discord_message_id: Option<u64>,
 	pub review_contents: String,
 	pub is_update: bool
 }

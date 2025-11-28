@@ -1,4 +1,4 @@
-use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbErr, Statement};
+use sea_orm::{Database, DatabaseConnection, DbErr};
 use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -13,33 +13,9 @@ pub struct MySqlDatabaseConfig {
 impl MySqlDatabaseConfig {
 	pub async fn configure_mysql_database(&self) -> Result<DatabaseConnection, DbErr> {
 		let url = format!(
-			"mysql://{}:{}@{}:{}",
-			&self.user, &self.password, &self.host, &self.port
+			"mysql://{}:{}@{}:{}/{}",
+			&self.user, &self.password, &self.host, &self.port, &self.name
 		);
-		let db_conn_result = Database::connect(&url).await;
-
-		match db_conn_result {
-			Ok(db_conn) => {
-				let create_database_result = db_conn
-					.execute(Statement::from_string(
-						db_conn.get_database_backend(),
-						format!("CREATE DATABASE IF NOT EXISTS `{}`;", &self.name)
-					))
-					.await;
-				if let Err(err) = create_database_result {
-					error!("Unable to create database {}", err);
-					Err(err)
-				} else {
-					Database::connect(format!("{}/{}", &url, &self.name)).await
-				}
-			}
-			Err(err) => {
-				error!(
-					"Unable to connect to database during initialization {}",
-					err
-				);
-				Err(err)
-			}
-		}
+		Database::connect(&url).await
 	}
 }

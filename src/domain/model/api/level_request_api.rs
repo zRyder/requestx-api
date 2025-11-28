@@ -33,7 +33,7 @@ pub struct GetLevelRequestApiResponse {
 	pub level_name: Option<String>,
 	pub level_author: Option<String>,
 	pub level_length: Option<LevelLength>,
-	pub request_score: RequestRating,
+	pub request_rating: RequestRating,
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
 	pub notify: bool,
@@ -54,7 +54,7 @@ impl From<LevelRequest> for GetLevelRequestApiResponse {
 				level_name: Some(gd_level.name),
 				level_author: Some(gd_level.creator.name),
 				level_length: Some(gd_level.level_length.into()),
-				request_score: value.request_rating.into(),
+				request_rating: value.request_rating.into(),
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
 				notify: value.notify,
@@ -72,7 +72,7 @@ impl From<LevelRequest> for GetLevelRequestApiResponse {
 				level_name: None,
 				level_author: None,
 				level_length: None,
-				request_score: value.request_rating.into(),
+				request_rating: value.request_rating.into(),
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
 				notify: value.notify,
@@ -114,7 +114,7 @@ impl From<(LevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
 					level_name: Some(gd_level.name),
 					level_author: Some(gd_level.creator.name),
 					level_length: Some(gd_level.level_length.into()),
-					request_score: value.0.request_rating.into(),
+					request_rating: value.0.request_rating.into(),
 					youtube_video_link: value.0.youtube_video_link,
 					has_requested_feedback: value.0.has_requested_feedback,
 					notify: value.0.notify,
@@ -138,7 +138,7 @@ impl From<(LevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
 					level_name: None,
 					level_author: None,
 					level_length: None,
-					request_score: value.0.request_rating.into(),
+					request_rating: value.0.request_rating.into(),
 					youtube_video_link: value.0.youtube_video_link,
 					has_requested_feedback: value.0.has_requested_feedback,
 					notify: value.0.notify,
@@ -187,7 +187,7 @@ pub struct PostLevelRequestApiResponse {
 	pub level_name: Option<String>,
 	pub level_author: Option<String>,
 	pub level_length: Option<LevelLength>,
-	pub request_score: RequestRating,
+	pub request_rating: RequestRating,
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
 	pub notify: bool
@@ -212,7 +212,7 @@ impl From<LevelRequest> for PostLevelRequestApiResponse {
 				level_name: Some(gd_level.name),
 				level_author: Some(gd_level.creator.name),
 				level_length: Some(gd_level.level_length.into()),
-				request_score: value.request_rating.into(),
+				request_rating: value.request_rating.into(),
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
 				notify: value.notify
@@ -224,7 +224,7 @@ impl From<LevelRequest> for PostLevelRequestApiResponse {
 				level_name: None,
 				level_author: None,
 				level_length: None,
-				request_score: value.request_rating.into(),
+				request_rating: value.request_rating.into(),
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
 				notify: value.notify
@@ -250,6 +250,7 @@ pub enum LevelRequestApiResponseError {
 	LevelRequestExists,
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
+	RequestNonCreatedLevel,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestDisabled,
 	LevelRequestError
@@ -297,6 +298,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::UserOnCooldown(_, _) => {
 				response.status(Status::TooManyRequests);
 			}
+			LevelRequestApiResponseError::RequestNonCreatedLevel => {
+				response.status(Status::BadRequest);
+			}
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				response.status(Status::Forbidden);
 			}
@@ -329,6 +333,9 @@ impl Display for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				write!(f, "User attempted to edit a request they do not own")
+			}
+			LevelRequestApiResponseError::RequestNonCreatedLevel => {
+				write!(f, "User attempted to request a level they did not create")
 			}
 			LevelRequestApiResponseError::LevelRequestDisabled => {
 				write!(f, "Level requests are disabled")

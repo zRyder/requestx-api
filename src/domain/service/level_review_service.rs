@@ -55,7 +55,6 @@ impl<'a> LevelReviewService<'a> {
 		&self,
 		level_id: u64,
 		reviewer_discord_id: u64,
-		discord_message_id: u64,
 		review_contents: String
 	) -> Result<LevelReview, LevelReviewError> {
 		let level_request_result = if reviewer_discord_id.eq(&APP_CONFIG
@@ -86,7 +85,7 @@ impl<'a> LevelReviewService<'a> {
 
 		let mut level_review = LevelReview {
 			reviewer_discord_id,
-			discord_message_id,
+			discord_message_id: None,
 			level_id,
 			review_contents,
 			is_update: false
@@ -172,7 +171,7 @@ impl<'a> LevelReviewService<'a> {
 				Err(LevelReviewError::LevelRequestDoesNotExist)
 			})?;
 
-		existing_level_review.discord_message_id = discord_message_id;
+		existing_level_review.discord_message_id = Some(discord_message_id);
 		if let Err(update_level_review_error) = self
 			.review_repository
 			.update_record(existing_level_review.into())

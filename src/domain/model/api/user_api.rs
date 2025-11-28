@@ -13,13 +13,9 @@ use rocket_framework::{
 };
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_derive::Deserialize;
-use tokio::runtime::Runtime;
 
 use crate::{
-	domain::{
-		model::discord::user::{DiscordGDAccountLink, DiscordUser},
-		service::internal::request_manager_service::RequestManagerService
-	},
+	domain::model::discord::user::{DiscordGDAccountLink, DiscordUser},
 	rocket::common::constants::TIMESTAMP_HEADER_NAME
 };
 
@@ -48,9 +44,7 @@ impl From<DiscordUser> for GetDiscordUserApiResponse {
 		Self {
 			discord_user_id: value.discord_user_id,
 			last_request_time: value.last_request_time,
-			request_cooldown: Runtime::new()
-				.unwrap()
-				.block_on(RequestManagerService {}.get_request_cooldown())
+			request_cooldown: Duration::zero()
 		}
 	}
 }
@@ -151,18 +145,15 @@ pub struct PostLinkGDAccountResponse {
 	pub discord_id: u64,
 	pub gd_username: String,
 	pub gd_player_id: u64,
-	#[serde(skip_serializing)]
 	pub gd_account_requestx_token: String
 }
 
 impl<'r> Responder<'r, 'r> for PostLinkGDAccountResponse {
 	fn respond_to(self, request: &Request) -> response::Result<'r> {
-		let gd_account_requestx_token = self.gd_account_requestx_token.clone();
 		let json = Json(self);
 		Response::build_from(json.respond_to(&request)?)
 			.status(Status::Created)
 			.raw_header(TIMESTAMP_HEADER_NAME, format!("{}", Local::now()))
-			.raw_header("X-RequestX-GD-Link-Token", gd_account_requestx_token)
 			.header(ContentType::JSON)
 			.ok()
 	}
