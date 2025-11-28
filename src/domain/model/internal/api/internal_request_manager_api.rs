@@ -2,13 +2,13 @@ use chrono::Local;
 use rocket_framework::{
 	http::{ContentType, Status},
 	response::Responder,
-	serde::json::Json,
 	Request, Response
 };
 use serde_derive::{Deserialize, Serialize};
 
 use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
 
+<<<<<<< HEAD
 #[derive(Serialize)]
 pub struct InternalGetRequestConfigApiResponse {
 	pub duration_in_minutes: u64,
@@ -28,6 +28,8 @@ impl<'r> Responder<'r, 'r> for InternalGetRequestConfigApiResponse {
 	}
 }
 
+=======
+>>>>>>> develop
 #[derive(Deserialize)]
 pub struct InternalUpdateRequestConfigApiRequest {
 	#[serde(rename = "duration")]

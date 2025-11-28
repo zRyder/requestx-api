@@ -14,7 +14,7 @@ use crate::{
 				geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
 				moderator_error::ModeratorError
 			},
-			level_request::LevelRequest,
+			gd_level::GDLevelRequest,
 			moderator::{Moderator, SuggestedRating, SuggestedScore}
 		},
 		service::internal::request_manager_service::RequestManagerService
@@ -47,7 +47,7 @@ impl<'a> ModeratorService<'a> {
 		level_id: u64,
 		suggested_rating: SuggestedRating,
 		suggested_score: SuggestedScore
-	) -> Result<(LevelRequest, Moderator), ModeratorError> {
+	) -> Result<(GDLevelRequest, Moderator), ModeratorError> {
 		let mut moderator_data = Moderator {
 			level_id,
 			suggested_score,
@@ -135,7 +135,7 @@ impl<'a> ModeratorService<'a> {
 						return Err(ModeratorError::DatabaseError(db_error));
 					}
 				}
-				Ok((LevelRequest::from(level_request), moderator_data))
+				Ok((GDLevelRequest::from(level_request), moderator_data))
 			}
 			Ok(None) => {
 				warn!("Level request {} does not exist", moderator_data.level_id);

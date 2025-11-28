@@ -4,8 +4,7 @@ use crate::domain::{
 	model::{
 		api::auth_api::Auth,
 		internal::api::internal_request_manager_api::{
-			InternalGetRequestConfigApiResponse, InternalUpdateRequestConfigApiRequest,
-			InternalUpdateRequestConfigApiResponse
+			InternalUpdateRequestConfigApiRequest, InternalUpdateRequestConfigApiResponse
 		}
 	},
 	service::internal::request_manager_service::RequestManagerService

@@ -1,4 +1,4 @@
-use rocket_framework::{serde::json::Json, State};
+use rocket_framework::State;
 use sea_orm::DatabaseConnection;
 
 use crate::{
@@ -11,10 +11,7 @@ use crate::{
 	domain::{
 		model::api::{
 			auth_api::Auth,
-			user_api::{
-				DiscordUserApiResponseError, GetDiscordUserApiResponse, PostLinkGDAccountRequest,
-				PostLinkGDAccountResponse
-			}
+			user_api::{DiscordUserApiResponseError, GetDiscordUserApiResponse}
 		},
 		service::{
 			discord_user_service::DiscordUserService,
@@ -30,11 +27,8 @@ pub async fn get_user(
 	_auth: Auth
 ) -> Result<GetDiscordUserApiResponse, DiscordUserApiResponseError> {
 	let user_repository = UserRepository::new(db_conn);
-	let gd_account_link_repository = GDAccountLinkRepository::new(db_conn);
-	let gd_client = GeometryDashClient::new();
 
-	let user_service =
-		DiscordUserService::new(&user_repository, &gd_account_link_repository, &gd_client);
+	let user_service = DiscordUserService::new(&user_repository);
 
 	match user_service.get_user(discord_user_id).await {
 		Ok(discord_user) => {
