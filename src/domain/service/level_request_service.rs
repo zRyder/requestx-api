@@ -121,8 +121,7 @@ impl<'a> LevelRequestService<'a> {
 		let mut discord_user = self.get_user(discord_user_id).await?;
 		if let Some(level_request_error) = self
 			.check_user_can_request_level(&discord_user, &level_request, &now)
-			.await
-		{
+			.await {
 			return Err(level_request_error);
 		};
 		discord_user.last_request_time = Some(now);
@@ -131,8 +130,7 @@ impl<'a> LevelRequestService<'a> {
 		if let Err(create_or_update_discord_user_error) = self
 			.user_repository
 			.create_or_update_record(discord_user_storable)
-			.await
-		{
+			.await {
 			error!(
 				"Error creating or updating user record: {}",
 				discord_user_id
@@ -175,7 +173,7 @@ impl<'a> LevelRequestService<'a> {
 				"User {} attempted to request while on cooldown",
 				discord_user.discord_user_id
 			);
-			return Some(LevelRequestError::UserOnCooldown(*now, cooldown_duration));
+			return Some(LevelRequestError::UserOnCooldown(discord_user.last_request_time?, cooldown_duration));
 		};
 
 		if !allow_non_user_created_levels
