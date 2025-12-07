@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use chrono::{DateTime, Duration, Local, Utc};
@@ -9,26 +9,26 @@ use rocket_framework::{
 	response,
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_derive::Deserialize;
 
 use crate::{
 	domain::model::discord::user::{DiscordGDAccountLink, DiscordUser},
-	rocket::common::constants::TIMESTAMP_HEADER_NAME
+	rocket::common::constants::TIMESTAMP_HEADER_NAME,
 };
 
 pub struct GetDiscordUserApiResponse {
 	pub discord_user_id: u64,
 	pub last_request_time: Option<DateTime<Utc>>,
-	pub request_cooldown: Duration
+	pub request_cooldown: Duration,
 }
 
 impl Serialize for GetDiscordUserApiResponse {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer
+		S: Serializer,
 	{
 		let mut state = serializer.serialize_struct("LevelRequestApiResponseError", 3)?;
 		state.serialize_field("discord_user_id", &self.discord_user_id)?;
@@ -44,7 +44,7 @@ impl From<DiscordUser> for GetDiscordUserApiResponse {
 		Self {
 			discord_user_id: value.discord_user_id,
 			last_request_time: value.last_request_time,
-			request_cooldown: Duration::zero()
+			request_cooldown: Duration::zero(),
 		}
 	}
 }
@@ -67,7 +67,7 @@ pub enum DiscordUserApiResponseError {
 	GDAccountLinkExpired,
 	InvalidGDAccountLinkToken,
 	DiscordAccountAlreadyLinked,
-	DiscordUserError
+	DiscordUserError,
 }
 
 impl<'r> Responder<'r, 'r> for DiscordUserApiResponseError {
@@ -137,7 +137,7 @@ impl Error for DiscordUserApiResponseError {}
 #[derive(Deserialize)]
 pub struct PostLinkGDAccountRequest<'a> {
 	pub discord_id: u64,
-	pub gd_username: &'a str
+	pub gd_username: &'a str,
 }
 
 #[derive(Serialize)]
@@ -145,7 +145,7 @@ pub struct PostLinkGDAccountResponse {
 	pub discord_id: u64,
 	pub gd_username: String,
 	pub gd_player_id: u64,
-	pub gd_account_requestx_token: String
+	pub gd_account_requestx_token: String,
 }
 
 impl<'r> Responder<'r, 'r> for PostLinkGDAccountResponse {
@@ -165,7 +165,7 @@ impl From<DiscordGDAccountLink> for PostLinkGDAccountResponse {
 			discord_id: value.discord_user_id,
 			gd_player_id: value.gd_player_id,
 			gd_username: value.gd_username,
-			gd_account_requestx_token: value.gd_account_challenge
+			gd_account_requestx_token: value.gd_account_challenge,
 		}
 	}
 }

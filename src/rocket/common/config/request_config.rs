@@ -13,7 +13,7 @@ pub struct RequestConfig {
 	/// related functionality
 	pub enable_gd_requests: bool,
 	/// Allows levels that are not uploaded by the requester to be requested
-	pub allow_non_user_created_levels: bool
+	pub allow_non_user_created_levels: bool,
 }
 
 pub static REQUEST_CONFIG: OnceLock<RwLock<RequestConfig>> = OnceLock::new();

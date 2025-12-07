@@ -4,46 +4,45 @@ use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			level_request_repository::LevelRequestRepository,
-			user_repository::UserRepository
-		}
+			level_request_repository::LevelRequestRepository, user_repository::UserRepository,
+		},
 	},
 	domain::{
 		model::{
 			discord::{message::DiscordMessage, user::DiscordUser},
 			error::level_request_error::LevelRequestError,
-			level_request::{GDLevel, LevelCreator, LevelRequest, RequestRating}
+			level_request::{GDLevel, LevelCreator, LevelRequest, RequestRating},
 		},
-		service::internal::request_manager_service::RequestManagerService
+		service::internal::request_manager_service::RequestManagerService,
 	},
-	rocket::common::{config::common_config::APP_CONFIG, constants::YOUTUBE_LINK_REGEX}
+	rocket::common::{config::common_config::APP_CONFIG, constants::YOUTUBE_LINK_REGEX},
 };
 
 pub struct LevelRequestService<'a> {
 	level_request_repository: &'a LevelRequestRepository<'a>,
 	user_repository: &'a UserRepository<'a>,
 	gd_client: &'a GeometryDashClient,
-	request_manager: &'a RequestManagerService
+	request_manager: &'a RequestManagerService,
 }
 
 impl<'a> LevelRequestService<'a> {
 	pub fn new(
 		level_request_repository: &'a LevelRequestRepository,
 		user_repository: &'a UserRepository,
-		gd_client: &'a GeometryDashClient
+		gd_client: &'a GeometryDashClient,
 	) -> Self {
 		LevelRequestService {
 			level_request_repository,
 			user_repository,
 			gd_client,
-			request_manager: &RequestManagerService {}
+			request_manager: &RequestManagerService {},
 		}
 	}
 
 	pub async fn get_level_request(
 		&self,
 		level_id: u64,
-		has_requested_feedback: Option<bool>
+		has_requested_feedback: Option<bool>,
 	) -> Result<LevelRequest, LevelRequestError> {
 		let get_level_request_result =
 			if let Some(has_requested_feedback_toggle) = has_requested_feedback {
@@ -67,7 +66,7 @@ impl<'a> LevelRequestService<'a> {
 					warn!("Level request with ID {} does not exist", level_id);
 					Err(LevelRequestError::LevelRequestDoesNotExist)
 				},
-				|level_request_record| Ok(LevelRequest::from(level_request_record))
+				|level_request_record| Ok(LevelRequest::from(level_request_record)),
 			)
 	}
 
@@ -78,7 +77,7 @@ impl<'a> LevelRequestService<'a> {
 		discord_user_id: u64,
 		request_rating: RequestRating,
 		has_requested_feedback: bool,
-		notify: bool
+		notify: bool,
 	) -> Result<LevelRequest, LevelRequestError> {
 		if let Some(validate_level_request_error) = self
 			.validate_level_request(level_id, &youtube_video_link)
@@ -95,7 +94,7 @@ impl<'a> LevelRequestService<'a> {
 				|get_gd_level_info_error| {
 					error!("Error getting level info for level {}", level_id);
 					LevelRequestError::GeometryDashClientError(level_id, get_gd_level_info_error)
-				}
+				},
 			)?;
 			LevelRequest::with_gd_level(
 				gd_level,
@@ -105,7 +104,7 @@ impl<'a> LevelRequestService<'a> {
 				youtube_video_link,
 				has_requested_feedback,
 				notify,
-				now
+				now,
 			)
 		} else {
 			LevelRequest::new(
@@ -115,14 +114,15 @@ impl<'a> LevelRequestService<'a> {
 				youtube_video_link,
 				has_requested_feedback,
 				notify,
-				now
+				now,
 			)
 		};
 
 		let mut discord_user = self.get_user(discord_user_id).await?;
 		if let Some(level_request_error) = self
 			.check_user_can_request_level(&discord_user, &level_request, &now)
-			.await {
+			.await
+		{
 			return Err(level_request_error);
 		};
 		discord_user.last_request_time = Some(now);
@@ -131,13 +131,14 @@ impl<'a> LevelRequestService<'a> {
 		if let Err(create_or_update_discord_user_error) = self
 			.user_repository
 			.create_or_update_record(discord_user_storable)
-			.await {
+			.await
+		{
 			error!(
 				"Error creating or updating user record: {}",
 				discord_user_id
 			);
 			return Err(LevelRequestError::DatabaseError(
-				create_or_update_discord_user_error
+				create_or_update_discord_user_error,
 			));
 		}
 
@@ -161,7 +162,7 @@ impl<'a> LevelRequestService<'a> {
 		&self,
 		discord_user: &DiscordUser,
 		level_request: &LevelRequest,
-		now: &DateTime<Utc>
+		now: &DateTime<Utc>,
 	) -> Option<LevelRequestError> {
 		let cooldown_duration = self.request_manager.get_request_cooldown().await;
 		let allow_non_user_created_levels = self
@@ -193,7 +194,7 @@ impl<'a> LevelRequestService<'a> {
 	async fn validate_level_request(
 		&self,
 		level_id: u64,
-		youtube_video_link: &String
+		youtube_video_link: &String,
 	) -> Option<LevelRequestError> {
 		if !self.request_manager.get_enable_request().await {
 			return Some(LevelRequestError::LevelRequestsDisabled);
@@ -216,7 +217,7 @@ impl<'a> LevelRequestService<'a> {
 		youtube_video_link: Option<String>,
 		request_rating: Option<RequestRating>,
 		has_requested_feedback: Option<bool>,
-		notify: Option<bool>
+		notify: Option<bool>,
 	) -> Result<LevelRequest, LevelRequestError> {
 		if youtube_video_link.is_none()
 			&& request_rating.is_none()
@@ -260,7 +261,7 @@ impl<'a> LevelRequestService<'a> {
 			return Err(LevelRequestError::EditUnownedLevelRequest(
 				existing_level_request.level_id,
 				existing_level_request.discord_user_id,
-				discord_user_id
+				discord_user_id,
 			));
 		}
 
@@ -273,9 +274,9 @@ impl<'a> LevelRequestService<'a> {
 			has_requested_feedback,
 			notify,
 			is_gd_requests_enabled,
-			&mut existing_level_request
+			&mut existing_level_request,
 		)
-			.await?;
+		.await?;
 
 		self.level_request_repository
 			.update_record(existing_level_request.into())
@@ -292,7 +293,7 @@ impl<'a> LevelRequestService<'a> {
 
 	pub async fn delete_level_request(
 		&self,
-		level_id: u64
+		level_id: u64,
 	) -> Result<LevelRequest, LevelRequestError> {
 		let existing_level_request = self
 			.level_request_repository
@@ -330,7 +331,7 @@ impl<'a> LevelRequestService<'a> {
 	pub async fn update_level_request_message_id(
 		&self,
 		level_id: u64,
-		discord_message_id: u64
+		discord_message_id: u64,
 	) -> Result<(), LevelRequestError> {
 		let mut existing_level_request = self
 			.level_request_repository
@@ -351,7 +352,7 @@ impl<'a> LevelRequestService<'a> {
 			})?;
 
 		existing_level_request.discord_message_data = Some(DiscordMessage {
-			message_id: discord_message_id
+			message_id: discord_message_id,
 		});
 		if let Err(update_level_request_record) = self
 			.level_request_repository
@@ -363,7 +364,7 @@ impl<'a> LevelRequestService<'a> {
 				level_id, update_level_request_record
 			);
 			return Err(LevelRequestError::DatabaseError(
-				update_level_request_record
+				update_level_request_record,
 			));
 		}
 
@@ -378,7 +379,7 @@ impl<'a> LevelRequestService<'a> {
 		has_requested_feedback: Option<bool>,
 		notify: Option<bool>,
 		is_gd_requests_enabled: bool,
-		level_request: &mut LevelRequest
+		level_request: &mut LevelRequest,
 	) -> Result<(), LevelRequestError> {
 		if let Some(youtube_video_link) = youtube_video_link {
 			level_request.youtube_video_link = youtube_video_link
@@ -406,9 +407,9 @@ impl<'a> LevelRequestService<'a> {
 				name: gd_level.name,
 				creator: LevelCreator {
 					name: gd_level.creator.name,
-					player_id: gd_level.creator.player_id
+					player_id: gd_level.creator.player_id,
 				},
-				level_length: gd_level.level_length
+				level_length: gd_level.level_length,
 			};
 
 			level_request.gd_level = Some(gd_level_to_update);
@@ -417,10 +418,7 @@ impl<'a> LevelRequestService<'a> {
 		Ok(())
 	}
 
-	async fn get_user<'b>(
-		&self,
-		discord_user_id: u64,
-	) -> Result<DiscordUser, LevelRequestError> {
+	async fn get_user<'b>(&self, discord_user_id: u64) -> Result<DiscordUser, LevelRequestError> {
 		Ok(self
 			.user_repository
 			.get_record(discord_user_id)
@@ -449,7 +447,7 @@ impl<'a> LevelRequestService<'a> {
 	fn is_user_on_cooldown(
 		discord_user: &DiscordUser,
 		now: &DateTime<Utc>,
-		cooldown_duration: &Duration
+		cooldown_duration: &Duration,
 	) -> bool {
 		if let Some(discord_user_last_request_time) = discord_user.last_request_time {
 			(discord_user_last_request_time + *cooldown_duration).ge(now)
@@ -460,13 +458,13 @@ impl<'a> LevelRequestService<'a> {
 
 	fn is_user_created_level_request(
 		discord_user: &DiscordUser,
-		level_request: &LevelRequest
+		level_request: &LevelRequest,
 	) -> bool {
 		match (discord_user.gd_player_id, level_request.gd_level.as_ref()) {
 			(Some(discord_user_gd_player_id), Some(gd_level)) => {
 				discord_user_gd_player_id == gd_level.creator.player_id
 			}
-			_ => false
+			_ => false,
 		}
 	}
 }

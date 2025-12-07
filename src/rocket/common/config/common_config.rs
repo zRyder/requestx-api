@@ -1,9 +1,4 @@
-use std::{
-	collections::HashMap,
-	env,
-	fs,
-	sync::OnceLock
-};
+use std::{collections::HashMap, env, fs, sync::OnceLock};
 
 use config::{Config, ConfigError, File, FileFormat};
 use serde_derive::Deserialize;
@@ -14,7 +9,7 @@ use crate::rocket::common::config::{
 	geometry_dash_config::GeometryDashConfig,
 	mysql_database_config::MySqlDatabaseConfig,
 	request_config::{RequestConfig, REQUEST_CONFIG},
-	server_config::ServerConfig
+	server_config::ServerConfig,
 };
 
 #[derive(Debug, Deserialize)]
@@ -22,7 +17,7 @@ pub struct AppConfig {
 	pub server_config: ServerConfig,
 	pub mysql_database_config: MySqlDatabaseConfig,
 	pub auth_config: AuthConfig,
-	pub geometry_dash_config: GeometryDashConfig
+	pub geometry_dash_config: GeometryDashConfig,
 }
 
 pub static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
@@ -30,7 +25,7 @@ pub static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
 pub async fn init_app_config() -> Result<(), ConfigError> {
 	let mut app_config = match read_app_config() {
 		Ok(app_config) => app_config,
-		Err(read_config_error) => return Err(read_config_error)
+		Err(read_config_error) => return Err(read_config_error),
 	};
 
 	init_request_config(&mut app_config).await;

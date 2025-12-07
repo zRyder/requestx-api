@@ -2,34 +2,34 @@ use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			gd_account_link_repository::GDAccountLinkRepository, user_repository::UserRepository
-		}
+			gd_account_link_repository::GDAccountLinkRepository, user_repository::UserRepository,
+		},
 	},
 	domain::model::{
 		discord::user::{DiscordGDAccountLink, DiscordUser, GDAccountLink},
 		error::{
 			discord::discord_error::DiscordError,
-			geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError
-		}
-	}
+			geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
+		},
+	},
 };
 
 pub struct DiscordUserService<'a> {
 	user_repository: &'a UserRepository<'a>,
 	gd_account_link_repository: &'a GDAccountLinkRepository<'a>,
-	geometry_dash_client: &'a GeometryDashClient
+	geometry_dash_client: &'a GeometryDashClient,
 }
 
 impl<'a> DiscordUserService<'a> {
 	pub fn new(
 		user_repository: &'a UserRepository<'a>,
 		gd_account_link_repository: &'a GDAccountLinkRepository,
-		geometry_dash_client: &'a GeometryDashClient
+		geometry_dash_client: &'a GeometryDashClient,
 	) -> Self {
 		DiscordUserService {
 			user_repository,
 			gd_account_link_repository,
-			geometry_dash_client
+			geometry_dash_client,
 		}
 	}
 
@@ -49,14 +49,14 @@ impl<'a> DiscordUserService<'a> {
 					warn!("Discord user with ID {} does not exist", discord_user_id);
 					Err(DiscordError::UserDoesNotExist)
 				},
-				|user_record| Ok(DiscordUser::from(user_record))
+				|user_record| Ok(DiscordUser::from(user_record)),
 			)
 	}
 
 	pub async fn init_gd_account_link(
 		&self,
 		discord_user_id: u64,
-		gd_username: String
+		gd_username: String,
 	) -> Result<DiscordGDAccountLink, DiscordError> {
 		let discord_user = match self.user_repository.get_record(discord_user_id).await {
 			Ok(Some(user_record)) => DiscordUser::from(user_record),
@@ -134,7 +134,7 @@ impl<'a> DiscordUserService<'a> {
 			discord_user.discord_user_id,
 			gd_player_id,
 			gd_username,
-			gd_account_challenge
+			gd_account_challenge,
 		))
 	}
 
@@ -219,7 +219,8 @@ impl<'a> DiscordUserService<'a> {
 					get_gd_public_account_token_error
 				);
 				DiscordError::DiscordError
-			})?;
+			})
+			.map(|token| token.trim().to_string())?;
 
 		let is_valid = gd_account_link
 			.verify_account_link(&gd_public_account_token)
@@ -256,7 +257,7 @@ impl<'a> DiscordUserService<'a> {
 				update_gd_account_link_record_error
 			);
 			return Err(DiscordError::DatabaseError(
-				update_gd_account_link_record_error
+				update_gd_account_link_record_error,
 			));
 		};
 

@@ -1,15 +1,15 @@
 use rocket_framework::{futures::io, serde::json::Json};
 
+use crate::domain::model::internal::api::internal_request_manager_api::InternalGetRequestConfigApiResponse;
 use crate::domain::{
 	model::{
 		api::auth_api::Auth,
 		internal::api::internal_request_manager_api::{
-			InternalUpdateRequestConfigApiRequest, InternalUpdateRequestConfigApiResponse
-		}
+			InternalUpdateRequestConfigApiRequest, InternalUpdateRequestConfigApiResponse,
+		},
 	},
-	service::internal::request_manager_service::RequestManagerService
+	service::internal::request_manager_service::RequestManagerService,
 };
-use crate::domain::model::internal::api::internal_request_manager_api::InternalGetRequestConfigApiResponse;
 
 #[get("/request_config")]
 pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiResponse> {
@@ -25,7 +25,7 @@ pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiRespo
 			.unsigned_abs(),
 		allow_non_user_created_levels: request_manager_service
 			.get_allow_non_user_created_levels()
-			.await
+			.await,
 	};
 
 	Ok(response)
@@ -38,7 +38,7 @@ pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiRespo
 )]
 pub async fn update_request_cooldown<'a>(
 	update_request_config_body: Json<InternalUpdateRequestConfigApiRequest>,
-	_auth: Auth
+	_auth: Auth,
 ) -> io::Result<InternalUpdateRequestConfigApiResponse> {
 	let request_manager_service = RequestManagerService {};
 

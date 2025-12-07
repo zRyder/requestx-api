@@ -3,7 +3,7 @@ use rocket_framework::{
 	http::{ContentType, Status},
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 use serde_derive::{Deserialize, Serialize};
 
@@ -11,10 +11,11 @@ use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
 
 #[derive(Serialize)]
 pub struct InternalGetRequestConfigApiResponse {
+	#[serde(rename = "duration")]
 	pub duration_in_minutes: u64,
 	pub enable_requests: bool,
 	pub enable_gd_requests: bool,
-	pub allow_non_user_created_levels: bool
+	pub allow_non_user_created_levels: bool,
 }
 
 impl<'r> Responder<'r, 'r> for InternalGetRequestConfigApiResponse {
@@ -34,7 +35,7 @@ pub struct InternalUpdateRequestConfigApiRequest {
 	pub duration_in_minutes: Option<u64>,
 	pub enable_requests: Option<bool>,
 	pub enable_gd_requests: Option<bool>,
-	pub allow_non_user_created_levels: Option<bool>
+	pub allow_non_user_created_levels: Option<bool>,
 }
 
 #[derive(Serialize)]

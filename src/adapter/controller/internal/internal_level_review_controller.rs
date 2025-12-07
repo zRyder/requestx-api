@@ -6,21 +6,21 @@ use crate::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
 			level_request_repository::LevelRequestRepository, review_repository::ReviewRepository,
-			user_repository::UserRepository
-		}
+			user_repository::UserRepository,
+		},
 	},
 	domain::{
 		model::{
 			api::{auth_api::Auth, level_review_api::LevelReviewApiResponseError},
 			internal::api::internal_level_review_api::{
 				InternalUpdateLevelReviewDiscordDataApiResponse,
-				InternalUpdateLevelReviewMessageIdApiRequest
-			}
+				InternalUpdateLevelReviewMessageIdApiRequest,
+			},
 		},
 		service::{
-			level_request_service::LevelRequestService, level_review_service::LevelReviewService
-		}
-	}
+			level_request_service::LevelRequestService, level_review_service::LevelReviewService,
+		},
+	},
 };
 
 #[patch(
@@ -32,7 +32,7 @@ use crate::{
 pub async fn update_level_review_message_id<'a>(
 	db_conn: &State<DatabaseConnection>,
 	update_level_review_message_id_body: Json<InternalUpdateLevelReviewMessageIdApiRequest>,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<InternalUpdateLevelReviewDiscordDataApiResponse, LevelReviewApiResponseError> {
 	let level_review_repository = ReviewRepository::new(db_conn);
 	let level_request_repository = LevelRequestRepository::new(db_conn);
@@ -47,11 +47,11 @@ pub async fn update_level_review_message_id<'a>(
 		.update_level_request_thread_id(
 			update_level_review_message_id_body.level_id,
 			update_level_review_message_id_body.discord_id,
-			update_level_review_message_id_body.discord_message_id
+			update_level_review_message_id_body.discord_message_id,
 		)
 		.await
 	{
 		Ok(()) => Ok(InternalUpdateLevelReviewDiscordDataApiResponse {}),
-		Err(update_level_review_error) => Err(update_level_review_error.into())
+		Err(update_level_review_error) => Err(update_level_review_error.into()),
 	}
 }

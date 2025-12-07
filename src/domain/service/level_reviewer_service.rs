@@ -2,24 +2,24 @@ use sea_orm::ActiveValue;
 
 use crate::{
 	adapter::mysql::{model::reviewer::ActiveModel, reviewer_repository::ReviewerRepository},
-	domain::model::{error::reviewer_error::ReviewerError, reviewer::Reviewer}
+	domain::model::{error::reviewer_error::ReviewerError, reviewer::Reviewer},
 };
 
 pub struct LevelReviewerService<'a> {
-	reviewer_repository: &'a ReviewerRepository<'a>
+	reviewer_repository: &'a ReviewerRepository<'a>,
 }
 
 impl<'a> LevelReviewerService<'a> {
 	pub fn new(reviewer_repository: &'a ReviewerRepository) -> Self {
 		LevelReviewerService {
-			reviewer_repository
+			reviewer_repository,
 		}
 	}
 
 	pub async fn get_reviewer(
 		&self,
 		reviewer_discord_id: u64,
-		include_active: Option<bool>
+		include_active: Option<bool>,
 	) -> Result<Reviewer, ReviewerError> {
 		match self
 			.reviewer_repository
@@ -66,7 +66,7 @@ impl<'a> LevelReviewerService<'a> {
 			Err(ReviewerError::ReviewerDoesNotExist) => {
 				let level_reviewer = Reviewer {
 					discord_id: reviewer_discord_id,
-					is_active: true
+					is_active: true,
 				};
 
 				if let Err(db_err) = self
@@ -81,7 +81,7 @@ impl<'a> LevelReviewerService<'a> {
 					return Err(ReviewerError::DatabaseError(db_err));
 				}
 			}
-			Err(reviewer_error) => return Err(reviewer_error)
+			Err(reviewer_error) => return Err(reviewer_error),
 		}
 		Ok(())
 	}
@@ -104,7 +104,7 @@ impl<'a> LevelReviewerService<'a> {
 					return Err(ReviewerError::DatabaseError(db_err));
 				}
 			}
-			Err(reviewer_error) => return Err(reviewer_error)
+			Err(reviewer_error) => return Err(reviewer_error),
 		}
 
 		Ok(())

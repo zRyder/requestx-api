@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Debug, Display, Formatter}
+	fmt::{Debug, Display, Formatter},
 };
 
 use chrono::{DateTime, Duration, Local, Utc};
@@ -10,7 +10,7 @@ use rocket_framework::{
 	response,
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 use serde::{ser::SerializeStruct, Serializer};
 use serde_derive::Deserialize;
@@ -20,9 +20,9 @@ use crate::{
 		internal::api::moderator_api::{SuggestedRating, SuggestedScore},
 		level_request,
 		level_request::LevelRequest,
-		moderator::Moderator
+		moderator::Moderator,
 	},
-	rocket::common::constants::TIMESTAMP_HEADER_NAME
+	rocket::common::constants::TIMESTAMP_HEADER_NAME,
 };
 
 #[derive(Serialize)]
@@ -37,7 +37,7 @@ pub struct GetLevelRequestApiResponse {
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
 	pub notify: bool,
-	pub timestamp: DateTime<Utc>
+	pub timestamp: DateTime<Utc>,
 }
 
 impl From<LevelRequest> for GetLevelRequestApiResponse {
@@ -58,7 +58,7 @@ impl From<LevelRequest> for GetLevelRequestApiResponse {
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
 				notify: value.notify,
-				timestamp: value.timestamp
+				timestamp: value.timestamp,
 			}
 		} else {
 			Self {
@@ -76,7 +76,7 @@ impl From<LevelRequest> for GetLevelRequestApiResponse {
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
 				notify: value.notify,
-				timestamp: value.timestamp
+				timestamp: value.timestamp,
 			}
 		}
 	}
@@ -96,7 +96,7 @@ impl<'r> Responder<'r, 'r> for GetLevelRequestApiResponse {
 #[derive(Serialize)]
 pub struct PostSendLevelRequestApiResponse {
 	pub level_request: GetLevelRequestApiResponse,
-	pub moderator_data: ModeratorDataApiResponse
+	pub moderator_data: ModeratorDataApiResponse,
 }
 
 impl From<(LevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
@@ -118,12 +118,12 @@ impl From<(LevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
 					youtube_video_link: value.0.youtube_video_link,
 					has_requested_feedback: value.0.has_requested_feedback,
 					notify: value.0.notify,
-					timestamp: value.0.timestamp
+					timestamp: value.0.timestamp,
 				},
 				moderator_data: ModeratorDataApiResponse {
 					suggested_score: value.1.suggested_score.into(),
-					suggested_rating: value.1.suggested_rating.into()
-				}
+					suggested_rating: value.1.suggested_rating.into(),
+				},
 			}
 		} else {
 			Self {
@@ -142,12 +142,12 @@ impl From<(LevelRequest, Moderator)> for PostSendLevelRequestApiResponse {
 					youtube_video_link: value.0.youtube_video_link,
 					has_requested_feedback: value.0.has_requested_feedback,
 					notify: value.0.notify,
-					timestamp: value.0.timestamp
+					timestamp: value.0.timestamp,
 				},
 				moderator_data: ModeratorDataApiResponse {
 					suggested_score: value.1.suggested_score.into(),
-					suggested_rating: value.1.suggested_rating.into()
-				}
+					suggested_rating: value.1.suggested_rating.into(),
+				},
 			}
 		}
 	}
@@ -167,7 +167,7 @@ impl<'r> Responder<'r, 'r> for PostSendLevelRequestApiResponse {
 #[derive(Serialize)]
 pub struct ModeratorDataApiResponse {
 	pub suggested_score: SuggestedScore,
-	pub suggested_rating: SuggestedRating
+	pub suggested_rating: SuggestedRating,
 }
 
 #[derive(Deserialize)]
@@ -177,7 +177,7 @@ pub struct PostLevelRequestApiRequest<'a> {
 	pub discord_id: u64,
 	pub request_rating: RequestRating,
 	pub has_requested_feedback: bool,
-	pub notify: bool
+	pub notify: bool,
 }
 
 #[derive(Serialize)]
@@ -190,7 +190,7 @@ pub struct PostLevelRequestApiResponse {
 	pub request_rating: RequestRating,
 	pub youtube_video_link: String,
 	pub has_requested_feedback: bool,
-	pub notify: bool
+	pub notify: bool,
 }
 
 #[derive(Deserialize)]
@@ -200,7 +200,7 @@ pub struct PatchLevelRequestApiRequest<'a> {
 	pub youtube_video_link: Option<&'a str>,
 	pub request_rating: Option<RequestRating>,
 	pub has_requested_feedback: Option<bool>,
-	pub notify: Option<bool>
+	pub notify: Option<bool>,
 }
 
 impl From<LevelRequest> for PostLevelRequestApiResponse {
@@ -215,7 +215,7 @@ impl From<LevelRequest> for PostLevelRequestApiResponse {
 				request_rating: value.request_rating.into(),
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
-				notify: value.notify
+				notify: value.notify,
 			}
 		} else {
 			Self {
@@ -227,7 +227,7 @@ impl From<LevelRequest> for PostLevelRequestApiResponse {
 				request_rating: value.request_rating.into(),
 				youtube_video_link: value.youtube_video_link,
 				has_requested_feedback: value.has_requested_feedback,
-				notify: value.notify
+				notify: value.notify,
 			}
 		}
 	}
@@ -253,13 +253,13 @@ pub enum LevelRequestApiResponseError {
 	RequestNonCreatedLevel,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestDisabled,
-	LevelRequestError
+	LevelRequestError,
 }
 
 impl Serialize for LevelRequestApiResponseError {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer
+		S: Serializer,
 	{
 		let mut state = serializer.serialize_struct("LevelRequestApiResponseError", 3)?;
 
@@ -360,7 +360,7 @@ pub enum RequestRating {
 	Seven,
 	Eight,
 	Nine,
-	Ten
+	Ten,
 }
 
 impl Into<level_request::RequestRating> for RequestRating {
@@ -375,7 +375,7 @@ impl Into<level_request::RequestRating> for RequestRating {
 			RequestRating::Seven => level_request::RequestRating::Seven,
 			RequestRating::Eight => level_request::RequestRating::Eight,
 			RequestRating::Nine => level_request::RequestRating::Nine,
-			RequestRating::Ten => level_request::RequestRating::Ten
+			RequestRating::Ten => level_request::RequestRating::Ten,
 		}
 	}
 }
@@ -387,7 +387,7 @@ pub enum LevelLength {
 	Medium,
 	Long,
 	ExtraLong,
-	Platformer
+	Platformer,
 }
 
 impl Into<level_request::LevelLength> for LevelLength {
@@ -398,7 +398,7 @@ impl Into<level_request::LevelLength> for LevelLength {
 			LevelLength::Medium => level_request::LevelLength::Medium,
 			LevelLength::Long => level_request::LevelLength::Long,
 			LevelLength::ExtraLong => level_request::LevelLength::ExtraLong,
-			LevelLength::Platformer => level_request::LevelLength::Platformer
+			LevelLength::Platformer => level_request::LevelLength::Platformer,
 		}
 	}
 }

@@ -1,7 +1,7 @@
 use std::{
 	error::Error,
 	fmt,
-	fmt::{Debug, Display, Formatter}
+	fmt::{Debug, Display, Formatter},
 };
 
 #[derive(Debug)]
@@ -11,7 +11,7 @@ pub enum GeometryDashDashrsError {
 	LevelNotFoundError(u64),
 	UserNotFoundError(String),
 	LevelAlreadyRated(u64),
-	NoProfileCommentsFound
+	NoProfileCommentsFound,
 }
 
 impl Display for GeometryDashDashrsError {
@@ -57,7 +57,7 @@ impl PartialEq for GeometryDashDashrsError {
 			(Self::DashrsError(s1), Self::DashrsError(s2)) => s1 == s2,
 			(Self::LevelNotFoundError(n1), Self::LevelNotFoundError(n2)) => n1 == n2,
 			(Self::UserNotFoundError(n1), Self::UserNotFoundError(n2)) => n1 == n2,
-			_ => false
+			_ => false,
 		}
 	}
 }

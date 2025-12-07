@@ -1,6 +1,6 @@
 use std::{
 	borrow::Cow,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use chrono::Local;
@@ -10,7 +10,7 @@ use rocket_framework::{
 	response,
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 
 use crate::{domain::model::review::LevelReview, rocket::common::constants::TIMESTAMP_HEADER_NAME};
@@ -20,7 +20,7 @@ pub struct GetLevelReviewApiRespnse {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
 	pub discord_message_id: Option<u64>,
-	pub review_contents: String
+	pub review_contents: String,
 }
 
 impl From<LevelReview> for GetLevelReviewApiRespnse {
@@ -29,7 +29,7 @@ impl From<LevelReview> for GetLevelReviewApiRespnse {
 			level_id: value.level_id,
 			reviewer_discord_id: value.reviewer_discord_id,
 			discord_message_id: value.discord_message_id,
-			review_contents: value.review_contents
+			review_contents: value.review_contents,
 		}
 	}
 }
@@ -49,7 +49,7 @@ impl<'r> Responder<'r, 'r> for GetLevelReviewApiRespnse {
 pub struct LevelReviewApiRequest<'a> {
 	pub level_id: u64,
 	pub reviewer_discord_id: u64,
-	pub review_contents: Cow<'a, str>
+	pub review_contents: Cow<'a, str>,
 }
 
 #[derive(Serialize)]
@@ -58,7 +58,7 @@ pub struct LevelReviewApiResponse {
 	pub reviewer_discord_id: u64,
 	pub discord_message_id: Option<u64>,
 	pub review_contents: String,
-	pub is_update: bool
+	pub is_update: bool,
 }
 
 impl From<LevelReview> for LevelReviewApiResponse {
@@ -68,7 +68,7 @@ impl From<LevelReview> for LevelReviewApiResponse {
 			reviewer_discord_id: value.reviewer_discord_id,
 			discord_message_id: value.discord_message_id,
 			review_contents: value.review_contents,
-			is_update: value.is_update
+			is_update: value.is_update,
 		}
 	}
 }
@@ -93,7 +93,7 @@ impl<'r> Responder<'r, 'r> for LevelReviewApiResponse {
 #[derive(Debug, PartialEq)]
 pub enum LevelReviewApiResponseError {
 	LevelRequestDoesNotExist,
-	LevelReviewError
+	LevelReviewError,
 }
 
 impl<'r> Responder<'r, 'r> for LevelReviewApiResponseError {

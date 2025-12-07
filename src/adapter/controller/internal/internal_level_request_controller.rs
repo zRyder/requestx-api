@@ -5,19 +5,19 @@ use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			level_request_repository::LevelRequestRepository, user_repository::UserRepository
-		}
+			level_request_repository::LevelRequestRepository, user_repository::UserRepository,
+		},
 	},
 	domain::{
 		model::{
 			api::{auth_api::Auth, level_request_api::LevelRequestApiResponseError},
 			internal::api::internal_level_request_api::{
 				InternalUpdateLevelRequestDiscordDataApiResponse,
-				InternalUpdateLevelRequestMessageIdApiRequest
-			}
+				InternalUpdateLevelRequestMessageIdApiRequest,
+			},
 		},
-		service::level_request_service::LevelRequestService
-	}
+		service::level_request_service::LevelRequestService,
+	},
 };
 
 #[patch(
@@ -29,7 +29,7 @@ use crate::{
 pub async fn update_level_request_message_id<'a>(
 	db_conn: &State<DatabaseConnection>,
 	update_level_request_message_id_body: Json<InternalUpdateLevelRequestMessageIdApiRequest>,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<InternalUpdateLevelRequestDiscordDataApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = LevelRequestRepository::new(db_conn);
 	let user_repository = UserRepository::new(db_conn);
@@ -40,11 +40,11 @@ pub async fn update_level_request_message_id<'a>(
 	match level_request_service
 		.update_level_request_message_id(
 			update_level_request_message_id_body.level_id,
-			update_level_request_message_id_body.discord_message_id
+			update_level_request_message_id_body.discord_message_id,
 		)
 		.await
 	{
 		Ok(()) => Ok(InternalUpdateLevelRequestDiscordDataApiResponse {}),
-		Err(update_level_request_error) => Err(update_level_request_error.into())
+		Err(update_level_request_error) => Err(update_level_request_error.into()),
 	}
 }

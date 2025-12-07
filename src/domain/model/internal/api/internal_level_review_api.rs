@@ -2,7 +2,7 @@ use chrono::Local;
 use rocket_framework::{
 	http::{ContentType, Status},
 	response::Responder,
-	Request, Response
+	Request, Response,
 };
 use serde_derive::{Deserialize, Serialize};
 
@@ -12,7 +12,7 @@ use crate::rocket::common::constants::TIMESTAMP_HEADER_NAME;
 pub struct InternalUpdateLevelReviewMessageIdApiRequest {
 	pub level_id: u64,
 	pub discord_id: u64,
-	pub discord_message_id: u64
+	pub discord_message_id: u64,
 }
 
 #[derive(Serialize)]

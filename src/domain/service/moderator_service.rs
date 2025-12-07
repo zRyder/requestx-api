@@ -5,40 +5,40 @@ use crate::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
 			level_request_repository::LevelRequestRepository,
-			moderator_repository::ModeratorRepository
-		}
+			moderator_repository::ModeratorRepository,
+		},
 	},
 	domain::{
 		model::{
 			error::{
 				geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
-				moderator_error::ModeratorError
+				moderator_error::ModeratorError,
 			},
 			level_request::LevelRequest,
-			moderator::{Moderator, SuggestedRating, SuggestedScore}
+			moderator::{Moderator, SuggestedRating, SuggestedScore},
 		},
-		service::internal::request_manager_service::RequestManagerService
-	}
+		service::internal::request_manager_service::RequestManagerService,
+	},
 };
 
 pub struct ModeratorService<'a> {
 	moderator_repository: &'a ModeratorRepository<'a>,
 	level_request_repository: &'a LevelRequestRepository<'a>,
 	gd_client: &'a GeometryDashClient,
-	request_manager: &'a RequestManagerService
+	request_manager: &'a RequestManagerService,
 }
 
 impl<'a> ModeratorService<'a> {
 	pub fn new(
 		moderator_repository: &'a ModeratorRepository,
 		level_request_repository: &'a LevelRequestRepository,
-		gd_client: &'a GeometryDashClient
+		gd_client: &'a GeometryDashClient,
 	) -> Self {
 		ModeratorService {
 			moderator_repository,
 			level_request_repository,
 			gd_client,
-			request_manager: &RequestManagerService {}
+			request_manager: &RequestManagerService {},
 		}
 	}
 
@@ -46,12 +46,12 @@ impl<'a> ModeratorService<'a> {
 		&self,
 		level_id: u64,
 		suggested_rating: SuggestedRating,
-		suggested_score: SuggestedScore
+		suggested_score: SuggestedScore,
 	) -> Result<(LevelRequest, Moderator), ModeratorError> {
 		let mut moderator_data = Moderator {
 			level_id,
 			suggested_score,
-			suggested_rating
+			suggested_rating,
 		};
 
 		match self
@@ -62,7 +62,7 @@ impl<'a> ModeratorService<'a> {
 			Ok(Some(level_request)) => {
 				if self.request_manager.get_enable_gd_request().await
 					&& (moderator_data.suggested_score != SuggestedScore::NoRate
-					&& moderator_data.suggested_score != SuggestedScore::Rated)
+						&& moderator_data.suggested_score != SuggestedScore::Rated)
 				{
 					if let Err(dashrs_error) = self.gd_client.send_gd_level(moderator_data).await {
 						match dashrs_error {

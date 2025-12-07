@@ -7,11 +7,11 @@ use crate::{
 		model::api::{
 			auth_api::Auth,
 			reviewer_api::{
-				CreateReviewerApiRequest, GetReviewerApiResponse, ReviewerApiResponseError
-			}
+				CreateReviewerApiRequest, GetReviewerApiResponse, ReviewerApiResponseError,
+			},
 		},
-		service::level_reviewer_service::LevelReviewerService
-	}
+		service::level_reviewer_service::LevelReviewerService,
+	},
 };
 
 #[get("/reviewer/<reviewer_discord_id>?<is_active>")]
@@ -19,7 +19,7 @@ pub async fn get_reviewer(
 	db_conn: &State<DatabaseConnection>,
 	reviewer_discord_id: u64,
 	is_active: bool,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<GetReviewerApiResponse, ReviewerApiResponseError> {
 	let reviewer_repository = ReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
@@ -29,7 +29,7 @@ pub async fn get_reviewer(
 		.await
 	{
 		Ok(reviewer) => Ok(GetReviewerApiResponse::from(reviewer)),
-		Err(get_reviewer_error) => Err(get_reviewer_error.into())
+		Err(get_reviewer_error) => Err(get_reviewer_error.into()),
 	}
 }
 
@@ -37,7 +37,7 @@ pub async fn get_reviewer(
 pub async fn create_reviewer(
 	db_conn: &State<DatabaseConnection>,
 	create_reviewer_api_request: Json<CreateReviewerApiRequest>,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<(), ReviewerApiResponseError> {
 	let reviewer_repository = ReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
@@ -47,7 +47,7 @@ pub async fn create_reviewer(
 		.await
 	{
 		Ok(()) => Ok(()),
-		Err(create_reviewer_error) => Err(create_reviewer_error.into())
+		Err(create_reviewer_error) => Err(create_reviewer_error.into()),
 	}
 }
 
@@ -55,13 +55,13 @@ pub async fn create_reviewer(
 pub async fn remove_reviewer(
 	db_conn: &State<DatabaseConnection>,
 	reviewer_discord_id: u64,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<(), ReviewerApiResponseError> {
 	let reviewer_repository = ReviewerRepository::new(&db_conn);
 	let reviewer_service = LevelReviewerService::new(&reviewer_repository);
 
 	match reviewer_service.remove_reviewer(reviewer_discord_id).await {
 		Ok(()) => Ok(()),
-		Err(create_reviewer_error) => Err(create_reviewer_error.into())
+		Err(create_reviewer_error) => Err(create_reviewer_error.into()),
 	}
 }

@@ -1,22 +1,24 @@
 use sea_orm::{
 	ColumnTrait, DatabaseConnection, DbConn, DbErr, DeleteResult, EntityTrait, InsertResult,
-	QueryFilter
+	QueryFilter,
 };
 
 use crate::adapter::mysql::model::{level_request, prelude::LevelRequest};
 
 pub struct LevelRequestRepository<'a> {
-	db_conn: &'a DatabaseConnection
+	db_conn: &'a DatabaseConnection,
 }
 
 // TODO: Figure out testing with lifetime param
 // #[cfg_attr(test, mockall::automock)]
 impl<'a> LevelRequestRepository<'a> {
-	pub fn new(db_conn: &'a DbConn) -> Self { LevelRequestRepository { db_conn } }
+	pub fn new(db_conn: &'a DbConn) -> Self {
+		LevelRequestRepository { db_conn }
+	}
 
 	pub async fn create_record(
 		&self,
-		record: level_request::ActiveModel
+		record: level_request::ActiveModel,
 	) -> Result<InsertResult<level_request::ActiveModel>, DbErr> {
 		LevelRequest::insert(record).exec(self.db_conn).await
 	}
@@ -28,7 +30,7 @@ impl<'a> LevelRequestRepository<'a> {
 	pub async fn get_record_filter_feedback(
 		&self,
 		level_id: u64,
-		has_requested_feedback: bool
+		has_requested_feedback: bool,
 	) -> Result<Option<level_request::Model>, DbErr> {
 		LevelRequest::find_by_id(level_id)
 			.filter(level_request::Column::HasRequestedFeedback.eq(has_requested_feedback))
@@ -38,14 +40,14 @@ impl<'a> LevelRequestRepository<'a> {
 
 	pub async fn update_record(
 		&self,
-		record: level_request::ActiveModel
+		record: level_request::ActiveModel,
 	) -> Result<level_request::Model, DbErr> {
 		LevelRequest::update(record).exec(self.db_conn).await
 	}
 
 	pub async fn delete_record(
 		&self,
-		record: level_request::ActiveModel
+		record: level_request::ActiveModel,
 	) -> Result<DeleteResult, DbErr> {
 		LevelRequest::delete(record).exec(self.db_conn).await
 	}

@@ -1,7 +1,7 @@
 use std::{
 	error::Error,
 	fmt,
-	fmt::{Debug, Display, Formatter}
+	fmt::{Debug, Display, Formatter},
 };
 
 use chrono::{DateTime, Duration, Utc};
@@ -9,7 +9,7 @@ use sea_orm::DbErr;
 
 use crate::domain::model::{
 	api::level_request_api::LevelRequestApiResponseError,
-	error::geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError
+	error::geometry_dash::geometry_dash_dashrs_error::GeometryDashDashrsError,
 };
 
 #[derive(Debug, PartialEq)]
@@ -22,7 +22,7 @@ pub enum LevelRequestError {
 	RequestNonCreatedLevel,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestsDisabled,
-	GeometryDashClientError(u64, GeometryDashDashrsError)
+	GeometryDashClientError(u64, GeometryDashDashrsError),
 }
 
 impl Display for LevelRequestError {
@@ -56,7 +56,7 @@ impl Display for LevelRequestError {
 			LevelRequestError::EditUnownedLevelRequest(
 				_level_id,
 				_discord_user_id,
-				_requested_discord_user_id
+				_requested_discord_user_id,
 			) => {
 				write!(f, "The user attempted to edit a request they do not own.")
 			}
@@ -96,11 +96,11 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			LevelRequestError::EditUnownedLevelRequest(
 				level_id,
 				discord_user_id,
-				requested_discord_user_id
+				requested_discord_user_id,
 			) => LevelRequestApiResponseError::EditUnownedLevelRequest(
 				level_id,
 				discord_user_id,
-				requested_discord_user_id
+				requested_discord_user_id,
 			),
 			LevelRequestError::LevelRequestsDisabled => {
 				LevelRequestApiResponseError::LevelRequestDisabled

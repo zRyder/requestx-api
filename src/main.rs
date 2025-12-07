@@ -9,12 +9,12 @@ use rocket_framework::Config;
 use crate::{
 	adapter::controller::{
 		auth_controller, health, level_request_controller, level_review_controller,
-		reviewer_controller, user_controller
+		reviewer_controller, user_controller,
 	},
 	rocket::common::{
 		config::common_config::{init_app_config, APP_CONFIG},
-		internal::internal::mount_internal_controllers
-	}
+		internal::internal::mount_internal_controllers,
+	},
 };
 
 #[launch]
@@ -46,7 +46,7 @@ async fn launch() -> _ {
 	let mut rocket = rocket_framework::custom(
 		Config::figment()
 			.merge(("address", &APP_CONFIG.get().unwrap().server_config.host))
-			.merge(("port", &APP_CONFIG.get().unwrap().server_config.port))
+			.merge(("port", &APP_CONFIG.get().unwrap().server_config.port)),
 	);
 
 	rocket = rocket.manage(db_conn).mount(
@@ -66,7 +66,7 @@ async fn launch() -> _ {
 			reviewer_controller::create_reviewer,
 			reviewer_controller::remove_reviewer,
 			health::get_health
-		]
+		],
 	);
 
 	mount_internal_controllers(rocket)

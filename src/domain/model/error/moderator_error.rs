@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use sea_orm::DbErr;
@@ -12,7 +12,7 @@ pub enum ModeratorError {
 	DatabaseError(DbErr),
 	LevelRequestDoesNotExists,
 	UnsendableLevel,
-	GeometryDashDashrsError
+	GeometryDashDashrsError,
 }
 
 impl Display for ModeratorError {
@@ -42,7 +42,7 @@ impl Into<ModeratorApiResponseError> for ModeratorError {
 				ModeratorApiResponseError::LevelRequestDoesNotExist
 			}
 			ModeratorError::UnsendableLevel => ModeratorApiResponseError::UnsendableLevel,
-			ModeratorError::GeometryDashDashrsError => ModeratorApiResponseError::ModeratorError
+			ModeratorError::GeometryDashDashrsError => ModeratorApiResponseError::ModeratorError,
 		}
 	}
 }
