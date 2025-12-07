@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use sea_orm::DbErr;
@@ -10,7 +10,7 @@ use crate::domain::model::api::reviewer_api::ReviewerApiResponseError;
 #[derive(Debug, PartialEq)]
 pub enum ReviewerError {
 	DatabaseError(DbErr),
-	ReviewerDoesNotExist
+	ReviewerDoesNotExist,
 }
 
 impl Display for ReviewerError {
@@ -34,7 +34,7 @@ impl Into<ReviewerApiResponseError> for ReviewerError {
 	fn into(self) -> ReviewerApiResponseError {
 		match self {
 			ReviewerError::DatabaseError(_) => ReviewerApiResponseError::ReviewerError,
-			ReviewerError::ReviewerDoesNotExist => ReviewerApiResponseError::ReviewerDoesNotExist
+			ReviewerError::ReviewerDoesNotExist => ReviewerApiResponseError::ReviewerDoesNotExist,
 		}
 	}
 }

@@ -6,21 +6,21 @@ use crate::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
 			level_request_repository::LevelRequestRepository, review_repository::ReviewRepository,
-			user_repository::UserRepository
-		}
+			user_repository::UserRepository,
+		},
 	},
 	domain::{
 		model::api::{
 			auth_api::Auth,
 			level_review_api::{
 				GetLevelReviewApiRespnse, LevelReviewApiRequest, LevelReviewApiResponse,
-				LevelReviewApiResponseError
-			}
+				LevelReviewApiResponseError,
+			},
 		},
 		service::{
-			level_request_service::LevelRequestService, level_review_service::LevelReviewService
-		}
-	}
+			level_request_service::LevelRequestService, level_review_service::LevelReviewService,
+		},
+	},
 };
 
 #[get("/review_level/<level_id>?<discord_id>")]
@@ -28,7 +28,7 @@ pub async fn get_level_review(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
 	discord_id: u64,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<GetLevelReviewApiRespnse, LevelReviewApiResponseError> {
 	let level_review_repository = ReviewRepository::new(db_conn);
 	let level_request_repository = LevelRequestRepository::new(db_conn);
@@ -45,7 +45,7 @@ pub async fn get_level_review(
 		.await
 	{
 		Ok(level_review) => Ok(GetLevelReviewApiRespnse::from(level_review)),
-		Err(get_level_review_error) => Err(get_level_review_error.into())
+		Err(get_level_review_error) => Err(get_level_review_error.into()),
 	}
 }
 
@@ -53,7 +53,7 @@ pub async fn get_level_review(
 pub async fn review_level<'a>(
 	db_conn: &State<DatabaseConnection>,
 	level_review_body: Json<LevelReviewApiRequest<'a>>,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<LevelReviewApiResponse, LevelReviewApiResponseError> {
 	let level_review_repository = ReviewRepository::new(db_conn);
 	let level_request_repository = LevelRequestRepository::new(db_conn);
@@ -69,11 +69,11 @@ pub async fn review_level<'a>(
 		.review_level(
 			level_review_body.level_id,
 			level_review_body.reviewer_discord_id,
-			level_review_body.review_contents.to_string()
+			level_review_body.review_contents.to_string(),
 		)
 		.await
 	{
 		Ok(level_review_info) => Ok(LevelReviewApiResponse::from(level_review_info)),
-		Err(level_review_error) => Err(level_review_error.into())
+		Err(level_review_error) => Err(level_review_error.into()),
 	}
 }

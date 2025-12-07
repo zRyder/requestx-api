@@ -5,7 +5,7 @@ use rocket_framework::{
 	http::{ContentType, Status},
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 use serde_derive::{Deserialize, Serialize};
 
@@ -15,13 +15,13 @@ use crate::{domain::model::moderator, rocket::common::constants::TIMESTAMP_HEADE
 pub struct PostModeratorApiRequest {
 	pub level_id: u64,
 	pub suggested_score: SuggestedScore,
-	pub suggested_rating: SuggestedRating
+	pub suggested_rating: SuggestedRating,
 }
 
 pub enum ModeratorApiResponseError {
 	LevelRequestDoesNotExist,
 	UnsendableLevel,
-	ModeratorError
+	ModeratorError,
 }
 
 #[derive(Deserialize, Serialize, Clone, Copy)]
@@ -37,7 +37,7 @@ pub enum SuggestedScore {
 	Seven,
 	Eight,
 	Nine,
-	Ten
+	Ten,
 }
 
 impl<'r> Responder<'r, 'r> for ModeratorApiResponseError {
@@ -94,7 +94,7 @@ impl Into<moderator::SuggestedScore> for SuggestedScore {
 			SuggestedScore::Seven => moderator::SuggestedScore::Seven,
 			SuggestedScore::Eight => moderator::SuggestedScore::Eight,
 			SuggestedScore::Nine => moderator::SuggestedScore::Nine,
-			SuggestedScore::Ten => moderator::SuggestedScore::Ten
+			SuggestedScore::Ten => moderator::SuggestedScore::Ten,
 		}
 	}
 }
@@ -105,7 +105,7 @@ pub enum SuggestedRating {
 	Feature,
 	Epic,
 	Legendary,
-	Mythic
+	Mythic,
 }
 
 impl Into<moderator::SuggestedRating> for SuggestedRating {
@@ -115,7 +115,7 @@ impl Into<moderator::SuggestedRating> for SuggestedRating {
 			SuggestedRating::Feature => moderator::SuggestedRating::Feature,
 			SuggestedRating::Epic => moderator::SuggestedRating::Epic,
 			SuggestedRating::Legendary => moderator::SuggestedRating::Legendary,
-			SuggestedRating::Mythic => moderator::SuggestedRating::Mythic
+			SuggestedRating::Mythic => moderator::SuggestedRating::Mythic,
 		}
 	}
 }

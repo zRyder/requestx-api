@@ -1,9 +1,9 @@
 use crate::domain::{
 	model::{
 		api::auth_api::{AuthApiError, AuthApiRequest, AuthApiResponse},
-		auth::claims::Claims
+		auth::claims::Claims,
 	},
-	service::auth_service::AuthService
+	service::auth_service::AuthService,
 };
 
 #[post("/auth")]
@@ -13,6 +13,6 @@ pub fn generate_jwt(authenticating_user: AuthApiRequest) -> Result<AuthApiRespon
 
 	match auth_service.generate_jwt() {
 		Ok(jwt) => Ok(AuthApiResponse::new(jwt)),
-		Err(err) => Err(AuthApiError::from(err))
+		Err(err) => Err(AuthApiError::from(err)),
 	}
 }

@@ -3,16 +3,16 @@ use std::borrow::Cow;
 use dash_rs::{
 	request::{
 		account::AuthenticatedUser, comment::ProfileCommentsRequest, level::LevelsRequest,
-		moderator::SuggestStarsRequest, user::UserSearchRequest
+		moderator::SuggestStarsRequest, user::UserSearchRequest,
 	},
 	response::{
 		parse_get_gj_acccount_comments_response, parse_get_gj_levels_response,
-		parse_get_gj_users_response, ResponseError
-	}
+		parse_get_gj_users_response, ResponseError,
+	},
 };
 use reqwest::{
 	header::{HeaderMap, HeaderValue},
-	Client
+	Client,
 };
 
 use crate::{
@@ -21,20 +21,20 @@ use crate::{
 			GeometryDashDashrsError,
 			GeometryDashDashrsError::{
 				DashrsError, HttpError, LevelAlreadyRated, LevelNotFoundError,
-				NoProfileCommentsFound, UserNotFoundError
-			}
+				NoProfileCommentsFound, UserNotFoundError,
+			},
 		},
 		level_request::GDLevel,
-		moderator::{Moderator, SuggestedScore}
+		moderator::{Moderator, SuggestedScore},
 	},
 	rocket::common::{
 		config::common_config::APP_CONFIG,
-		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE}
-	}
+		constants::{APPLICATION_FORM_URL_ENCODED, CONTENT_TYPE},
+	},
 };
 
 pub struct GeometryDashClient {
-	client: Client
+	client: Client,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -43,19 +43,19 @@ impl GeometryDashClient {
 		let mut default_headers = HeaderMap::new();
 		default_headers.insert(
 			CONTENT_TYPE,
-			HeaderValue::from_static(APPLICATION_FORM_URL_ENCODED)
+			HeaderValue::from_static(APPLICATION_FORM_URL_ENCODED),
 		);
 		GeometryDashClient {
 			client: Client::builder()
 				.default_headers(default_headers)
 				.build()
-				.expect("Client::new")
+				.expect("Client::new"),
 		}
 	}
 
 	pub async fn get_gd_level_info(
 		&self,
-		level_id: u64
+		level_id: u64,
 	) -> Result<GDLevel, GeometryDashDashrsError> {
 		let level_id_str = &level_id.to_string();
 		let get_level_info_request = LevelsRequest::default().search(level_id_str);
@@ -81,7 +81,7 @@ impl GeometryDashClient {
 						);
 						match gd_level_info.first() {
 							Some(matched_level) => Ok(GDLevel::from(matched_level)),
-							None => Err(LevelNotFoundError(level_id))
+							None => Err(LevelNotFoundError(level_id)),
 						}
 					}
 					Err(dashrs_error) => {
@@ -102,7 +102,7 @@ impl GeometryDashClient {
 
 	pub async fn query_gd_player_and_account_id(
 		&self,
-		gd_username: &str
+		gd_username: &str,
 	) -> Result<(u64, u64), GeometryDashDashrsError> {
 		let search_gd_player_request = UserSearchRequest::new(gd_username);
 
@@ -151,12 +151,12 @@ impl GeometryDashClient {
 
 	pub async fn send_gd_level(
 		&self,
-		moderator_request: Moderator
+		moderator_request: Moderator,
 	) -> Result<(), GeometryDashDashrsError> {
 		let auth_user = AuthenticatedUser::new(
 			&APP_CONFIG.get().unwrap().geometry_dash_config.gd_username,
 			57903,
-			Cow::from(&APP_CONFIG.get().unwrap().geometry_dash_config.gd_password)
+			Cow::from(&APP_CONFIG.get().unwrap().geometry_dash_config.gd_password),
 		);
 		let send_level_request = SuggestStarsRequest::new(auth_user, moderator_request.level_id)
 			.feature(moderator_request.suggested_rating.into())
@@ -206,7 +206,7 @@ impl GeometryDashClient {
 
 	pub async fn get_gd_public_account_token(
 		&self,
-		account_id: u64
+		account_id: u64,
 	) -> Result<String, GeometryDashDashrsError> {
 		let get_gd_account_comments_request = ProfileCommentsRequest::new(account_id);
 
@@ -285,7 +285,7 @@ impl GeometryDashClient {
 						);
 						match gd_level_info.first() {
 							Some(matched_level) => Ok(matched_level.stars != 0),
-							None => Err(LevelNotFoundError(level_id))
+							None => Err(LevelNotFoundError(level_id)),
 						}
 					}
 					Err(dashrs_error) => {

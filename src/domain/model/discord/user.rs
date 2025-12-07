@@ -1,12 +1,12 @@
 use chrono::{DateTime, Duration, Utc};
 use ed25519_dalek::{
-	ed25519::signature::rand_core::OsRng, Signature, Signer, SigningKey, Verifier, VerifyingKey
+	ed25519::signature::rand_core::OsRng, Signature, Signer, SigningKey, Verifier, VerifyingKey,
 };
 use sea_orm::ActiveValue;
 
 use crate::{
 	adapter::mysql::model::{gd_account_link, user},
-	domain::model::error::discord::discord_error::DiscordError
+	domain::model::error::discord::discord_error::DiscordError,
 };
 
 #[derive(Debug, Clone)]
@@ -14,7 +14,7 @@ pub struct DiscordUser {
 	pub discord_user_id: u64,
 	pub gd_player_id: Option<u64>,
 	pub gd_account_id: Option<u64>,
-	pub last_request_time: Option<DateTime<Utc>>
+	pub last_request_time: Option<DateTime<Utc>>,
 }
 
 impl Into<user::ActiveModel> for DiscordUser {
@@ -27,7 +27,7 @@ impl Into<user::ActiveModel> for DiscordUser {
 				None
 			}),
 			gd_player_id: ActiveValue::Set(self.gd_player_id),
-			gd_account_id: ActiveValue::Set(self.gd_account_id)
+			gd_account_id: ActiveValue::Set(self.gd_account_id),
 		}
 	}
 }
@@ -38,7 +38,7 @@ impl From<user::Model> for DiscordUser {
 			discord_user_id: value.discord_id,
 			gd_player_id: value.gd_player_id,
 			gd_account_id: value.gd_account_id,
-			last_request_time: value.timestamp
+			last_request_time: value.timestamp,
 		}
 	}
 }
@@ -49,7 +49,7 @@ impl DiscordUser {
 			discord_user_id,
 			gd_player_id: None,
 			gd_account_id: None,
-			last_request_time: None
+			last_request_time: None,
 		}
 	}
 }
@@ -62,7 +62,7 @@ pub struct GDAccountLink {
 	gd_account_hash: String,
 	gd_account_public_key: [u8; 32],
 	pub is_gd_account_linked: bool,
-	pub expiry: DateTime<Utc>
+	pub expiry: DateTime<Utc>,
 }
 
 impl Into<gd_account_link::ActiveModel> for GDAccountLink {
@@ -80,7 +80,7 @@ impl Into<gd_account_link::ActiveModel> for GDAccountLink {
 			gd_account_challenge: ActiveValue::Set(self.gd_account_challenge),
 			gd_account_hash: ActiveValue::Set(self.gd_account_hash),
 			gd_account_public_key: ActiveValue::Set(Vec::from(self.gd_account_public_key)),
-			expiry: ActiveValue::Set(self.expiry)
+			expiry: ActiveValue::Set(self.expiry),
 		}
 	}
 }
@@ -98,7 +98,7 @@ impl From<gd_account_link::Model> for GDAccountLink {
 			} else {
 				false
 			},
-			expiry: value.expiry
+			expiry: value.expiry,
 		}
 	}
 }
@@ -112,7 +112,7 @@ impl GDAccountLink {
 			gd_account_challenge: "".to_string(),
 			gd_account_public_key: [0u8; 32],
 			is_gd_account_linked: false,
-			expiry: Utc::now() + Duration::minutes(15)
+			expiry: Utc::now() + Duration::minutes(15),
 		}
 	}
 
@@ -136,7 +136,7 @@ impl GDAccountLink {
 
 	pub fn verify_account_link(
 		&self,
-		gd_account_challenge: &str
+		gd_account_challenge: &str,
 	) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
 		if self.expiry.lt(&Utc::now()) {
 			warn!("GD account link has expired");
@@ -164,7 +164,7 @@ pub struct DiscordGDAccountLink {
 	pub discord_user_id: u64,
 	pub gd_player_id: u64,
 	pub gd_username: String,
-	pub gd_account_challenge: String
+	pub gd_account_challenge: String,
 }
 
 impl DiscordGDAccountLink {
@@ -172,13 +172,13 @@ impl DiscordGDAccountLink {
 		discord_user_id: u64,
 		gd_player_id: u64,
 		gd_username: String,
-		gd_account_challenge: String
+		gd_account_challenge: String,
 	) -> Self {
 		Self {
 			discord_user_id,
 			gd_player_id,
 			gd_username,
-			gd_account_challenge
+			gd_account_challenge,
 		}
 	}
 }
@@ -226,7 +226,7 @@ mod gd_account_link_tests {
 
 		match test_gd_account_link.verify_account_link(&test_account_challenge) {
 			Ok(_) => assert!(false),
-			Err(error) => assert!(error.downcast_ref::<DiscordError>().is_some())
+			Err(error) => assert!(error.downcast_ref::<DiscordError>().is_some()),
 		}
 	}
 

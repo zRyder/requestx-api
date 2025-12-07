@@ -7,7 +7,7 @@ pub struct MySqlDatabaseConfig {
 	password: String,
 	host: String,
 	port: u16,
-	name: String
+	name: String,
 }
 
 impl MySqlDatabaseConfig {

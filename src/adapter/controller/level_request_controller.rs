@@ -5,8 +5,8 @@ use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
 		mysql::{
-			level_request_repository::LevelRequestRepository, user_repository::UserRepository
-		}
+			level_request_repository::LevelRequestRepository, user_repository::UserRepository,
+		},
 	},
 	domain::{
 		model::api::{
@@ -14,18 +14,18 @@ use crate::{
 			level_request_api::{
 				GetLevelRequestApiResponse, LevelRequestApiResponseError,
 				PatchLevelRequestApiRequest, PostLevelRequestApiRequest,
-				PostLevelRequestApiResponse
-			}
+				PostLevelRequestApiResponse,
+			},
 		},
-		service::level_request_service::LevelRequestService
-	}
+		service::level_request_service::LevelRequestService,
+	},
 };
 
 #[get("/request_level/<level_id>")]
 pub async fn get_level_request(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<GetLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = LevelRequestRepository::new(db_conn);
 	let user_repository = UserRepository::new(db_conn);
@@ -39,7 +39,7 @@ pub async fn get_level_request(
 		.await
 	{
 		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),
-		Err(get_level_request_error) => Err(get_level_request_error.into())
+		Err(get_level_request_error) => Err(get_level_request_error.into()),
 	}
 }
 
@@ -47,7 +47,7 @@ pub async fn get_level_request(
 pub async fn request_level<'a>(
 	db_conn: &State<DatabaseConnection>,
 	level_request_body: Json<PostLevelRequestApiRequest<'a>>,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<PostLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = LevelRequestRepository::new(db_conn);
 	let user_repository = UserRepository::new(db_conn);
@@ -63,12 +63,12 @@ pub async fn request_level<'a>(
 			level_request_body.discord_id,
 			request_rating,
 			level_request_body.has_requested_feedback,
-			level_request_body.notify
+			level_request_body.notify,
 		)
 		.await
 	{
 		Ok(level_request_info) => Ok(PostLevelRequestApiResponse::from(level_request_info)),
-		Err(level_request_error) => Err(level_request_error.into())
+		Err(level_request_error) => Err(level_request_error.into()),
 	}
 }
 
@@ -80,7 +80,7 @@ pub async fn request_level<'a>(
 pub async fn update_level_request<'a>(
 	db_conn: &State<DatabaseConnection>,
 	update_level_request_body: Json<PatchLevelRequestApiRequest<'a>>,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<GetLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = LevelRequestRepository::new(db_conn);
 	let user_repository = UserRepository::new(db_conn);
@@ -98,12 +98,12 @@ pub async fn update_level_request<'a>(
 				.map(|s| s.to_string()),
 			update_level_request_body.request_rating.map(|r| r.into()),
 			update_level_request_body.has_requested_feedback,
-			update_level_request_body.notify
+			update_level_request_body.notify,
 		)
 		.await
 	{
 		Ok(level_request_info) => Ok(GetLevelRequestApiResponse::from(level_request_info)),
-		Err(level_request_error) => Err(level_request_error.into())
+		Err(level_request_error) => Err(level_request_error.into()),
 	}
 }
 
@@ -111,7 +111,7 @@ pub async fn update_level_request<'a>(
 pub async fn delete_level_request<'a>(
 	db_conn: &State<DatabaseConnection>,
 	level_id: u64,
-	_auth: Auth
+	_auth: Auth,
 ) -> Result<GetLevelRequestApiResponse, LevelRequestApiResponseError> {
 	let level_request_repository = LevelRequestRepository::new(db_conn);
 	let user_repository = UserRepository::new(db_conn);
@@ -122,6 +122,6 @@ pub async fn delete_level_request<'a>(
 
 	match level_request_service.delete_level_request(level_id).await {
 		Ok(deleted_level_request) => Ok(GetLevelRequestApiResponse::from(deleted_level_request)),
-		Err(delete_level_request_error) => Err(delete_level_request_error.into())
+		Err(delete_level_request_error) => Err(delete_level_request_error.into()),
 	}
 }

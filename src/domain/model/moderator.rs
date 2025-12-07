@@ -3,16 +3,16 @@ use sea_orm::ActiveValue;
 
 use crate::{
 	adapter::mysql::model::{
-		moderator, moderator::Model, sea_orm_active_enums, sea_orm_active_enums::Score
+		moderator, moderator::Model, sea_orm_active_enums, sea_orm_active_enums::Score,
 	},
-	domain::model::internal::api::moderator_api
+	domain::model::internal::api::moderator_api,
 };
 
 #[derive(Clone, Copy, Debug)]
 pub struct Moderator {
 	pub level_id: u64,
 	pub suggested_score: SuggestedScore,
-	pub suggested_rating: SuggestedRating
+	pub suggested_rating: SuggestedRating,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -21,7 +21,7 @@ pub enum SuggestedRating {
 	Feature,
 	Epic,
 	Legendary,
-	Mythic
+	Mythic,
 }
 
 impl Into<moderator_api::SuggestedRating> for SuggestedRating {
@@ -31,7 +31,7 @@ impl Into<moderator_api::SuggestedRating> for SuggestedRating {
 			SuggestedRating::Feature => moderator_api::SuggestedRating::Feature,
 			SuggestedRating::Epic => moderator_api::SuggestedRating::Epic,
 			SuggestedRating::Legendary => moderator_api::SuggestedRating::Legendary,
-			SuggestedRating::Mythic => moderator_api::SuggestedRating::Mythic
+			SuggestedRating::Mythic => moderator_api::SuggestedRating::Mythic,
 		}
 	}
 }
@@ -49,7 +49,7 @@ pub enum SuggestedScore {
 	Seven,
 	Eight,
 	Nine,
-	Ten
+	Ten,
 }
 
 impl Into<moderator_api::SuggestedScore> for SuggestedScore {
@@ -66,7 +66,7 @@ impl Into<moderator_api::SuggestedScore> for SuggestedScore {
 			SuggestedScore::Seven => moderator_api::SuggestedScore::Seven,
 			SuggestedScore::Eight => moderator_api::SuggestedScore::Eight,
 			SuggestedScore::Nine => moderator_api::SuggestedScore::Nine,
-			SuggestedScore::Ten => moderator_api::SuggestedScore::Ten
+			SuggestedScore::Ten => moderator_api::SuggestedScore::Ten,
 		}
 	}
 }
@@ -76,7 +76,7 @@ impl Into<moderator::ActiveModel> for Moderator {
 		moderator::ActiveModel {
 			level_id: ActiveValue::Set(self.level_id),
 			score: ActiveValue::Set(self.suggested_score.into()),
-			rating: ActiveValue::Set(self.suggested_rating.into())
+			rating: ActiveValue::Set(self.suggested_rating.into()),
 		}
 	}
 }
@@ -86,7 +86,7 @@ impl From<moderator::Model> for Moderator {
 		Self {
 			level_id: value.level_id,
 			suggested_score: SuggestedScore::from(value.score),
-			suggested_rating: SuggestedRating::from(value.rating)
+			suggested_rating: SuggestedRating::from(value.rating),
 		}
 	}
 }
@@ -105,7 +105,7 @@ impl From<Score> for SuggestedScore {
 			Score::Seven => Self::Seven,
 			Score::Eight => Self::Eight,
 			Score::Nine => Self::Nine,
-			Score::Ten => Self::Ten
+			Score::Ten => Self::Ten,
 		}
 	}
 }
@@ -124,7 +124,7 @@ impl Into<Score> for SuggestedScore {
 			SuggestedScore::Seven => Score::Seven,
 			SuggestedScore::Eight => Score::Eight,
 			SuggestedScore::Nine => Score::Nine,
-			SuggestedScore::Ten => Score::Ten
+			SuggestedScore::Ten => Score::Ten,
 		}
 	}
 }
@@ -142,7 +142,7 @@ impl Into<SuggestedStars> for SuggestedScore {
 			SuggestedScore::Eight => SuggestedStars::Eight,
 			SuggestedScore::Nine => SuggestedStars::Nine,
 			SuggestedScore::Ten => SuggestedStars::Ten,
-			_ => unreachable!()
+			_ => unreachable!(),
 		}
 	}
 }
@@ -154,7 +154,7 @@ impl From<sea_orm_active_enums::Rating> for SuggestedRating {
 			sea_orm_active_enums::Rating::Feature => Self::Feature,
 			sea_orm_active_enums::Rating::Epic => Self::Epic,
 			sea_orm_active_enums::Rating::Legendary => Self::Legendary,
-			sea_orm_active_enums::Rating::Mythic => Self::Mythic
+			sea_orm_active_enums::Rating::Mythic => Self::Mythic,
 		}
 	}
 }
@@ -166,7 +166,7 @@ impl Into<sea_orm_active_enums::Rating> for SuggestedRating {
 			SuggestedRating::Feature => sea_orm_active_enums::Rating::Feature,
 			SuggestedRating::Epic => sea_orm_active_enums::Rating::Epic,
 			SuggestedRating::Legendary => sea_orm_active_enums::Rating::Legendary,
-			SuggestedRating::Mythic => sea_orm_active_enums::Rating::Mythic
+			SuggestedRating::Mythic => sea_orm_active_enums::Rating::Mythic,
 		}
 	}
 }
@@ -178,7 +178,7 @@ impl Into<SuggestedFeatureScore> for SuggestedRating {
 			SuggestedRating::Feature => SuggestedFeatureScore::Featured,
 			SuggestedRating::Epic => SuggestedFeatureScore::Epic,
 			SuggestedRating::Legendary => SuggestedFeatureScore::Legendary,
-			SuggestedRating::Mythic => SuggestedFeatureScore::Mythic
+			SuggestedRating::Mythic => SuggestedFeatureScore::Mythic,
 		}
 	}
 }

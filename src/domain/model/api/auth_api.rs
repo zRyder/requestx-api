@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use chrono::Local;
@@ -11,23 +11,23 @@ use rocket_framework::{
 	request::{FromRequest, Outcome},
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 
 use crate::{
 	domain::model::{auth::claims::Claims, error::level_request_error::LevelRequestError},
-	rocket::common::{config::common_config::APP_CONFIG, constants::TIMESTAMP_HEADER_NAME}
+	rocket::common::{config::common_config::APP_CONFIG, constants::TIMESTAMP_HEADER_NAME},
 };
 
 #[derive(Deserialize)]
 pub struct AuthApiRequest {
 	pub discord_app_id: u64,
-	_access_token: String
+	_access_token: String,
 }
 
 #[derive(Serialize)]
 pub struct AuthApiResponse {
-	jwt: String
+	jwt: String,
 }
 
 #[derive(Deserialize)]
@@ -35,11 +35,13 @@ pub struct Auth {}
 
 #[derive(Debug, PartialEq)]
 pub enum AuthApiError {
-	AuthError
+	AuthError,
 }
 
 impl AuthApiResponse {
-	pub fn new(jwt: String) -> Self { Self { jwt } }
+	pub fn new(jwt: String) -> Self {
+		Self { jwt }
+	}
 }
 
 #[rocket::async_trait]
@@ -65,7 +67,7 @@ impl<'r> FromRequest<'r> for AuthApiRequest {
 			} else {
 				Outcome::Success(AuthApiRequest {
 					discord_app_id: discord_app_id.unwrap().parse::<u64>().unwrap(),
-					_access_token: access_token.unwrap().to_owned()
+					_access_token: access_token.unwrap().to_owned(),
 				})
 			}
 		} else {
@@ -98,9 +100,9 @@ impl<'r> FromRequest<'r> for Auth {
 			match decode::<Claims>(
 				&jwt.unwrap().replace("Bearer ", ""),
 				&DecodingKey::from_secret(
-					&APP_CONFIG.get().unwrap().auth_config.secret_token.as_ref()
+					&APP_CONFIG.get().unwrap().auth_config.secret_token.as_ref(),
 				),
-				&validation
+				&validation,
 			) {
 				Ok(_token_claims) => Outcome::Success(Auth {}),
 				Err(_err) => {
@@ -138,7 +140,9 @@ impl Display for AuthApiError {
 }
 
 impl From<JsonWebTokenError> for AuthApiError {
-	fn from(_value: JsonWebTokenError) -> Self { Self::AuthError }
+	fn from(_value: JsonWebTokenError) -> Self {
+		Self::AuthError
+	}
 }
 
 impl Error for AuthApiError {}

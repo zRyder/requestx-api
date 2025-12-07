@@ -2,21 +2,23 @@ use sea_orm::{DatabaseConnection, DbConn, DbErr, EntityTrait, InsertResult};
 
 use crate::adapter::mysql::model::{
 	moderator::{ActiveModel, Model},
-	prelude::Moderator
+	prelude::Moderator,
 };
 
 pub struct ModeratorRepository<'a> {
-	db_conn: &'a DatabaseConnection
+	db_conn: &'a DatabaseConnection,
 }
 
 // TODO: Figure out testing with lifetime param
 // #[cfg_attr(test, mockall::automock)]
 impl<'a> ModeratorRepository<'a> {
-	pub fn new(db_conn: &'a DbConn) -> Self { ModeratorRepository { db_conn } }
+	pub fn new(db_conn: &'a DbConn) -> Self {
+		ModeratorRepository { db_conn }
+	}
 
 	pub async fn create_record(
 		&self,
-		record: ActiveModel
+		record: ActiveModel,
 	) -> Result<InsertResult<ActiveModel>, DbErr> {
 		Moderator::insert(record).exec(self.db_conn).await
 	}

@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use chrono::Local;
@@ -8,7 +8,7 @@ use rocket_framework::{
 	http::{ContentType, Status},
 	response::Responder,
 	serde::json::Json,
-	Request, Response
+	Request, Response,
 };
 use serde_derive::{Deserialize, Serialize};
 
@@ -17,19 +17,19 @@ use crate::{domain::model::reviewer::Reviewer, rocket::common::constants::TIMEST
 #[derive(Serialize)]
 pub struct GetReviewerApiResponse {
 	pub reviewer_discord_id: u64,
-	pub is_active: bool
+	pub is_active: bool,
 }
 
 #[derive(Deserialize)]
 pub struct CreateReviewerApiRequest {
-	pub reviewer_discord_id: u64
+	pub reviewer_discord_id: u64,
 }
 
 impl From<Reviewer> for GetReviewerApiResponse {
 	fn from(value: Reviewer) -> Self {
 		Self {
 			reviewer_discord_id: value.discord_id,
-			is_active: value.is_active
+			is_active: value.is_active,
 		}
 	}
 }
@@ -48,7 +48,7 @@ impl<'r> Responder<'r, 'r> for GetReviewerApiResponse {
 #[derive(Debug, PartialEq)]
 pub enum ReviewerApiResponseError {
 	ReviewerDoesNotExist,
-	ReviewerError
+	ReviewerError,
 }
 
 impl<'r> Responder<'r, 'r> for ReviewerApiResponseError {

@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use sea_orm::DbErr;
@@ -10,7 +10,7 @@ use crate::domain::model::api::level_review_api::LevelReviewApiResponseError;
 #[derive(Debug, PartialEq)]
 pub enum LevelReviewError {
 	DatabaseError(DbErr),
-	LevelRequestDoesNotExist
+	LevelRequestDoesNotExist,
 }
 
 impl Display for LevelReviewError {

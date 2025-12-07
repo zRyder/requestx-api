@@ -1,6 +1,6 @@
 use std::{
 	error::Error,
-	fmt::{Display, Formatter}
+	fmt::{Display, Formatter},
 };
 
 use sea_orm::DbErr;
@@ -15,7 +15,7 @@ pub enum DiscordError {
 	DiscordAccountAlreadyLinked,
 	InvalidGDAccountLinkToken,
 	DatabaseError(DbErr),
-	DiscordError
+	DiscordError,
 }
 
 impl Display for DiscordError {
@@ -63,7 +63,7 @@ impl Into<DiscordUserApiResponseError> for DiscordError {
 				DiscordUserApiResponseError::InvalidGDAccountLinkToken
 			}
 			DiscordError::DatabaseError(_) => DiscordUserApiResponseError::DiscordUserError,
-			DiscordError::DiscordError => DiscordUserApiResponseError::DiscordUserError
+			DiscordError::DiscordError => DiscordUserApiResponseError::DiscordUserError,
 		}
 	}
 }

@@ -5,7 +5,7 @@ use serde_derive::{Deserialize, Serialize};
 pub struct Claims {
 	aud: u64,
 	iat: i64,
-	exp: i64
+	exp: i64,
 }
 
 impl Claims {
@@ -14,7 +14,7 @@ impl Claims {
 		Self {
 			aud,
 			iat: now.timestamp(),
-			exp: (now + Duration::days(7)).timestamp()
+			exp: (now + Duration::days(7)).timestamp(),
 		}
 	}
 }

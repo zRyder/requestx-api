@@ -2,31 +2,31 @@ use crate::{
 	adapter::mysql::review_repository::ReviewRepository,
 	domain::{
 		model::{error::level_review_error::LevelReviewError, review::LevelReview},
-		service::level_request_service::LevelRequestService
+		service::level_request_service::LevelRequestService,
 	},
-	rocket::common::config::common_config::APP_CONFIG
+	rocket::common::config::common_config::APP_CONFIG,
 };
 
 pub struct LevelReviewService<'a> {
 	review_repository: &'a ReviewRepository<'a>,
-	level_request_service: &'a LevelRequestService<'a>
+	level_request_service: &'a LevelRequestService<'a>,
 }
 
 impl<'a> LevelReviewService<'a> {
 	pub fn new(
 		review_repository: &'a ReviewRepository,
-		level_request_service: &'a LevelRequestService
+		level_request_service: &'a LevelRequestService,
 	) -> Self {
 		LevelReviewService {
 			review_repository,
-			level_request_service
+			level_request_service,
 		}
 	}
 
 	pub async fn get_level_review(
 		&self,
 		level_id: u64,
-		discord_id: u64
+		discord_id: u64,
 	) -> Result<LevelReview, LevelReviewError> {
 		match self
 			.review_repository
@@ -55,7 +55,7 @@ impl<'a> LevelReviewService<'a> {
 		&self,
 		level_id: u64,
 		reviewer_discord_id: u64,
-		review_contents: String
+		review_contents: String,
 	) -> Result<LevelReview, LevelReviewError> {
 		let level_request_result = if reviewer_discord_id.eq(&APP_CONFIG
 			.get()
@@ -88,7 +88,7 @@ impl<'a> LevelReviewService<'a> {
 			discord_message_id: None,
 			level_id,
 			review_contents,
-			is_update: false
+			is_update: false,
 		};
 
 		let existing_level_review = self
@@ -148,7 +148,7 @@ impl<'a> LevelReviewService<'a> {
 		&self,
 		level_id: u64,
 		discord_id: u64,
-		discord_message_id: u64
+		discord_message_id: u64,
 	) -> Result<(), LevelReviewError> {
 		let mut existing_level_review = self
 			.review_repository
