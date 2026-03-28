@@ -67,16 +67,14 @@ async fn init_request_config(app_config: &mut AppConfig) {
 			let mut request_config_buffer = String::new();
 			if let Err(request_config_read_error) = request_config_file
 				.read_to_string(&mut request_config_buffer)
-				.await
-			{
+				.await {
 				error!(
 					"unable to read request config file: {}",
 					request_config_read_error
 				)
 			}
 			if let Ok(request_config_from_file) =
-				toml::from_str::<RequestConfig>(&request_config_buffer)
-			{
+				toml::from_str::<RequestConfig>(&request_config_buffer) {
 				REQUEST_CONFIG
 					.set(RwLock::new(request_config_from_file))
 					.expect("unable to set request configuration");

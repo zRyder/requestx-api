@@ -16,6 +16,7 @@ pub struct InternalGetRequestConfigApiResponse {
 	pub enable_requests: bool,
 	pub enable_gd_requests: bool,
 	pub allow_non_user_created_levels: bool,
+	pub allow_platformer_levels: bool,
 }
 
 impl<'r> Responder<'r, 'r> for InternalGetRequestConfigApiResponse {
@@ -36,6 +37,7 @@ pub struct InternalUpdateRequestConfigApiRequest {
 	pub enable_requests: Option<bool>,
 	pub enable_gd_requests: Option<bool>,
 	pub allow_non_user_created_levels: Option<bool>,
+	pub allow_platformer_levels: Option<bool>,
 }
 
 #[derive(Serialize)]

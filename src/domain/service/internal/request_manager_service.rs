@@ -39,6 +39,20 @@ impl RequestManagerService {
 		guard.enable_gd_requests
 	}
 
+	pub async fn set_allow_platformer_levels(&self, allow_platformer_levels: bool) {
+		let guard = &mut REQUEST_CONFIG.get().unwrap().write().await;
+		guard.allow_platformer_levels = allow_platformer_levels;
+		info!(
+			"Allow platformer level requests toggled to {}",
+			allow_platformer_levels
+		)
+	}
+
+	pub async fn get_allow_platformer_levels(&self) -> bool {
+		let guard = &mut REQUEST_CONFIG.get().unwrap().read().await;
+		guard.allow_platformer_levels
+	}
+
 	pub async fn set_allow_non_user_created_levels(&self, allow_non_user_created_levels: bool) {
 		let guard = &mut REQUEST_CONFIG.get().unwrap().write().await;
 		guard.allow_non_user_created_levels = allow_non_user_created_levels;

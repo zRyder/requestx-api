@@ -66,6 +66,17 @@ impl LevelRequest {
 
 		gd_level_request
 	}
+
+	pub fn is_platformer_level(
+		&self
+	) -> bool {
+		match self.gd_level.as_ref() {
+			Some(gd_level) => {
+				gd_level.level_length == LevelLength::Platformer
+			}
+			_ => false,
+		}
+	}
 }
 
 impl Into<level_request::ActiveModel> for LevelRequest {
@@ -182,7 +193,7 @@ pub struct LevelCreator {
 	pub player_id: u64,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LevelLength {
 	Tiny,
 	Short,

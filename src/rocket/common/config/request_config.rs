@@ -4,6 +4,7 @@ use serde_derive::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RequestConfig {
 	/// The amount of time before a user can request another level
 	pub cooldown_duration: u64,
@@ -12,6 +13,8 @@ pub struct RequestConfig {
 	/// Allows web requests to be made to GD servers, needed to power all GD
 	/// related functionality
 	pub enable_gd_requests: bool,
+	/// Allows platformers to be requested
+	pub allow_platformer_levels: bool,
 	/// Allows levels that are not uploaded by the requester to be requested
 	pub allow_non_user_created_levels: bool,
 }

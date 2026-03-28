@@ -251,6 +251,7 @@ pub enum LevelRequestApiResponseError {
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
 	RequestNonCreatedLevel,
+	RequestPlatformer,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestDisabled,
 	LevelRequestError,
@@ -301,6 +302,9 @@ impl<'r> Responder<'r, 'r> for LevelRequestApiResponseError {
 			LevelRequestApiResponseError::RequestNonCreatedLevel => {
 				response.status(Status::BadRequest);
 			}
+			LevelRequestApiResponseError::RequestPlatformer => {
+				response.status(Status::BadRequest);
+			}
 			LevelRequestApiResponseError::EditUnownedLevelRequest(_, _, _) => {
 				response.status(Status::Forbidden);
 			}
@@ -336,6 +340,9 @@ impl Display for LevelRequestApiResponseError {
 			}
 			LevelRequestApiResponseError::RequestNonCreatedLevel => {
 				write!(f, "User attempted to request a level they did not create")
+			}
+			LevelRequestApiResponseError::RequestPlatformer => {
+				write!(f, "User attempted to request a platformer level")
 			}
 			LevelRequestApiResponseError::LevelRequestDisabled => {
 				write!(f, "Level requests are disabled")
