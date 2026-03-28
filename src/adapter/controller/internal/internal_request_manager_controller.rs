@@ -26,6 +26,9 @@ pub async fn get_request_config() -> io::Result<InternalGetRequestConfigApiRespo
 		allow_non_user_created_levels: request_manager_service
 			.get_allow_non_user_created_levels()
 			.await,
+		allow_platformer_levels: request_manager_service
+			.get_allow_platformer_levels()
+			.await,
 	};
 
 	Ok(response)
@@ -61,13 +64,19 @@ pub async fn update_request_cooldown<'a>(
 	}
 
 	if let Some(allow_non_user_created_levels) =
-		update_request_config_body.allow_non_user_created_levels
-	{
+		update_request_config_body.allow_non_user_created_levels {
 		request_manager_service
 			.set_allow_non_user_created_levels(allow_non_user_created_levels)
 			.await;
 	}
-	request_manager_service.update_client_config_file().await;
 
+	if let Some(allow_platformer_levels) =
+		update_request_config_body.allow_platformer_levels {
+		request_manager_service
+			.set_allow_platformer_levels(allow_platformer_levels)
+			.await;
+	}
+	
+	request_manager_service.update_client_config_file().await;
 	Ok(InternalUpdateRequestConfigApiResponse {})
 }

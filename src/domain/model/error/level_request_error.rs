@@ -20,6 +20,7 @@ pub enum LevelRequestError {
 	LevelRequestDoesNotExist,
 	UserOnCooldown(DateTime<Utc>, Duration),
 	RequestNonCreatedLevel,
+	RequestPlatformer,
 	EditUnownedLevelRequest(u64, u64, u64),
 	LevelRequestsDisabled,
 	GeometryDashClientError(u64, GeometryDashDashrsError),
@@ -52,6 +53,9 @@ impl Display for LevelRequestError {
 			}
 			LevelRequestError::RequestNonCreatedLevel => {
 				write!(f, "User attempted to request a level they did not create while server was not accepting non user created requests")
+			}
+			LevelRequestError::RequestPlatformer => {
+				write!(f, "User attempted to request a platformer level while server was not accepting platformer requests")
 			}
 			LevelRequestError::EditUnownedLevelRequest(
 				_level_id,
@@ -92,6 +96,9 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			}
 			LevelRequestError::RequestNonCreatedLevel => {
 				LevelRequestApiResponseError::RequestNonCreatedLevel
+			}
+			LevelRequestError::RequestPlatformer => {
+				LevelRequestApiResponseError::RequestPlatformer
 			}
 			LevelRequestError::EditUnownedLevelRequest(
 				level_id,
