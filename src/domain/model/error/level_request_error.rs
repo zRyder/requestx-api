@@ -97,9 +97,7 @@ impl Into<LevelRequestApiResponseError> for LevelRequestError {
 			LevelRequestError::RequestNonCreatedLevel => {
 				LevelRequestApiResponseError::RequestNonCreatedLevel
 			}
-			LevelRequestError::RequestPlatformer => {
-				LevelRequestApiResponseError::RequestPlatformer
-			}
+			LevelRequestError::RequestPlatformer => LevelRequestApiResponseError::RequestPlatformer,
 			LevelRequestError::EditUnownedLevelRequest(
 				level_id,
 				discord_user_id,

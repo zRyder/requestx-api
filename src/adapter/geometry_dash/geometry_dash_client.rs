@@ -260,7 +260,7 @@ impl GeometryDashClient {
 		}
 	}
 
-	async fn is_rated(&self, level_id: u64) -> Result<bool, GeometryDashDashrsError> {
+	pub async fn is_rated(&self, level_id: u64) -> Result<bool, GeometryDashDashrsError> {
 		let level_id_str = &level_id.to_string();
 		let get_level_info_request = LevelsRequest::default().search(level_id_str);
 

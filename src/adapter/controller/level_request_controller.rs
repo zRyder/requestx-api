@@ -1,6 +1,10 @@
+use rocket_framework::futures::future::join_all;
 use rocket_framework::{serde::json::Json, State};
 use sea_orm::DatabaseConnection;
 
+use crate::adapter::mysql::moderator_repository::ModeratorRepository;
+use crate::domain::model::moderator::{SuggestedRating, SuggestedScore};
+use crate::domain::service::moderator_service::ModeratorService;
 use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
@@ -124,4 +128,49 @@ pub async fn delete_level_request<'a>(
 		Ok(deleted_level_request) => Ok(GetLevelRequestApiResponse::from(deleted_level_request)),
 		Err(delete_level_request_error) => Err(delete_level_request_error.into()),
 	}
+}
+
+#[get("/request_level/rated")]
+pub async fn get_unchecked_level_requests<'a>(
+	db_conn: &State<DatabaseConnection>,
+	_auth: Auth,
+) -> Result<Json<Vec<GetLevelRequestApiResponse>>, LevelRequestApiResponseError> {
+	let level_request_repository = LevelRequestRepository::new(db_conn);
+	let user_repository = UserRepository::new(db_conn);
+	let gd_client = GeometryDashClient::new();
+	let moderator_repository = ModeratorRepository::new(db_conn);
+	let moderator_service =
+		&ModeratorService::new(&moderator_repository, &level_request_repository, &gd_client);
+
+	let level_request_service =
+		LevelRequestService::new(&level_request_repository, &user_repository, &gd_client);
+
+	let unchecked_and_unrated_level_requests = level_request_service
+		.get_unchecked_and_unrated_level_requests()
+		.await
+		.map_err(|level_request_error| level_request_error.into())?;
+
+	let level_request_to_send = join_all(unchecked_and_unrated_level_requests.iter().map(
+		|item| async move {
+			moderator_service
+				.send_level(item.level_id, SuggestedRating::Rate, SuggestedScore::Rated)
+				.await
+		},
+	))
+	.await;
+
+	let sent_levels = unchecked_and_unrated_level_requests
+		.into_iter()
+		.zip(level_request_to_send)
+		.filter_map(|(level_request, send_level_result)| {
+			if send_level_result.is_ok() {
+				Some(level_request)
+			} else {
+				None
+			}
+		})
+		.map(|sent_level| GetLevelRequestApiResponse::from(sent_level))
+		.collect::<Vec<GetLevelRequestApiResponse>>();
+
+	Ok(Json(sent_levels))
 }

@@ -48,11 +48,7 @@ impl<'a> ModeratorService<'a> {
 		suggested_rating: SuggestedRating,
 		suggested_score: SuggestedScore,
 	) -> Result<(LevelRequest, Moderator), ModeratorError> {
-		let mut moderator_data = Moderator {
-			level_id,
-			suggested_score,
-			suggested_rating,
-		};
+		let mut moderator_data = Moderator::new(level_id, suggested_score, suggested_rating);
 
 		match self
 			.level_request_repository

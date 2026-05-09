@@ -3,7 +3,8 @@ use sea_orm::{
 	QueryFilter,
 };
 
-use crate::adapter::mysql::model::{level_request, prelude::LevelRequest};
+use crate::adapter::mysql::model::prelude::Moderator;
+use crate::adapter::mysql::model::{level_request, moderator, prelude::LevelRequest};
 
 pub struct LevelRequestRepository<'a> {
 	db_conn: &'a DatabaseConnection,
@@ -35,6 +36,16 @@ impl<'a> LevelRequestRepository<'a> {
 		LevelRequest::find_by_id(level_id)
 			.filter(level_request::Column::HasRequestedFeedback.eq(has_requested_feedback))
 			.one(self.db_conn)
+			.await
+	}
+
+	pub async fn get_all_unchecked_records(
+		&self,
+	) -> Result<Vec<(level_request::Model, Option<moderator::Model>)>, DbErr> {
+		LevelRequest::find()
+			.find_also_related(Moderator)
+			.filter(moderator::Column::Score.is_null())
+			.all(self.db_conn)
 			.await
 	}
 

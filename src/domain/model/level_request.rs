@@ -67,13 +67,9 @@ impl LevelRequest {
 		gd_level_request
 	}
 
-	pub fn is_platformer_level(
-		&self
-	) -> bool {
+	pub fn is_platformer_level(&self) -> bool {
 		match self.gd_level.as_ref() {
-			Some(gd_level) => {
-				gd_level.level_length == LevelLength::Platformer
-			}
+			Some(gd_level) => gd_level.level_length == LevelLength::Platformer,
 			_ => false,
 		}
 	}

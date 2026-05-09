@@ -1,6 +1,3 @@
-use std::cmp::PartialEq;
-use chrono::{DateTime, Duration, Utc};
-
 use crate::{
 	adapter::{
 		geometry_dash::geometry_dash_client::GeometryDashClient,
@@ -18,6 +15,8 @@ use crate::{
 	},
 	rocket::common::{config::common_config::APP_CONFIG, constants::YOUTUBE_LINK_REGEX},
 };
+use chrono::{DateTime, Duration, Utc};
+use std::cmp::PartialEq;
 
 pub struct LevelRequestService<'a> {
 	level_request_repository: &'a LevelRequestRepository<'a>,
@@ -82,7 +81,8 @@ impl<'a> LevelRequestService<'a> {
 	) -> Result<LevelRequest, LevelRequestError> {
 		if let Some(validate_level_request_error) = self
 			.validate_level_request(level_id, &youtube_video_link)
-			.await {
+			.await
+		{
 			return Err(validate_level_request_error);
 		}
 
@@ -121,7 +121,8 @@ impl<'a> LevelRequestService<'a> {
 		let mut discord_user = self.get_user(discord_user_id).await?;
 		if let Some(level_request_error) = self
 			.check_user_can_request_level(&discord_user, &level_request, &now)
-			.await {
+			.await
+		{
 			return Err(level_request_error);
 		};
 		discord_user.last_request_time = Some(now);
@@ -130,7 +131,8 @@ impl<'a> LevelRequestService<'a> {
 		if let Err(create_or_update_discord_user_error) = self
 			.user_repository
 			.create_or_update_record(discord_user_storable)
-			.await {
+			.await
+		{
 			error!(
 				"Error creating or updating user record: {}",
 				discord_user_id
@@ -144,7 +146,8 @@ impl<'a> LevelRequestService<'a> {
 		if let Err(level_insert_error) = self
 			.level_request_repository
 			.create_record(level_request_storable)
-			.await {
+			.await
+		{
 			error!(
 				"Unable to save level request for {} to database: {}",
 				level_id, level_insert_error
@@ -161,15 +164,9 @@ impl<'a> LevelRequestService<'a> {
 		level_request: &LevelRequest,
 		now: &DateTime<Utc>,
 	) -> Option<LevelRequestError> {
-		let gd_http_requests_enabled = self.request_manager
-			.get_enable_gd_request()
-			.await;
-		let cooldown_duration = self.request_manager
-			.get_request_cooldown()
-			.await;
-		let allow_platformer_levels = self.request_manager
-			.get_allow_platformer_levels()
-			.await;
+		let gd_http_requests_enabled = self.request_manager.get_enable_gd_request().await;
+		let cooldown_duration = self.request_manager.get_request_cooldown().await;
+		let allow_platformer_levels = self.request_manager.get_allow_platformer_levels().await;
 		let allow_non_user_created_levels = self
 			.request_manager
 			.get_allow_non_user_created_levels()
@@ -185,7 +182,8 @@ impl<'a> LevelRequestService<'a> {
 
 		if gd_http_requests_enabled {
 			if !allow_non_user_created_levels
-				&& !Self::is_user_created_level_request(discord_user, level_request) {
+				&& !Self::is_user_created_level_request(discord_user, level_request)
+			{
 				warn!(
 					"User {} attempted to request a level they did not create",
 					discord_user.discord_user_id
@@ -194,8 +192,7 @@ impl<'a> LevelRequestService<'a> {
 				return Some(LevelRequestError::RequestNonCreatedLevel);
 			};
 
-			if !allow_platformer_levels
-				&& level_request.is_platformer_level() {
+			if !allow_platformer_levels && level_request.is_platformer_level() {
 				warn!(
 					"User {} attempted to request a platformer level when disabled",
 					discord_user.discord_user_id
@@ -239,12 +236,14 @@ impl<'a> LevelRequestService<'a> {
 		if youtube_video_link.is_none()
 			&& request_rating.is_none()
 			&& has_requested_feedback.is_none()
-			&& notify.is_none() {
+			&& notify.is_none()
+		{
 			warn!("No edited data");
 			return Err(LevelRequestError::MalformedRequest);
 		}
 		if youtube_video_link.is_some()
-			&& !Self::is_valid_youtube_link(&youtube_video_link.as_ref().unwrap()) {
+			&& !Self::is_valid_youtube_link(&youtube_video_link.as_ref().unwrap())
+		{
 			warn!("Malformed YouTube link: {}", youtube_video_link.unwrap());
 			return Err(LevelRequestError::MalformedRequest);
 		}
@@ -267,7 +266,8 @@ impl<'a> LevelRequestService<'a> {
 			})?;
 
 		if !discord_user_id.eq(&APP_CONFIG.get().unwrap().server_config.discord_bot_admin_id)
-			&& !discord_user_id.eq(&existing_level_request.discord_user_id) {
+			&& !discord_user_id.eq(&existing_level_request.discord_user_id)
+		{
 			error!(
 				"User {} attempted to edit a level request {} they do not own",
 				discord_user_id, level_id
@@ -330,7 +330,8 @@ impl<'a> LevelRequestService<'a> {
 		if let Err(delete_level_request_error) = self
 			.level_request_repository
 			.delete_record(existing_level_request.clone().into())
-			.await {
+			.await
+		{
 			error!(
 				"Unable to delete level request from database: {}",
 				delete_level_request_error
@@ -339,6 +340,52 @@ impl<'a> LevelRequestService<'a> {
 		}
 
 		Ok(existing_level_request)
+	}
+
+	pub async fn get_unchecked_and_unrated_level_requests(
+		&self,
+	) -> Result<Vec<LevelRequest>, LevelRequestError> {
+		let unchecked_levels_request_list = self
+			.level_request_repository
+			.get_all_unchecked_records()
+			.await
+			.map_err(|get_unchecked_levels_request_list_error| {
+				error!(
+					"Error getting existing level request from database: {}",
+					get_unchecked_levels_request_list_error
+				);
+
+				LevelRequestError::DatabaseError(get_unchecked_levels_request_list_error)
+			})?
+			.into_iter()
+			.map(|unchecked_levels_request_record| {
+				LevelRequest::from(unchecked_levels_request_record.0)
+			})
+			.collect::<Vec<LevelRequest>>();
+
+		let mut unchecked_and_rated_level_requests_list: Vec<LevelRequest> = Vec::new();
+		for unchecked_level_request in unchecked_levels_request_list {
+			let Some(is_rated) = self
+				.gd_client
+				.is_rated(unchecked_level_request.level_id)
+				.await
+				.map_err(|gd_client_error| {
+					error!(
+						"Error checking if level with ID {} is rated {}",
+						unchecked_level_request.level_id, gd_client_error
+					);
+				})
+				.ok()
+			else {
+				continue;
+			};
+
+			if is_rated {
+				unchecked_and_rated_level_requests_list.push(unchecked_level_request);
+			}
+		}
+
+		Ok(unchecked_and_rated_level_requests_list)
 	}
 
 	pub async fn update_level_request_message_id(
@@ -370,7 +417,8 @@ impl<'a> LevelRequestService<'a> {
 		if let Err(update_level_request_record) = self
 			.level_request_repository
 			.update_record(existing_level_request.into())
-			.await {
+			.await
+		{
 			error!(
 				"Error updating level request with level ID: {}: {}",
 				level_id, update_level_request_record
