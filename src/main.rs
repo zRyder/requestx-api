@@ -8,8 +8,7 @@ use rocket_framework::Config;
 
 use crate::{
 	adapter::controller::{
-		auth_controller, health, level_request_controller, level_review_controller,
-		reviewer_controller, user_controller,
+		auth_controller, health, level_request_controller, reviewer_controller, user_controller,
 	},
 	rocket::common::{
 		config::common_config::{init_app_config, APP_CONFIG},
@@ -60,8 +59,7 @@ async fn launch() -> _ {
 			level_request_controller::request_level,
 			level_request_controller::update_level_request,
 			level_request_controller::delete_level_request,
-			level_review_controller::get_level_review,
-			level_review_controller::review_level,
+			level_request_controller::get_unchecked_level_requests,
 			reviewer_controller::get_reviewer,
 			reviewer_controller::create_reviewer,
 			reviewer_controller::remove_reviewer,

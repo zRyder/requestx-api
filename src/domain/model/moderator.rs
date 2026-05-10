@@ -15,6 +15,20 @@ pub struct Moderator {
 	pub suggested_rating: SuggestedRating,
 }
 
+impl Moderator {
+	pub fn new(
+		level_id: u64,
+		suggested_score: SuggestedScore,
+		suggested_rating: SuggestedRating,
+	) -> Self {
+		Self {
+			level_id,
+			suggested_score,
+			suggested_rating,
+		}
+	}
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SuggestedRating {
 	Rate,

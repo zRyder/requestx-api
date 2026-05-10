@@ -3,6 +3,5 @@
 pub use super::gd_account_link::Entity as GdAccountLink;
 pub use super::level_request::Entity as LevelRequest;
 pub use super::moderator::Entity as Moderator;
-pub use super::review::Entity as Review;
 pub use super::reviewer::Entity as Reviewer;
 pub use super::user::Entity as User;
